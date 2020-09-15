@@ -1,5 +1,5 @@
 import unittest
-from record import *
+from writeYourProgram import *
 
 # A point has a
 # - x (float)
@@ -15,7 +15,7 @@ class Point(Record):
 
 class Square(Record):
     center: Point
-    radius: float
+    size: float
 
 class TestRecords(unittest.TestCase):
 
@@ -28,7 +28,7 @@ class TestRecords(unittest.TestCase):
         self.assertEqual(Point.y(p2), 4)
         square = Square.make(p1, 5)
         self.assertEqual(Square.center(square), p1)
-        self.assertEqual(Square.radius(square), 5)
+        self.assertEqual(Square.size(square), 5)
 
     def test_createErrorArity(self):
         pass # FIXME
@@ -47,7 +47,10 @@ class TestRecords(unittest.TestCase):
         self.assertFalse(Square.isSome(p1))
 
     def test_toString(self):
-        pass # FIXME
+        p1 = Point(1, 2)
+        self.assertEqual(str(p1), 'Point(x=1, y=2)')
+        square = Square.make(p1, 5)
+        self.assertEqual(str(square), 'Square(center=Point(x=1, y=2), size=5)')
 
     def test_eq(self):
         p1 = Point(1, 2)
@@ -66,8 +69,10 @@ class TestRecords(unittest.TestCase):
         self.assertNotEqual(s1, s4)
 
     def test_hash(self):
-        pass # FIXME
+        p1 = Point(1, 2)
+        p2 = Point.make(1, 4)
+        p3 = Point.make(1, 2)
+        self.assertEqual(hash(p1), hash(p3))
+        self.assertNotEqual(hash(p1), hash(p2))
 
-if __name__ == '__main__':
-    unittest.main()
 
