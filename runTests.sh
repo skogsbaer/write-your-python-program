@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd $(dirname $0)
-PYTHONPATH=src python3 tests/testRecords.py
+PYTHONPATH=src python3 tests/*.py

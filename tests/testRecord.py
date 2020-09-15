@@ -1,5 +1,5 @@
 import unittest
-from records import *
+from record import *
 
 # A point has a
 # - x (float)
