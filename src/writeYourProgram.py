@@ -1,4 +1,5 @@
 # FIXME: make exceptions nicer
+import time
 
 def debug(s):
     pass
@@ -136,13 +137,52 @@ class DefinedLater:
 
 # Tests
 
+def _isNumber(x):
+    t = type(x)
+    return (t is int or t is float)
+
+def _dieOnCheckFailures():
+    return False
+
+_testCount = {'total': 0, 'failing': 0}
+
+def initModule(file):
+    global _testCount
+    _testCount = {'total': 0, 'failing': 0}
+    t = time.strftime("%a, %d %b %Y %H:%M:%S")
+    print(f'WILLKOMMEN zu "Schreibe Dein Programm!" ({t}, {file})')
+
+def finishModule():
+    total = _testCount['total']
+    failing = _testCount['failing']
+    if total == 0:
+        print('Keine Tests definiert.')
+    elif failing == 0:
+        print(f'{total} Tests, alle erfolgreich :-)')
+    else:
+        print(f'{total} Tests, {failing} Fehler :-(')
+
 def check(actual, expected):
-    if actual != expected:
+    global _testCount
+    matches = actual == expected
+    if _isNumber(actual) and _isNumber(expected):
+        diff = actual - expected
+        matches = abs(diff) < 0.00001
+    _testCount = {
+        'total': _testCount['total'] + 1,
+        'failing': _testCount['failing'] + (0 if matches else 1)
+    }
+    if not matches:
         stack = inspect.stack()
         caller = stack[1] if len(stack) > 1 else None
-        raise Exception(f"{caller.filename}:{caller.lineno}: Erwartet wird {expected}, aber das Ergebnis ist {actual}")
+        msg = f"{caller.filename}:{caller.lineno}: Erwartet wird {expected}, aber das Ergebnis ist {actual}"
+        if _dieOnCheckFailures():
+            raise Exception(msg)
+        else:
+            print("FEHLER in " + msg)
 
 def uncoveredCase():
     stack = inspect.stack()
     caller = stack[1] if len(stack) > 1 else None
-    raise Exception(f"{caller.filename}:{caller.lineno}: ein Fall ist nicht abgedeckt")
+    raise Exception(f"{caller.filename}, Zeile {caller.lineno}: ein Fall ist nicht abgedeckt")
+

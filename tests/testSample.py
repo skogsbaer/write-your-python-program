@@ -4,8 +4,9 @@ import math
 
 # A shape is one of the following:
 # - a circle (Circle)
+# - a square (Square)
 # - an overlay of two shapes (Overlay)
-Shape = Mixed(DefinedLater('Circle'), DefinedLater('Overlay'), DefinedLater('Square'))
+Shape = Mixed(DefinedLater('Circle'), DefinedLater('Square'), DefinedLater('Overlay'))
 
 # Shape.isSome: any -> boolean
 
