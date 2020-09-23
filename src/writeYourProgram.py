@@ -1,5 +1,6 @@
 # FIXME: make exceptions nicer
 import time
+import os
 
 def debug(s):
     pass
@@ -150,17 +151,21 @@ def initModule(file):
     global _testCount
     _testCount = {'total': 0, 'failing': 0}
     t = time.strftime("%a, %d %b %Y %H:%M:%S")
+    cwd = os.getcwd() + "/"
+    if file.startswith(cwd):
+        file = file[len(cwd):]
     print(f'WILLKOMMEN zu "Schreibe Dein Programm!" ({t}, {file})')
 
 def finishModule():
     total = _testCount['total']
     failing = _testCount['failing']
     if total == 0:
-        print('Keine Tests definiert.')
+        pass
     elif failing == 0:
         print(f'{total} Tests, alle erfolgreich :-)')
     else:
         print(f'{total} Tests, {failing} Fehler :-(')
+    return failing
 
 def check(actual, expected):
     global _testCount
