@@ -2,6 +2,8 @@ from writeYourProgram import *
 import unittest
 import math
 
+MyEnum = Enum("Tea", "Coffee")
+
 # A shape is one of the following:
 # - a circle (Circle)
 # - a square (Square)

@@ -89,18 +89,20 @@ class Record(metaclass=MetaRecord):
 
 # Mixed types
 
-class MetaMixed(type):
-    def __new__(baseCls, name, bases, dct):
-        cls = super().__new__(baseCls, name, bases, dct)
-        return cls
-
-class Mixed(metaclass=MetaMixed):
+class Mixed:
     def __init__(self, *args):
         self.alternatives = args
     def isSome(self, x):
         for alt in self.alternatives:
             if alt.isSome(x): return True
         return False
+
+# Enums
+class Enum:
+    def __init__(self, *args):
+        self.alternatives = args
+    def isSome(self, x):
+        return x in self.alternatives
 
 # Deferred references
 
