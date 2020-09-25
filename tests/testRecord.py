@@ -13,6 +13,8 @@ Point = Record("Point", "x", Float, "y", Float)
 
 Square = Record("Square", "center", Point, "size", Float)
 
+Name = Record("Name", "firstName", String, "lastName", String)
+
 class TestRecords(unittest.TestCase):
 
     def test_create(self):
@@ -47,6 +49,8 @@ class TestRecords(unittest.TestCase):
         self.assertEqual(str(p1), 'Point(x=1, y=2)')
         square = Square.make(p1, 5)
         self.assertEqual(str(square), 'Square(center=Point(x=1, y=2), size=5)')
+        name = Name.make("Stefan", "Wehr")
+        self.assertEqual(str(name), 'Name(firstName="Stefan", lastName="Wehr")')
 
     def test_eq(self):
         p1 = Point.make(1, 2)

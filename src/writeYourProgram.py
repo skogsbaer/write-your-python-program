@@ -71,7 +71,6 @@ class Record:
         raise AttributeError(f"Der Record {self.recordName} besitzt die Eigenschaft " \
             f"{name} nicht. Es gibt folgende Eigenschaften: {attrs}")
 
-
 class RecordInstance:
     def __init__(self, recordName, fields, args):
         self.recordName = recordName
@@ -83,7 +82,7 @@ class RecordInstance:
 
     def __repr__(self):
         result = self.recordName + '('
-        result += ', '.join([f + '=' + str(v) for (f, v) in self.values.items()])
+        result += ', '.join([f + '=' + repr(v) for (f, v) in self.values.items()])
         result += ')'
         return result
 
