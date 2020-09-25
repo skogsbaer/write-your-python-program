@@ -4,23 +4,19 @@ from writeYourProgram import *
 # A point has a
 # - x (float)
 # - y (float)
-class Point(Record):
-    x: float
-    y: float
+Point = Record("Point", "x", Float, "y", Float)
 
 # Point.make: (float, float) ->  Point
 # Point.isSome: any -> boolean
 # Point.x: (Point) -> float
 # Point.y: (Point) -> float
 
-class Square(Record):
-    center: Point
-    size: float
+Square = Record("Square", "center", Point, "size", Float)
 
 class TestRecords(unittest.TestCase):
 
     def test_create(self):
-        p1 = Point(1, 2)
+        p1 = Point.make(1, 2)
         p2 = Point.make(3, 4)
         self.assertEqual(Point.x(p1), 1)
         self.assertEqual(Point.y(p1), 2)
@@ -37,7 +33,7 @@ class TestRecords(unittest.TestCase):
         pass # FIXME
 
     def test_isSome(self):
-        p1 = Point(1, 2)
+        p1 = Point.make(1, 2)
         square = Square.make(p1, 5)
         self.assertTrue(Point.isSome(p1))
         self.assertFalse(Point.isSome(42))
@@ -47,13 +43,13 @@ class TestRecords(unittest.TestCase):
         self.assertFalse(Square.isSome(p1))
 
     def test_toString(self):
-        p1 = Point(1, 2)
+        p1 = Point.make(1, 2)
         self.assertEqual(str(p1), 'Point(x=1, y=2)')
         square = Square.make(p1, 5)
         self.assertEqual(str(square), 'Square(center=Point(x=1, y=2), size=5)')
 
     def test_eq(self):
-        p1 = Point(1, 2)
+        p1 = Point.make(1, 2)
         p2 = Point.make(1, 4)
         p3 = Point.make(1, 2)
         self.assertEqual(p1, p1)
@@ -69,7 +65,7 @@ class TestRecords(unittest.TestCase):
         self.assertNotEqual(s1, s4)
 
     def test_hash(self):
-        p1 = Point(1, 2)
+        p1 = Point.make(1, 2)
         p2 = Point.make(1, 4)
         p3 = Point.make(1, 2)
         self.assertEqual(hash(p1), hash(p3))

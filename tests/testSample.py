@@ -2,7 +2,15 @@ from writeYourProgram import *
 import unittest
 import math
 
-MyEnum = Enum("Tea", "Coffee")
+Drink = Enum("Tea", "Coffee")
+
+# berechnet wieviele Tassen ich von einem Getränk trinken darf
+# canDrink: (Drink) -> Int
+def canDrink(d):
+    if d == "Tea":
+        return 5
+    elif d == "Coffee":
+        return 1
 
 # A shape is one of the following:
 # - a circle (Circle)
@@ -15,10 +23,7 @@ Shape = Mixed(DefinedLater('Circle'), DefinedLater('Square'), DefinedLater('Over
 # A point consists of
 # - x (Float)
 # - y (Float)
-class Point(Record):
-    x: Float
-    y: Float
-
+Point = Record("Point", "x", Float, "y", Float)
 # Point.make: (Float, Float) ->  Point
 # Point.isSome: Any -> Bool
 # Point.x: (Point) -> Float
@@ -36,9 +41,7 @@ p3 = Point.make(40, 30)
 # A circle consists of
 # - center (Point)
 # - radius (float)
-class Circle(Record):
-    center: Point
-    radius: Float
+Circle = Record("Circle", "center", Point, "radius", Float)
 
 # Circle.make: (Point, Float) -> Circle
 # Circle.isSome: Any -> Bool
@@ -54,9 +57,7 @@ c2 = Circle.make(p3, 15)
 # A square (parallel to the coordinate system) consists of
 # - lower-left corner (Point)
 # - size (Float)
-class Square(Record):
-    corner: Point
-    size: Float
+Square = Record("Square", "corner", Point, "size", Float)
 
 # square at p1 with size=40
 s1 = Square.make(p1, 40)
@@ -69,9 +70,7 @@ s1 = Square.make(p1, 40)
 # An overlay consists of
 # - top (Shape)
 # - bottom (Shape)
-class Overlay(Record):
-    top: Shape
-    bottom: Shape
+Overlay = Record("Overlay", "top", Shape, "bottom", Shape)
 
 # Overlay.make: (Shape, Shape) -> Overlay
 # Overlay.isSome: any -> boolean

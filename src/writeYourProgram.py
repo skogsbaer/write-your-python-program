@@ -2,9 +2,10 @@
 import time
 import os
 
+DEBUG = False
 def debug(s):
-    pass
-    # print('[DEBUG] ' + s)
+    if DEBUG:
+        print('[DEBUG] ' + s)
 
 # Wrappers for primitive types
 
@@ -24,67 +25,79 @@ class Bool:
     def isSome(x):
         return type(x) is bool
 
-# Records inspired by the namedtuples library, but much simpler.
 # The goal is the make everything as simple and consistent as possible, so that
 # records can be used to teach an introductory programming course inspired by
 # "How to Design Programs" and "Schreib Dein Programm!".
 
 def mkGetter(name):
     def get(obj):
-        val = obj.__dict__['_' + name]
+        val = obj.values[name]
         return val
     return get
 
-class MetaRecord(type):
-    def __new__(baseCls, name, bases, dct):
-        cls = super().__new__(baseCls, name, bases, dct)
-        # We inject static methods here to be able to use the class object in those methods
+class Record:
+    def __init__(self, *args):
+        if len(args) % 2 != 1:
+            raise TypeError("Record benötigte eine ungerade Anzahl an Argumenten.")
+        if len(args) <= 1:
+            raise TypeError("Record benötigt mindestens eine Eigenschaft")
+        recordName = args[0]
+        if type(recordName) != str:
+            raise TypeError("Das erste Argument von Record ist der Name des Records. Dieser " \
+                "Wert muss ein String sein.")
+        fields = []
+        for i in range(1, len(args), 2):
+            fieldName = args[i]
+            fieldTy = args[i+1]
+            if type(fieldName) != str:
+                raise TypeError(f"Das {i+1}te Argument von Record ist kein String, es wird aber " \
+                    "der Name einer Eigenschaft erwartet.")
+            fields.append((fieldName, fieldTy))
         def make(*args):
-            return cls(*args)
+            return RecordInstance(recordName, fields, args)
         def isSome(x):
             ty = type(x)
-            return ty is cls
-        cls.make = make
-        cls.isSome = isSome
-        cls._fields = dct.get('__annotations__', {})
-        cls._name = name
-        # create getters for all fields
-        for (name, _ty) in cls._fields.items():
-            setattr(cls, name, mkGetter(name))
-        return cls
+            return ty is RecordInstance and x.recordName == recordName
+        self.make = make
+        self.isSome = isSome
+        self.fields = fields
+        self.recordName = recordName
+        for (name, _ty) in fields:
+            setattr(self, name, mkGetter(name))
+    def __repr__(self):
+        return f"Record({self.recordName})"
+    def __getattr__(self, name):
+        attrs = ", ".join([x[0] for x in self.fields])
+        raise AttributeError(f"Der Record {self.recordName} besitzt die Eigenschaft " \
+            f"{name} nicht. Es gibt folgende Eigenschaften: {attrs}")
 
-class Record(metaclass=MetaRecord):
-    def __init__(self, *args):
-        fields = self.__class__._fields.items()
-        # Since python 3.7, dicts preserve the insertion order
-        # (https://docs.python.org/3/whatsnew/3.7.html). This, we can assume that fields
-        # contains the annotated fields of the class in the same order as in the class
-        # definition.
-        # FIXME: error handling: check arity and (optionally) types
+
+class RecordInstance:
+    def __init__(self, recordName, fields, args):
+        self.recordName = recordName
+        self.values = {}
         for ((name, ty), val) in zip(fields, args):
-            self.__dict__['_' + name] = val
-        debug(f'__init__ for {self.__class__.__name__} finished, self.__dict__={self.__dict__}')
+            self.values[name] = val
+        debug(f'__init__ for {self.recordName} finished, self.values={self.values}, '\
+            f'fields={fields}, args={args}')
 
-    def __str__(self):
-        result = self.__class__._name + '('
-        fields = self.__class__._fields
-        result += ', '.join([f + '=' + str(self.__dict__['_' + f]) for (f, _) in fields.items()])
+    def __repr__(self):
+        result = self.recordName + '('
+        result += ', '.join([f + '=' + str(v) for (f, v) in self.values.items()])
         result += ')'
         return result
 
     def __eq__(self, other):
-        return type(other) is self.__class__ and self.__dict__ == other.__dict__
+        return type(other) is self.__class__ and self.recordName == other.recordName and \
+            self.values == other.values
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __hash__(self):
         result = 17
-        fields = self.__class__._fields
-        for (f, _ty) in fields.items():
-            val = self.__dict__.get('_' + f, None)
-            if val:
-                result = 31 * result + hash(val)
+        for (f, v) in self.values.items():
+            result = 31 * result + hash(v)
         return result
 
 # Mixed types
@@ -117,7 +130,8 @@ def _resolveType(frameInfo, name):
             return x
     file = frameInfo.filename
     line = frameInfo.lineno
-    raise Exception(f"Der Typ {name} wird in {file}:{line} referenziert, ist aber nicht in der Datei {file} definiert.")
+    raise Exception(f"Der Typ {name} wird in {file}:{line} referenziert, ist aber nicht " \
+        f"in der Datei {file} definiert.")
 
 class DefinedLater:
     def __init__(self, ref):
@@ -126,17 +140,18 @@ class DefinedLater:
         stack = inspect.stack()
         caller = stack[1] if len(stack) > 1 else None
         self.caller = caller
-    # FIXME: add __repr__
-    def __getattribute__(self, attr):
-        if attr in ['ref', 'resolved', 'caller']:
-            return object.__getattribute__(self, attr)
-        resolved = self.resolved
-        if resolved:
-            return self.resolved[attr]
+    def __repr__(self):
+        if self.resolved:
+            return repr(self.resolved)
         else:
-            x = _resolveType(self.caller, self.ref)
-            setattr(self, 'resolved', x)
-            return x
+            return "DefinedLater(" + repr(self.ref) + ")"
+    def __getattr__(self, attr):
+        resolved = self.resolved
+        if not resolved:
+            resolved = _resolveType(self.caller, self.ref)
+            debug(f"Resolved {self.ref} to {resolved}")
+            setattr(self, 'resolved', resolved)
+        return getattr(resolved, attr)
 
 # Tests
 
