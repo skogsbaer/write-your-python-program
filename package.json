@@ -1,13 +1,14 @@
 {
-	"name": "write-your-program",
-	"displayName": "Write Your Program!",
-	"description": "",
+	"name": "write-your-python-program",
+	"displayName": "Write Your Python Program!",
+	"description": "A user friendly python environment for beginners",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.49.0"
 	},
 	"categories": [
-		"Other"
+		"Language Packs",
+		"Programming Languages"
 	],
 	"activationEvents": [
 		"onLanguage:python"
@@ -16,8 +17,12 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "write-your-program.PythonInterpreter",
-				"title": "Python Interpreter"
+				"command": "write-your-python-program.interpreter",
+				"title": "Python interpreter"
+			},
+			{
+				"command": "write-yout-python-program.run",
+				"title": "Run program"
 			}
 		]
 	},
