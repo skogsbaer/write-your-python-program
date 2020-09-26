@@ -2,10 +2,19 @@
 	"name": "write-your-python-program",
 	"displayName": "Write Your Python Program!",
 	"description": "A user friendly python environment for beginners",
-	"version": "0.0.1",
+	"license": "See license in LICENSE",
+	"version": "0.1.0",
+	"publisher": "StefanWehr",
+	"icon": "icon.png",
 	"engines": {
 		"vscode": "^1.49.0"
 	},
+	"keywords": [
+		"Python",
+		"beginners",
+		"write-your-python-program",
+		"WYPP"
+	],
 	"categories": [
 		"Language Packs",
 		"Programming Languages"
@@ -14,6 +23,13 @@
 		"onLanguage:python"
 	],
 	"main": "./out/extension.js",
+	"extensionDependencies": [
+		"ms-python.python"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/skogsbaer/write-your-python-program"
+	},
 	"contributes": {
 		"commands": [
 			{
@@ -24,7 +40,18 @@
 				"command": "write-yout-python-program.run",
 				"title": "Run program"
 			}
-		]
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Write Your Python Program",
+			"properties": {
+	    		"write-your-python-program.python3Cmd": {
+	    			"type": "string",
+	    			"required": false,
+	    			"description": "Path to the Python 3 executable"
+	    		}
+	    	}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

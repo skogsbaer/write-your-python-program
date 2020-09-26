@@ -3,6 +3,7 @@ import os
 import os.path
 import runpy
 import argparse
+import json
 
 parser = argparse.ArgumentParser(description='Run Your Program!')
 parser.add_argument('file', metavar='FILE',
@@ -27,9 +28,18 @@ if not fileToRun.endswith('.py'):
     os._exit(0)
 
 libDir = os.path.dirname(__file__)
+
+version = None
+try:
+    with open(os.path.join(libDir, '..', '..', 'package.json')) as file:
+        content = file.read()
+        d = json.loads(content)
+        version = d['version']
+except:
+    pass
 libFile = os.path.join(libDir, 'writeYourProgram.py')
 libDefs = runpy.run_path(libFile)
-libDefs['initModule'](fileToRun)
+libDefs['initModule'](fileToRun, version)
 userDefs = runpy.run_path(fileToRun, libDefs)
 failing = libDefs['finishModule']()
 

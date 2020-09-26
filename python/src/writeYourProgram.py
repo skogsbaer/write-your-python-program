@@ -163,14 +163,14 @@ def _dieOnCheckFailures():
 
 _testCount = {'total': 0, 'failing': 0}
 
-def initModule(file):
+def initModule(file, version):
     global _testCount
     _testCount = {'total': 0, 'failing': 0}
-    t = time.strftime("%a, %d %b %Y %H:%M:%S")
     cwd = os.getcwd() + "/"
     if file.startswith(cwd):
         file = file[len(cwd):]
-    print(f'WILLKOMMEN zu "Schreibe Dein Programm!" ({t}, {file})')
+    versionStr = '' if not version else f'Version {version}, '
+    print(f'WILLKOMMEN zu "Schreibe Dein Programm!" ({versionStr}{file})')
 
 def finishModule():
     total = _testCount['total']
@@ -196,7 +196,8 @@ def check(actual, expected):
     if not matches:
         stack = inspect.stack()
         caller = stack[1] if len(stack) > 1 else None
-        msg = f"{caller.filename}:{caller.lineno}: Erwartet wird {expected}, aber das Ergebnis ist {actual}"
+        msg = f"{caller.filename}:{caller.lineno}: Erwartet wird {expected}, aber das " \
+            f"Ergebnis ist {actual}"
         if _dieOnCheckFailures():
             raise Exception(msg)
         else:

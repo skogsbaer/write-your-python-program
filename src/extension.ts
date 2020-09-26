@@ -3,6 +3,8 @@
 import * as vscode from 'vscode';
 
 const extensionId = 'write-your-python-program';
+const python3ConfigKey = 'python3Cmd';
+
 const disposables: vscode.Disposable[] = [];
 const buttons: vscode.StatusBarItem[] = [];
 
@@ -75,6 +77,15 @@ function installCmd(
 	installButton(buttonTitle, cmdId);
 }
 
+function getPythonCmd(): string {
+	const config = vscode.workspace.getConfiguration()[extensionId];
+	let pythonCmd = 'python3';
+	if (config && config[python3ConfigKey]) {
+		pythonCmd = config[python3ConfigKey];
+	}
+	return pythonCmd;
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -82,10 +93,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	console.log('Activating extension ' + extensionId);
 
-	const pythonCmd = quote('python3'); // make configurable
 	const terminals: { [name: string]: vscode.Terminal } = {};
 
-	installButton("Write Your Python Program:", undefined);
+	installButton("Write Your Python Program", undefined);
 
 	// Run
     const runProg = context.asAbsolutePath('python/src/runYourProgram.py');
@@ -106,9 +116,10 @@ export function activate(context: vscode.ExtensionContext) {
 		    	vscode.window.showWarningMessage('Not a python file');
 		    	return;
 		    }
+			const pythonCmd = quote(getPythonCmd());
 			terminals[cmdId] = startTerminal(
 				terminals[cmdId],
-				"RUN",
+				"WYPP - RUN",
 			    pythonCmd + " -i " + quote(runProg) + " " + quote(file)
 			);
 		}
@@ -119,10 +130,11 @@ export function activate(context: vscode.ExtensionContext) {
 		context,
 		"interpreter",
 		"🐍 Interpreter",
-		() => {
-			terminals["interpreter"] = startTerminal(
-				terminals["interpreter"],
-				"Interpreter",
+		(cmdId) => {
+			const pythonCmd = quote(getPythonCmd());
+			terminals[cmdId] = startTerminal(
+				terminals[cmdId],
+				"WYPP - Interpreter",
 				pythonCmd + " -i"
 			);
 		}
