@@ -1,6 +1,8 @@
 import unittest
 from testSample import *
 
+setDieOnCheckFailures(True)
+
 PointOrFloat = Mixed(Point, float)
 
 class TestMixed(unittest.TestCase):

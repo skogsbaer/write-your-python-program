@@ -156,8 +156,13 @@ def _isNumber(x):
     t = type(x)
     return (t is int or t is float)
 
+_die = False
+
+def setDieOnCheckFailures(b):
+    _die = b
+
 def _dieOnCheckFailures():
-    return False
+    return _die
 
 _testCount = {'total': 0, 'failing': 0}
 

@@ -1,6 +1,8 @@
 import unittest
 from writeYourProgram import *
 
+setDieOnCheckFailures(True)
+
 # A point has a
 # - x (float)
 # - y (float)

@@ -2,6 +2,8 @@ from writeYourProgram import *
 import unittest
 import math
 
+setDieOnCheckFailures(True)
+
 Drink = Enum("Tea", "Coffee")
 
 # berechnet wieviele Tassen ich von einem Getränk trinken darf
