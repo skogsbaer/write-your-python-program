@@ -5,8 +5,7 @@ import math
 Drink = Enum("Tea", "Coffee")
 
 # berechnet wieviele Tassen ich von einem Getränk trinken darf
-# canDrink: (Drink) -> Int
-def canDrink(d):
+def canDrink(d: Drink) -> int:
     if d == "Tea":
         return 5
     elif d == "Coffee":
@@ -21,13 +20,13 @@ Shape = Mixed(DefinedLater('Circle'), DefinedLater('Square'), DefinedLater('Over
 # Shape.isSome: any -> boolean
 
 # A point consists of
-# - x (Float)
-# - y (Float)
-Point = Record("Point", "x", Float, "y", Float)
-# Point.make: (Float, Float) ->  Point
-# Point.isSome: Any -> Bool
-# Point.x: (Point) -> Float
-# Point.y: (Point) -> Float
+# - x (float)
+# - y (float)
+Point = Record("Point", "x", float, "y", float)
+# Point.make: (float, float) ->  Point
+# Point.isSome: Any -> fool
+# Point.x: (Point) -> float
+# Point.y: (Point) -> float
 
 # point at x=10, y=20
 p1 = Point.make(10, 20)
@@ -41,12 +40,12 @@ p3 = Point.make(40, 30)
 # A circle consists of
 # - center (Point)
 # - radius (float)
-Circle = Record("Circle", "center", Point, "radius", Float)
+Circle = Record("Circle", "center", Point, "radius", float)
 
-# Circle.make: (Point, Float) -> Circle
-# Circle.isSome: Any -> Bool
+# Circle.make: (Point, float) -> Circle
+# Circle.isSome: Any -> bool
 # Circle.center: (Circle) -> Point
-# Circle.radius: (Circle) -> Float
+# Circle.radius: (Circle) -> float
 
 # circle at p2 with radius=20
 c1 = Circle.make(p2, 20)
@@ -56,16 +55,16 @@ c2 = Circle.make(p3, 15)
 
 # A square (parallel to the coordinate system) consists of
 # - lower-left corner (Point)
-# - size (Float)
-Square = Record("Square", "corner", Point, "size", Float)
+# - size (float)
+Square = Record("Square", "corner", Point, "size", float)
 
 # square at p1 with size=40
 s1 = Square.make(p1, 40)
 
-# Square.make: (Point, Float) -> Square
-# Square.isSome: Any -> Bool
+# Square.make: (Point, float) -> Square
+# Square.isSome: Any -> bool
 # Square.corner: Square -> Point
-# Square.size: Square -> Float
+# Square.size: Square -> float
 
 # An overlay consists of
 # - top (Shape)
@@ -83,16 +82,14 @@ o1 = Overlay.make(c1, s1)
 o2 = Overlay.make(o1, c2)
 
 # Calculate the distance between two points
-# distance: (Point, Point) -> Float
-def distance(p1, p2):
+def distance(p1: Point, p2: Point) -> float:
     w = Point.x(p1) - Point.x(p2)
     h = Point.y(p1) - Point.y(p2)
     dist = math.sqrt(w**2 + h**2)
     return dist
 
 # Is a point within a shape?
-# pointInShape: (Point, Shape) -> Bool
-def pointInShape(point, shape):
+def pointInShape(point: Point, shape: Shape) -> bool:
     px = Point.x(point)
     py = Point.y(point)
     if Circle.isSome(shape):

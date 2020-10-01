@@ -1,7 +1,7 @@
 import unittest
 from testSample import *
 
-PointOrFloat = Mixed(Point, Float)
+PointOrFloat = Mixed(Point, float)
 
 class TestMixed(unittest.TestCase):
 

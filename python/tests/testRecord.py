@@ -4,16 +4,16 @@ from writeYourProgram import *
 # A point has a
 # - x (float)
 # - y (float)
-Point = Record("Point", "x", Float, "y", Float)
+Point = Record("Point", "x", float, "y", float)
 
 # Point.make: (float, float) ->  Point
 # Point.isSome: any -> boolean
 # Point.x: (Point) -> float
 # Point.y: (Point) -> float
 
-Square = Record("Square", "center", Point, "size", Float)
+Square = Record("Square", "center", Point, "size", float)
 
-Name = Record("Name", "firstName", String, "lastName", String)
+Name = Record("Name", "firstName", str, "lastName", str)
 
 class TestRecords(unittest.TestCase):
 
@@ -50,7 +50,7 @@ class TestRecords(unittest.TestCase):
         square = Square.make(p1, 5)
         self.assertEqual(str(square), 'Square(center=Point(x=1, y=2), size=5)')
         name = Name.make("Stefan", "Wehr")
-        self.assertEqual(str(name), 'Name(firstName="Stefan", lastName="Wehr")')
+        self.assertEqual(str(name), "Name(firstName='Stefan', lastName='Wehr')")
 
     def test_eq(self):
         p1 = Point.make(1, 2)

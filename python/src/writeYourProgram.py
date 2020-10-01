@@ -1,29 +1,14 @@
 # FIXME: make exceptions nicer
 import time
 import os
+import typing
 
 DEBUG = False
 def debug(s):
     if DEBUG:
         print('[DEBUG] ' + s)
 
-# Wrappers for primitive types
-
-class String:
-    def isSome(x):
-        return type(x) is str
-
-class Int:
-    def isSome(x):
-        return type(x) is int
-
-class Float:
-    def isSome(x):
-        return type(x) is float
-
-class Bool:
-    def isSome(x):
-        return type(x) is bool
+Any = typing.Any
 
 # The goal is the make everything as simple and consistent as possible, so that
 # records can be used to teach an introductory programming course inspired by
@@ -101,12 +86,25 @@ class RecordInstance:
 
 # Mixed types
 
+def hasType(ty, x):
+    if type(x) is ty:
+        return True
+    elif ty is Any:
+        return True
+    else:
+        pred = getattr(ty, "isSome", None)
+        if pred:
+            return pred(x)
+        else:
+            return False
+
 class Mixed:
     def __init__(self, *args):
         self.alternatives = args
     def isSome(self, x):
         for alt in self.alternatives:
-            if alt.isSome(x): return True
+            if hasType(alt, x):
+                return True
         return False
 
 # Enums
