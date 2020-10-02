@@ -8,7 +8,7 @@ setDieOnCheckFailures(True)
 # - y (float)
 Point = Record("Point", "x", float, "y", float)
 
-# Point.make: (float, float) ->  Point
+# Point: (float, float) ->  Point
 # Point.isSome: any -> boolean
 # Point.x: (Point) -> float
 # Point.y: (Point) -> float
@@ -20,15 +20,15 @@ Name = Record("Name", "firstName", str, "lastName", str)
 class TestRecords(unittest.TestCase):
 
     def test_create(self):
-        p1 = Point.make(1, 2)
-        p2 = Point.make(3, 4)
-        self.assertEqual(Point.x(p1), 1)
-        self.assertEqual(Point.y(p1), 2)
-        self.assertEqual(Point.x(p2), 3)
-        self.assertEqual(Point.y(p2), 4)
-        square = Square.make(p1, 5)
-        self.assertEqual(Square.center(square), p1)
-        self.assertEqual(Square.size(square), 5)
+        p1 = Point(1, 2)
+        p2 = Point(3, 4)
+        self.assertEqual(p1.x, 1)
+        self.assertEqual(p1.y, 2)
+        self.assertEqual(p2.x, 3)
+        self.assertEqual(p2.y, 4)
+        square = Square(p1, 5)
+        self.assertEqual(square.center, p1)
+        self.assertEqual(square.size, 5)
 
     def test_createErrorArity(self):
         pass # FIXME
@@ -37,8 +37,8 @@ class TestRecords(unittest.TestCase):
         pass # FIXME
 
     def test_isSome(self):
-        p1 = Point.make(1, 2)
-        square = Square.make(p1, 5)
+        p1 = Point(1, 2)
+        square = Square(p1, 5)
         self.assertTrue(Point.isSome(p1))
         self.assertFalse(Point.isSome(42))
         self.assertFalse(Point.isSome(square))
@@ -47,33 +47,33 @@ class TestRecords(unittest.TestCase):
         self.assertFalse(Square.isSome(p1))
 
     def test_toString(self):
-        p1 = Point.make(1, 2)
+        p1 = Point(1, 2)
         self.assertEqual(str(p1), 'Point(x=1, y=2)')
-        square = Square.make(p1, 5)
+        square = Square(p1, 5)
         self.assertEqual(str(square), 'Square(center=Point(x=1, y=2), size=5)')
-        name = Name.make("Stefan", "Wehr")
+        name = Name("Stefan", "Wehr")
         self.assertEqual(str(name), "Name(firstName='Stefan', lastName='Wehr')")
 
     def test_eq(self):
-        p1 = Point.make(1, 2)
-        p2 = Point.make(1, 4)
-        p3 = Point.make(1, 2)
+        p1 = Point(1, 2)
+        p2 = Point(1, 4)
+        p3 = Point(1, 2)
         self.assertEqual(p1, p1)
         self.assertEqual(p1, p3)
         self.assertNotEqual(p1, p2)
-        s1 = Square.make(p1, 5)
-        s2 = Square.make(p3, 5)
-        s3 = Square.make(p3, 6)
-        s4 = Square.make(p2, 5)
+        s1 = Square(p1, 5)
+        s2 = Square(p3, 5)
+        s3 = Square(p3, 6)
+        s4 = Square(p2, 5)
         self.assertEqual(s1, s1)
         self.assertEqual(s1, s2)
         self.assertNotEqual(s1, s3)
         self.assertNotEqual(s1, s4)
 
     def test_hash(self):
-        p1 = Point.make(1, 2)
-        p2 = Point.make(1, 4)
-        p3 = Point.make(1, 2)
+        p1 = Point(1, 2)
+        p2 = Point(1, 4)
+        p3 = Point(1, 2)
         self.assertEqual(hash(p1), hash(p3))
         self.assertNotEqual(hash(p1), hash(p2))
 

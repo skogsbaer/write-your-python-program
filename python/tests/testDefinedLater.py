@@ -8,6 +8,6 @@ class TestMixed(unittest.TestCase):
     def test_isSome(self):
         ty = DefinedLater('Name')
         Name = Record("Name", "firstName", str, "lastName", str)
-        myName = Name.make("Stefan", "Wehr")
+        myName = Name("Stefan", "Wehr")
         self.assertTrue(ty.isSome(myName))
         self.assertFalse(ty.isSome(42))

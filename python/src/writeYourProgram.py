@@ -43,18 +43,19 @@ class Record:
         def isSome(x):
             ty = type(x)
             return ty is RecordInstance and x.recordName == recordName
-        self.make = make
+        # self.make = make
         self.isSome = isSome
         self.fields = fields
         self.recordName = recordName
-        for (name, _ty) in fields:
-            setattr(self, name, mkGetter(name))
+        # for (name, _ty) in fields:
+        #     setattr(self, name, mkGetter(name))
+    def __call__(self, *args):
+        return RecordInstance(self.recordName, self.fields, args)
     def __repr__(self):
         return f"Record({self.recordName})"
     def __getattr__(self, name):
         attrs = ", ".join([x[0] for x in self.fields])
-        raise AttributeError(f"Der Record {self.recordName} besitzt die Eigenschaft " \
-            f"{name} nicht. Es gibt folgende Eigenschaften: {attrs}")
+        raise AttributeError(f"{self.recordName}.{name} ist nicht definiert.")
 
 class RecordInstance:
     def __init__(self, recordName, fields, args):
@@ -64,6 +65,14 @@ class RecordInstance:
             self.values[name] = val
         debug(f'__init__ for {self.recordName} finished, self.values={self.values}, '\
             f'fields={fields}, args={args}')
+
+    def __getattr__(self, name):
+        try:
+            return self.values[name]
+        except KeyError:
+            attrs = ", ".join([x[0] for x in self.values.items()])
+            raise AttributeError(f"Der Record {self.recordName} besitzt die Eigenschaft " \
+                f"{name} nicht. Es gibt folgende Eigenschaften: {attrs}")
 
     def __repr__(self):
         result = self.recordName + '('
