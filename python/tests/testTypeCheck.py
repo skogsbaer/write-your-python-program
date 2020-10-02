@@ -16,11 +16,15 @@ def noResult():
 def takeFloat(f: float) -> float:
     return f
 
-def consumeSequence(s: Sequence[int]):
+def consumeSequence(s: Sequence[str]):
+    pass
+
+def justUseIterable(i: Iterable[int]):
     pass
 
 def consumeIterable(i: Iterable[int]):
-    pass
+    for x in i:
+        pass
 
 def consumeList(l: List[int]):
     pass
@@ -28,8 +32,11 @@ def consumeList(l: List[int]):
 def consumeDict(d: Dict[str, int]):
     pass
 
-def myMap(list: List[T], fun: Callable[[T], U]) -> List[U]):
-    return [fun(x) for x in list]
+def myMap(l: List[int], fun: Callable[[int], str]) -> List[str]):
+    return [fun(x) for x in l]
+
+def strId(x: str) -> str:
+    return x
 
 PointOrFloat = Mixed(Point, float)
 
@@ -104,28 +111,43 @@ class TestTypeCheck(unittest.TestCase):
         )
 
     def test_sequenceTypeCheck(self):
-        consumeSequence([1])
+        consumeSequence(["1"])
         consumeSequence("foo")
-        consumeSequence((1,2,3))
+        consumeSequence(("1", "2", "3"))
         self.assertTypeError(
-            "Funktion consumeSequence erwartet als ersten Parameter ein Sequence[int] kein List[float]",
-            lambda: consumeSequence([1.0])
+            "Funktion consumeSequence erwartet als ersten Parameter ein Sequence[str] kein List[int]",
+            lambda: consumeSequence([1])
         )
 
     def test_iterableTypeCheck(self):
-        pass
-
-    def test_higherOrderFunTypeCheck(self):
-        origList = [1.3, 2.1, 3.13]
-        l = myMap(origList, int)
-        self.assertEqal(l, [1, 2, 3])
+        justUseIterable(["1"]) # type errors are detected on iteration
+        consumeIterable([])
+        consumeIterable([1,2,3])
         self.assertTypeError(
-            "Funktion float erwartet wegen des Typs von myMap als ersten Parameter ein Point kein int",
-            lambda: myMap([1, 2, 3], float)
+            "Funktion consumeIterable erwartet als ersten Parameter ein Iterable[Int], " +
+            "das 2. Element des Iterable ist aber ein str"
+            lambda: consumeIterable([1, "stefan"])
         )
 
-        pass
+    def test_higherOrderFunTypeCheck(self):
+        origList = [1, 2, 3]
+        l = myMap(origList, str)
+        self.assertEqal(l, [1, 2, 3])
+        self.assertTypeError(
+            "Funktion myMap erwartet als zweiten Parameter ein Callable[[int], str], " +
+            "die als zweiten Parameter übergebene Funktion float hat aber ein float " +
+            "zurückgegeben."
+            lambda: myMap([1, 2, 3], float)
+        )
+        self.assertTypeError(
+            "Funktion myMap erwartet als zweiten Parameter ein Callable[[int], str], " +
+            "die als zweiten Parameter übergebene Funktion float benötigt aber ein str " +
+            "als Eingabe."
+            lambda: myMap([1, 2, 3], strId)
+        )
+
     def test_dictTypeCheck(self):
-        pass
+        pass # FIXME
+
     def test_objTypeCheck(self):
-        pass
+        pass # FIXME
