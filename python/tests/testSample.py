@@ -27,8 +27,9 @@ Shape = Mixed(DefinedLater('Circle'), DefinedLater('Square'), DefinedLater('Over
 Point = Record("Point", "x", float, "y", float)
 # Point: (float, float) ->  Point
 # Point.isSome: Any -> fool
-# Point.x: (Point) -> float
-# Point.y: (Point) -> float
+# For some Point p
+# p.x: float
+# p.y: float
 
 # point at x=10, y=20
 p1 = Point(10, 20)
@@ -46,8 +47,9 @@ Circle = Record("Circle", "center", Point, "radius", float)
 
 # Circle: (Point, float) -> Circle
 # Circle.isSome: Any -> bool
-# Circle.center: (Circle) -> Point
-# Circle.radius: (Circle) -> float
+# For some circle c
+# c.center: Point
+# c.radius: float
 
 # circle at p2 with radius=20
 c1 = Circle(p2, 20)
@@ -65,8 +67,9 @@ s1 = Square(p1, 40)
 
 # Square: (Point, float) -> Square
 # Square.isSome: Any -> bool
-# Square.corner: Square -> Point
-# Square.size: Square -> float
+# For some square s
+# s.corner: Point
+# s.size: float
 
 # An overlay consists of
 # - top (Shape)
@@ -75,8 +78,9 @@ Overlay = Record("Overlay", "top", Shape, "bottom", Shape)
 
 # Overlay: (Shape, Shape) -> Overlay
 # Overlay.isSome: any -> boolean
-# Overlay.top: (Overlay) -> Shape
-# Overlay.bottom: (Overlay) -> Shape
+# For some overlay:
+# o.top: Shape
+# o.bottom: Shape
 
 # overlay of circle c1 and square s1
 o1 = Overlay(c1, s1)
