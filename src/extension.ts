@@ -126,21 +126,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
-    // Interpreter
-    installCmd(
-        context,
-        "interpreter",
-        "🐍 Interpreter",
-        (cmdId) => {
-            const pythonCmd = quote(getPythonCmd());
-            terminals[cmdId] = startTerminal(
-                terminals[cmdId],
-                "WYPP - Interpreter",
-                pythonCmd + " -i"
-            );
-        }
-    );
-
     vscode.window.onDidChangeActiveTextEditor(showHideButtons);
     showHideButtons(vscode.window.activeTextEditor);
 }
