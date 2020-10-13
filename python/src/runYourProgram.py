@@ -48,6 +48,3 @@ if args.check:
 
 for k, v in userDefs.items():
     globals()[k] = v
-
-if isInteractive:
-    print("Beenden mit Ctrl-D oder exit()")
