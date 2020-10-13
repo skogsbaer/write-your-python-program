@@ -182,7 +182,7 @@ def initModule(file, version):
     if file.startswith(cwd):
         file = file[len(cwd):]
     versionStr = '' if not version else f'Version {version}, '
-    print(f'WILLKOMMEN zu "Schreibe Dein Programm!" ({versionStr}{file})')
+    print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ({versionStr}{file}) ===')
 
 def finishModule():
     total = _testCount['total']
@@ -219,4 +219,3 @@ def uncoveredCase():
     stack = inspect.stack()
     caller = stack[1] if len(stack) > 1 else None
     raise Exception(f"{caller.filename}, Zeile {caller.lineno}: ein Fall ist nicht abgedeckt")
-
