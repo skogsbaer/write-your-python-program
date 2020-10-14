@@ -1,9 +1,14 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as process from 'process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
+const isWindows = process.platform === "win32";
+const exeExt = isWindows ? ".exe" : "";
 
 const disposables: vscode.Disposable[] = [];
 const buttons: vscode.StatusBarItem[] = [];
@@ -43,12 +48,27 @@ function startTerminal(
     return terminal;
 }
 
-function quote(s: string) {
-    if (s.match("[ \\t'\"]")) {
-        return JSON.stringify(s);
-    } else {
+/**
+ * Appropriately formats a string so it can be used as an argument for a command in a shell.
+ * E.g. if an argument contains a space, then it will be enclosed within double quotes.
+ * @param {String} value.
+ */
+function toCommandArgument(s: string): string {
+    if (!s) {
         return s;
     }
+    return s.indexOf(' ') >= 0 && !s.startsWith('"') && !s.endsWith('"') ? `"${s}"` : s.toString();
+};
+
+/**
+ * Appropriately formats a a file path so it can be used as an argument for a command in a shell.
+ * E.g. if an argument contains a space, then it will be enclosed within double quotes.
+ */
+function fileToCommandArgument(s: string): string {
+    if (!s) {
+        return s;
+    }
+    return toCommandArgument(s).replace(/\\/g, '/');
 }
 
 function showHideButtons(textEditor: vscode.TextEditor | undefined) {
@@ -79,11 +99,26 @@ function installCmd(
 
 function getPythonCmd(): string {
     const config = vscode.workspace.getConfiguration()[extensionId];
-    let pythonCmd = 'python3';
+    let pythonCmds = ['python3' + exeExt, 'python' + exeExt];
     if (config && config[python3ConfigKey]) {
-        pythonCmd = config[python3ConfigKey];
+        pythonCmds = [config[python3ConfigKey]];
     }
-    return pythonCmd;
+    for (let cmd of pythonCmds) {
+        if (fs.existsSync(cmd)) {
+            return cmd;
+        }
+    }
+    const p = process.env.PATH;
+    const pComps = p ? p.split(path.delimiter) : [];
+    for (let cmd of pythonCmds) {
+        for (let comp of pComps) {
+            const fullP = path.join(comp, cmd);
+            if (fs.existsSync(fullP)) {
+                return fullP;
+            }
+        }
+    }
+    return isWindows ? ("python" + exeExt) : ("python3" + exeExt); // just hope the best
 }
 
 // this method is called when your extension is activated
@@ -117,11 +152,11 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
             vscode.window.activeTextEditor?.document.save();
-            const pythonCmd = quote(getPythonCmd());
+            const pythonCmd = fileToCommandArgument(getPythonCmd());
             terminals[cmdId] = startTerminal(
                 terminals[cmdId],
                 "WYPP - RUN",
-                pythonCmd + " -i " + quote(runProg) + " " + quote(file)
+                pythonCmd + " -i " + fileToCommandArgument(runProg) + " " + fileToCommandArgument(file)
             );
         }
     );
