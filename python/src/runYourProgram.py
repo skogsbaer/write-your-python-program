@@ -27,6 +27,9 @@ if not fileToRun.endswith('.py'):
     print("FEHLER: die angegebene Datei ist keine Python Datei.")
     os._exit(0)
 
+if isInteractive:
+    os.system('cls' if os.name == 'nt' else 'reset')
+
 libDir = os.path.dirname(__file__)
 
 version = None
@@ -48,3 +51,6 @@ if args.check:
 
 for k, v in userDefs.items():
     globals()[k] = v
+
+if isInteractive:
+    print()
