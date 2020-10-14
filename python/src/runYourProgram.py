@@ -34,6 +34,8 @@ if not pythonVersion.startswith('3.'):
     os._exit(0)
 
 if isInteractive:
+    # clear the terminal, reset on Mac OSX and Linux. This prevents strange history bugs where
+    # the command just entered is echoed again (2020-10-14).
     os.system('cls' if os.name == 'nt' else 'reset')
 
 libDir = os.path.dirname(__file__)
