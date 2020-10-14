@@ -175,14 +175,14 @@ def _dieOnCheckFailures():
 
 _testCount = {'total': 0, 'failing': 0}
 
-def initModule(file, version):
+def initModule(file, version, pythonVersion):
     global _testCount
     _testCount = {'total': 0, 'failing': 0}
     cwd = os.getcwd() + "/"
     if file.startswith(cwd):
         file = file[len(cwd):]
     versionStr = '' if not version else f'Version {version}, '
-    print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ({versionStr}{file}) ===')
+    print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ({versionStr}Python {pythonVersion}, {file}) ===')
 
 def finishModule():
     total = _testCount['total']

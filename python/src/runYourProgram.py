@@ -27,6 +27,12 @@ if not fileToRun.endswith('.py'):
     print("FEHLER: die angegebene Datei ist keine Python Datei.")
     os._exit(0)
 
+pythonVersion = sys.version.split()[0]
+
+if not pythonVersion.startswith('3.'):
+    print(f"FEHLER: es wird Python 3 benoetigt, nicht {pythonVersion}")
+    os._exit(0)
+
 if isInteractive:
     os.system('cls' if os.name == 'nt' else 'reset')
 
@@ -42,7 +48,7 @@ except:
     pass
 libFile = os.path.join(libDir, 'writeYourProgram.py')
 libDefs = runpy.run_path(libFile)
-libDefs['initModule'](fileToRun, version)
+libDefs['initModule'](fileToRun, version, pythonVersion)
 userDefs = runpy.run_path(fileToRun, libDefs)
 failing = libDefs['finishModule']()
 
