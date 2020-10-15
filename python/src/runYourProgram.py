@@ -1,5 +1,11 @@
 import sys
 import os
+
+pythonVersion = sys.version.split()[0]
+if not pythonVersion.startswith('3.'):
+    sys.stderr.write("\nFEHLER: es wird Python 3 benoetigt, nicht " + pythonVersion + ".\n\n")
+    os._exit(0)
+
 import os.path
 import runpy
 import argparse
@@ -25,12 +31,6 @@ if isInteractive:
 
 if not fileToRun.endswith('.py'):
     print("FEHLER: die angegebene Datei ist keine Python Datei.")
-    os._exit(0)
-
-pythonVersion = sys.version.split()[0]
-
-if not pythonVersion.startswith('3.'):
-    print(f"FEHLER: es wird Python 3 benoetigt, nicht {pythonVersion}")
     os._exit(0)
 
 if isInteractive:

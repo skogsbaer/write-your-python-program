@@ -97,16 +97,38 @@ function installCmd(
     installButton(buttonTitle, cmdId);
 }
 
-function getPythonCmd(): string {
+type PythonCmdResult = {
+    kind: "success", cmd: string
+} | {
+    kind: "error", msg: string
+} | {
+    kind: "warning", msg: string, cmd: string
+};
+
+function getPythonCmd(): PythonCmdResult {
     const config = vscode.workspace.getConfiguration()[extensionId];
     let pythonCmds = ['python3' + exeExt, 'python' + exeExt];
-    if (config && config[python3ConfigKey]) {
-        pythonCmds = [config[python3ConfigKey]];
-    }
-    for (let cmd of pythonCmds) {
-        if (fs.existsSync(cmd)) {
-            return cmd;
+    const hasConfig = config && config[python3ConfigKey];
+    if (hasConfig) {
+        let configCmd = config[python3ConfigKey];
+        if (path.isAbsolute(configCmd)) {
+            if (fs.existsSync(configCmd)) {
+                return {
+                    kind: "success",
+                    cmd: configCmd
+                };
+            } else {
+                return {
+                    kind: "error",
+                    msg: "Path " + configCmd + " does not exist."
+                };
+            }
+
         }
+        if (isWindows && !configCmd.endsWith(exeExt)) {
+            configCmd = configCmd + exeExt;
+        }
+        pythonCmds = [configCmd];
     }
     const p = process.env.PATH;
     const pComps = p ? p.split(path.delimiter) : [];
@@ -114,11 +136,25 @@ function getPythonCmd(): string {
         for (let comp of pComps) {
             const fullP = path.join(comp, cmd);
             if (fs.existsSync(fullP)) {
-                return fullP;
+                return {kind: "success", cmd: fullP};
             }
         }
     }
-    return isWindows ? ("python" + exeExt) : ("python3" + exeExt); // just hope the best
+    if (hasConfig) {
+        const cmd = config[python3ConfigKey];
+        return {
+            kind: "warning",
+            msg: "Command " + cmd + " not found.",
+            cmd
+        };
+    } else {
+        const cmd = isWindows ? ("python" + exeExt) : ("python3" + exeExt);
+        return {
+            kind: "warning",
+            msg: "No python command found. Using " + cmd + ".",
+            cmd
+        };
+    }
 }
 
 // this method is called when your extension is activated
@@ -152,12 +188,21 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
             vscode.window.activeTextEditor?.document.save();
-            const pythonCmd = fileToCommandArgument(getPythonCmd());
-            terminals[cmdId] = startTerminal(
-                terminals[cmdId],
-                "WYPP - RUN",
-                pythonCmd + " -i " + fileToCommandArgument(runProg) + " " + fileToCommandArgument(file)
-            );
+            const pyCmd = getPythonCmd();
+            if (pyCmd.kind !== "error") {
+                const pythonCmd = fileToCommandArgument(pyCmd.cmd);
+                terminals[cmdId] = startTerminal(
+                    terminals[cmdId],
+                    "WYPP - RUN",
+                    pythonCmd + " -i " + fileToCommandArgument(runProg) +
+                    " " + fileToCommandArgument(file)
+                );
+                if (pyCmd.kind === "warning") {
+                    vscode.window.showInformationMessage(pyCmd.msg);
+                }
+            } else {
+                vscode.window.showWarningMessage(pyCmd.msg);
+            }
         }
     );
 
