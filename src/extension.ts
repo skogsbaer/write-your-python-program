@@ -107,7 +107,7 @@ type PythonCmdResult = {
 
 function getPythonCmd(): PythonCmdResult {
     const config = vscode.workspace.getConfiguration()[extensionId];
-    let pythonCmds = ['python3' + exeExt, 'python' + exeExt];
+    let pythonCmd = isWindows ? ('python' + exeExt) : 'python3';
     const hasConfig = config && config[python3ConfigKey];
     if (hasConfig) {
         let configCmd = config[python3ConfigKey];
@@ -128,33 +128,9 @@ function getPythonCmd(): PythonCmdResult {
             }
 
         }
-        pythonCmds = [configCmd];
+        pythonCmd = configCmd;
     }
-    const p = process.env.PATH;
-    const pComps = p ? p.split(path.delimiter) : [];
-    for (let cmd of pythonCmds) {
-        for (let comp of pComps) {
-            const fullP = path.join(comp, cmd);
-            if (fs.existsSync(fullP)) {
-                return {kind: "success", cmd: fullP};
-            }
-        }
-    }
-    if (hasConfig) {
-        const cmd = config[python3ConfigKey];
-        return {
-            kind: "warning",
-            msg: "Command " + cmd + " not found.",
-            cmd
-        };
-    } else {
-        const cmd = isWindows ? ("python" + exeExt) : ("python3" + exeExt);
-        return {
-            kind: "warning",
-            msg: "No python command found. Using " + cmd + ".",
-            cmd
-        };
-    }
+    return { kind: 'success', cmd: pythonCmd };
 }
 
 // this method is called when your extension is activated
