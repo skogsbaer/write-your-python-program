@@ -110,7 +110,8 @@ function getPythonCmd(): PythonCmdResult {
     let pythonCmd = isWindows ? ('python' + exeExt) : 'python3';
     const hasConfig = config && config[python3ConfigKey];
     if (hasConfig) {
-        let configCmd = config[python3ConfigKey];
+        let configCmd: string= config[python3ConfigKey];
+        configCmd = configCmd.trim();
         if (isWindows && !configCmd.endsWith(exeExt)) {
             configCmd = configCmd + exeExt;
         }
