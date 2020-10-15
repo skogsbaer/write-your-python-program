@@ -111,6 +111,9 @@ function getPythonCmd(): PythonCmdResult {
     const hasConfig = config && config[python3ConfigKey];
     if (hasConfig) {
         let configCmd = config[python3ConfigKey];
+        if (isWindows && !configCmd.endsWith(exeExt)) {
+            configCmd = configCmd + exeExt;
+        }
         if (path.isAbsolute(configCmd)) {
             if (fs.existsSync(configCmd)) {
                 return {
@@ -124,9 +127,6 @@ function getPythonCmd(): PythonCmdResult {
                 };
             }
 
-        }
-        if (isWindows && !configCmd.endsWith(exeExt)) {
-            configCmd = configCmd + exeExt;
         }
         pythonCmds = [configCmd];
     }
