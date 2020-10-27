@@ -1,5 +1,7 @@
 import unittest
 from writeYourProgram import *
+import sys
+import traceback
 
 setDieOnCheckFailures(True)
 
@@ -76,5 +78,19 @@ class TestRecords(unittest.TestCase):
         p3 = Point(1, 2)
         self.assertEqual(hash(p1), hash(p3))
         self.assertNotEqual(hash(p1), hash(p2))
+
+    def test_unknownSelector(self):
+        p1 = Point(1, 2)
+        excMsg = None
+        # p1.bar
+        try:
+            p1.foo
+        except AttributeError:
+            excMsg = traceback.format_exc()
+        if excMsg is None:
+            self.fail("Expected an AttributeError")
+        if "KeyError" in excMsg:
+            self.fail("Did no expect a KeyError")
+
 
 

@@ -67,9 +67,9 @@ class RecordInstance:
             f'fields={fields}, args={args}')
 
     def __getattr__(self, name):
-        try:
+        if name in self.values:
             return self.values[name]
-        except KeyError:
+        else:
             attrs = ", ".join([x[0] for x in self.values.items()])
             raise AttributeError(f"Der Record {self.recordName} besitzt die Eigenschaft " \
                 f"{name} nicht. Es gibt folgende Eigenschaften: {attrs}")
