@@ -13,3 +13,4 @@ DefinedLater = w.DefinedLater
 # Values and functions
 check = w.check
 uncoveredCase = w.uncoveredCase
+hasType = w.hasType

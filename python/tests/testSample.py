@@ -19,7 +19,7 @@ def canDrink(d: Drink) -> int:
 # - an overlay of two shapes (Overlay)
 Shape = Mixed(DefinedLater('Circle'), DefinedLater('Square'), DefinedLater('Overlay'))
 
-# Shape.isSome: any -> boolean
+# Shape.isSome: Any -> boolean
 
 # A point consists of
 # - x (float)
