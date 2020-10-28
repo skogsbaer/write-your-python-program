@@ -7,8 +7,10 @@ The ideas of this environment are based on the great ideas from
 
 ## Quick start
 
-* Step 1. Install the latest version of Python 3.
-* Step 2. Install the write-your-python-program extension.
+* Step 1. Install Python 3.8.x. I've tested with 3.8.5, I guess 3.9.x schould also work
+  but I did not check.
+* Step 2. Install the write-your-python-program extension. You need at least Visual Studio Code
+  version 1.49.0.
 * Step 3. Open or create a Python file. The "RUN" button in the taskbar at the bottom will
   run your file with the teaching language provided by write-your-python-program.
 
@@ -101,3 +103,11 @@ then second argument the expected result.
 ~~~python
 check(factorial(4), 24)
 ~~~
+
+## Hacking
+
+You can debug the extension from Visual Studio Code:
+
+* Open the main folder of the plugin with vscode.
+* Open the file `extension.ts`.
+* Choose "Run" from the menu, then "Start Debugging".
