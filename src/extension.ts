@@ -106,7 +106,7 @@ type PythonCmdResult = {
 };
 
 function getPythonCmd(): PythonCmdResult {
-    const config = vscode.workspace.getConfiguration()[extensionId];
+    const config = vscode.workspace.getConfiguration(extensionId);
     let pythonCmd = isWindows ? ('python' + exeExt) : 'python3';
     const hasConfig = config && config[python3ConfigKey];
     if (hasConfig) {
@@ -134,6 +134,20 @@ function getPythonCmd(): PythonCmdResult {
     return { kind: 'success', cmd: pythonCmd };
 }
 
+function fixPythonConfig(context: vscode.ExtensionContext) {
+    const libDir = context.asAbsolutePath('python/src/');
+    const pyComplConfig = vscode.workspace.getConfiguration("python.autoComplete");
+    const oldPath: string[] = pyComplConfig.get("extraPaths") || [];
+    const newPath = oldPath.slice();
+    if (!newPath.includes(libDir)) {
+        newPath.push(libDir);
+    }
+    pyComplConfig.update("extraPaths", newPath);
+
+    const pyLintConfig = vscode.workspace.getConfiguration("python.linting");
+    pyLintConfig.update("enabled", false);
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -141,6 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     console.log('Activating extension ' + extensionId);
 
+    fixPythonConfig(context);
     const terminals: { [name: string]: vscode.Terminal } = {};
 
     installButton("Write Your Python Program", undefined);
