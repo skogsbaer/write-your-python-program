@@ -3,23 +3,30 @@ import time
 import os
 import typing
 
-DEBUG = False
-def debug(s):
-    if DEBUG:
+_DEBUG = False
+def _debug(s):
+    if _DEBUG:
         print('[DEBUG] ' + s)
 
+# Types
 Any = typing.Any
+Optional = typing.Optional
 
+Iterable = typing.Iterable
+Sequence = typing.Sequence
+List = typing.List
+Tuple = typing.Tuple
+
+Mapping = typing.Mapping
+Dict = typing.Dict
+Set = typing.Set
+
+Callable = typing.Callable
+
+# Records
 # The goal is the make everything as simple and consistent as possible, so that
 # records can be used to teach an introductory programming course inspired by
 # "How to Design Programs" and "Schreib Dein Programm!".
-
-def mkGetter(name):
-    def get(obj):
-        val = obj.values[name]
-        return val
-    return get
-
 class Record:
     def __init__(self, *args):
         if len(args) % 2 != 1:
@@ -39,31 +46,28 @@ class Record:
                     "der Name einer Eigenschaft erwartet.")
             fields.append((fieldName, fieldTy))
         def make(*args):
-            return RecordInstance(recordName, fields, args)
+            return _RecordInstance(recordName, fields, args)
         def isSome(x):
             ty = type(x)
-            return ty is RecordInstance and x.recordName == recordName
-        # self.make = make
+            return ty is _RecordInstance and x.recordName == recordName
         self.isSome = isSome
         self.fields = fields
         self.recordName = recordName
-        # for (name, _ty) in fields:
-        #     setattr(self, name, mkGetter(name))
     def __call__(self, *args):
-        return RecordInstance(self.recordName, self.fields, args)
+        return _RecordInstance(self.recordName, self.fields, args)
     def __repr__(self):
         return f"Record({self.recordName})"
     def __getattr__(self, name):
         attrs = ", ".join([x[0] for x in self.fields])
         raise AttributeError(f"{self.recordName}.{name} ist nicht definiert.")
 
-class RecordInstance:
+class _RecordInstance:
     def __init__(self, recordName, fields, args):
         self.recordName = recordName
         self.values = {}
         for ((name, ty), val) in zip(fields, args):
             self.values[name] = val
-        debug(f'__init__ for {self.recordName} finished, self.values={self.values}, '\
+        _debug(f'__init__ for {self.recordName} finished, self.values={self.values}, '\
             f'fields={fields}, args={args}')
 
     def __getattr__(self, name):
@@ -81,7 +85,7 @@ class RecordInstance:
         return result
 
     def __eq__(self, other):
-        return type(other) is self.__class__ and self.recordName == other.recordName and \
+        return type(other) is _RecordInstance and self.recordName == other.recordName and \
             self.values == other.values
 
     def __ne__(self, other):
@@ -155,7 +159,7 @@ class DefinedLater:
         resolved = self.resolved
         if not resolved:
             resolved = _resolveType(self.caller, self.ref)
-            debug(f"Resolved {self.ref} to {resolved}")
+            _debug(f"Resolved {self.ref} to {resolved}")
             setattr(self, 'resolved', resolved)
         return getattr(resolved, attr)
 
@@ -219,3 +223,10 @@ def uncoveredCase():
     stack = inspect.stack()
     caller = stack[1] if len(stack) > 1 else None
     raise Exception(f"{caller.filename}, Zeile {caller.lineno}: ein Fall ist nicht abgedeckt")
+
+# Additional functions
+
+import math as moduleMath
+
+math = moduleMath
+
