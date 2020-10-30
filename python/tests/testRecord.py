@@ -1,6 +1,5 @@
 import unittest
-from wypp import *
-from writeYourProgram import setDieOnCheckFailures
+from writeYourProgram import *
 import sys
 import traceback
 

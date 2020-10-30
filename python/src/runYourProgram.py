@@ -50,9 +50,9 @@ except:
     pass
 libFile = os.path.join(libDir, 'writeYourProgram.py')
 libDefs = runpy.run_path(libFile)
-libDefs['initModule'](fileToRun, version, pythonVersion)
+libDefs['_initModule'](fileToRun, version, pythonVersion)
 userDefs = runpy.run_path(fileToRun, libDefs)
-failing = libDefs['finishModule']()
+failing = libDefs['_finishModule']()
 
 if args.check:
     os._exit(0 if failing < 1 else 1)

@@ -1,12 +1,15 @@
 import time
 import threading
-from writeYourProgram import *
+# do not import writeYourProgram unqualified. Otherwise, module importing the drawingLib through
+# `import drawingLib as *` use the check function imported from drawingLib and then the
+# magic for reporting the number of tests failed and succeeded no longer works.
+import writeYourProgram as _w
 
-Size = Record('Size', 'width', float, 'height', float)
-Point = Record('Point', 'x', float, 'y', float)
-ShapeKind = Enum('ellipsis', 'rectangle')
-Color = Enum('red', 'green', 'blue', 'yellow', 'black', 'white')
-FixedShape = Record('FixedShape',
+Size = _w.Record('Size', 'width', float, 'height', float)
+Point = _w.Record('Point', 'x', float, 'y', float)
+ShapeKind = _w.Enum('ellipsis', 'rectangle')
+Color = _w.Enum('red', 'green', 'blue', 'yellow', 'black', 'white')
+FixedShape = _w.Record('FixedShape',
     'shape', ShapeKind,
     'color', Color,
     'size', Size,
@@ -61,7 +64,7 @@ class _WyppFrame(Frame):
         canvas.pack(fill=BOTH, expand=1)
 
 def drawFixedShapes(
-    shapes: Sequence[FixedShape],
+    shapes: _w.Sequence[FixedShape],
     withCoordinateSystem=False,
     stopAfter=None) -> None:
     root = Tk()
