@@ -17,11 +17,11 @@ The ideas of this environment are based on the great ideas from
 ### Troubleshooting
 
 - If the extension cannot find the Python interpreter, you might need to set the path to the
-  Python interpreter in the settings of visual studio code.
-- By default, pylint is enabled in visual studio code. Pylint will then mark certain variables
-  (such as `check`, `Record`, `Enum` and `Mixed`) with a warning because they are not imported explicitly but the extension provides them through some magic. We will fix this in the
-  next iteration of the extension, but for now you have the disable pylint in the
-  settings of visual studio code.
+  Python interpreter in the settings of the extension. Note that the extension has its own settings,
+  it does not use the settings of the regular Python extension.
+- The extension disables linting of Python code when activated. This is well-suited for beginners
+  but might cause unwanted effects when you rely on linting. In such cases, you have to
+  deactivate the extension.
 
 ## Features
 

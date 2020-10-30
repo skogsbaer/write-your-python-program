@@ -1,4 +1,2 @@
-- Mehr Standardfunktionen bereitstellen: ceil, floor, sqrt
-- Vielleicht doch expliziten Import "from wypp import *"
-  => vermeidet Probleme mit pylint
 - Contracts checken
+- Mixed nach Union umbennen?
