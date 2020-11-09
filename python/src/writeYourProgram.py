@@ -35,15 +35,17 @@ class Record:
             raise TypeError("Record benötigt mindestens eine Eigenschaft")
         recordName = args[0]
         if type(recordName) != str:
-            raise TypeError("Das erste Argument von Record ist der Name des Records. Dieser " \
-                "Wert muss ein String sein.")
+            raise TypeError(f"Das 1. Argument von Record ist kein String sondern {recordName}.")
         fields = []
         for i in range(1, len(args), 2):
             fieldName = args[i]
             fieldTy = args[i+1]
             if type(fieldName) != str:
-                raise TypeError(f"Das {i+1}te Argument von Record ist kein String, es wird aber " \
-                    "der Name einer Eigenschaft erwartet.")
+                raise TypeError(f"Das {i+1}. Argument von Record ist kein String " \
+                    f"sondern {repr(fieldName)}. Es wird aber der Name einer Eigenschaft erwartet.")
+            if not isType(fieldTy):
+                raise TypeError(f"Das {i+2}. Argument von Record ist kein Typ sondern " \
+                    f"{repr(fieldTy)}. Es wird aber der Typ der Eigenschaft {fieldName} erwartet.")
             fields.append((fieldName, fieldTy))
         def make(*args):
             return _RecordInstance(recordName, fields, args)
@@ -53,6 +55,8 @@ class Record:
         self.isSome = isSome
         self.fields = fields
         self.recordName = recordName
+    def isWyppType(self):
+        return True
     def __call__(self, *args):
         return _RecordInstance(self.recordName, self.fields, args)
     def __repr__(self):
@@ -99,21 +103,14 @@ class _RecordInstance:
 
 # Mixed types
 
-def hasType(ty, x):
-    if type(x) is ty:
-        return True
-    elif ty is Any:
-        return True
-    else:
-        pred = getattr(ty, "isSome", None)
-        if pred:
-            return pred(x)
-        else:
-            return False
-
 class Mixed:
     def __init__(self, *args):
+        for i, a in enumerate(args):
+            if not isType(a):
+                raise TypeError(f"Das {i+1}. Argument von Mixed ist kein Typ sondern {repr(a)}.")
         self.alternatives = args
+    def isWyppType(self):
+        return True
     def isSome(self, x):
         for alt in self.alternatives:
             if hasType(alt, x):
@@ -123,7 +120,13 @@ class Mixed:
 # Enums
 class Enum:
     def __init__(self, *args):
+        for i, a in enumerate(args):
+            t = type(a)
+            if t not in [str, int, bool]:
+                raise TypeError(f"Das {i+1}. Argument von Enum ist kein String oder int sondern {repr(a)}.")
         self.alternatives = args
+    def isWyppType(self):
+        return True
     def isSome(self, x):
         return x in self.alternatives
 
@@ -145,11 +148,15 @@ def _resolveType(frameInfo, name):
 
 class DefinedLater:
     def __init__(self, ref):
+        if type(ref) != str:
+            raise TypeError(f"Das 1. Argument von DefinedLater ist kein String sondern {repr(ref)}.")
         self.ref = ref
         self.resolved = None
         stack = inspect.stack()
         caller = stack[1] if len(stack) > 1 else None
         self.caller = caller
+    def isWyppType(self):
+        return True
     def __repr__(self):
         if self.resolved:
             return repr(self.resolved)
@@ -165,9 +172,26 @@ class DefinedLater:
 
 # Tests
 
-def _isNumber(x):
-    t = type(x)
-    return (t is int or t is float)
+def isType(ty):
+    if isinstance(ty, type):
+        return True
+    pred = getattr(ty, "isWyppType", None)
+    if pred is None:
+        return False
+    else:
+        return pred()
+
+def hasType(ty, x):
+    if type(x) is ty:
+        return True
+    elif ty is Any:
+        return True
+    else:
+        pred = getattr(ty, "isSome", None)
+        if pred:
+            return pred(x)
+        else:
+            return False
 
 _die = False
 
