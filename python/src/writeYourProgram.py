@@ -178,28 +178,41 @@ def _dieOnCheckFailures():
     return _die
 
 _testCount = {'total': 0, 'failing': 0}
+_checksEnabled = True
 
-def _initModule(file, version, pythonVersion):
-    global _testCount
-    _testCount = {'total': 0, 'failing': 0}
+def _initModule(file, version, pythonVersion, enableChecks=True, quiet=False):
+    global _checksEnabled
+    _checksEnabled = enableChecks
+    _resetTestCount()
     cwd = os.getcwd() + "/"
     if file.startswith(cwd):
         file = file[len(cwd):]
     versionStr = '' if not version else f'Version {version}, '
-    print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ({versionStr}Python {pythonVersion}, {file}) ===')
+    if not quiet:
+        print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
+              f'({versionStr}Python {pythonVersion}, {file}) ===')
 
-def _finishModule():
+def _resetTestCount():
+    global _testCount
+    _testCount = {'total': 0, 'failing': 0}
+
+def _printTestResults(prefix=''):
     total = _testCount['total']
     failing = _testCount['failing']
     if total == 0:
         pass
     elif failing == 0:
-        print(f'{total} Tests, alle erfolgreich :-)')
+        print(f'{prefix}{total} Tests, alle erfolgreich :-)')
     else:
-        print(f'{total} Tests, {failing} Fehler :-(')
-    return failing
+        print(f'{prefix}{total} Tests, {failing} Fehler :-(')
+    return {'total': total, 'failing': failing}
 
-def check(actual, expected):
+def checkEq(actual, expected):
+    return check(actual, expected, structuralObjEq=False)
+
+def check(actual, expected, structuralObjEq=True):
+    if not _checksEnabled:
+        return
     global _testCount
     matches = actual == expected
     if _isNumber(actual) and _isNumber(expected):
