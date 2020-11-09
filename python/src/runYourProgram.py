@@ -75,7 +75,7 @@ else:
     userDefs = doRun()
 
 prefix = ''
-if args.check:
+if args.check and args.testFile:
     prefix = 'Student: '
 testResultsStudent = libDefs['_printTestResults'](prefix)
 
