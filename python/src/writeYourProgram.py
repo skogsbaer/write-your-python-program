@@ -2,6 +2,7 @@
 import time
 import os
 import typing
+import deepEq
 
 _DEBUG = False
 def _debug(s):
@@ -90,7 +91,7 @@ class _RecordInstance:
 
     def __eq__(self, other):
         return type(other) is _RecordInstance and self.recordName == other.recordName and \
-            self.values == other.values
+            deepEq.deepEq(self.values, other.values, structuralObjEq=False)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -238,10 +239,7 @@ def check(actual, expected, structuralObjEq=True):
     if not _checksEnabled:
         return
     global _testCount
-    matches = actual == expected
-    if _isNumber(actual) and _isNumber(expected):
-        diff = actual - expected
-        matches = abs(diff) < 0.00001
+    matches = deepEq.deepEq(actual, expected, structuralObjEq)
     _testCount = {
         'total': _testCount['total'] + 1,
         'failing': _testCount['failing'] + (0 if matches else 1)
