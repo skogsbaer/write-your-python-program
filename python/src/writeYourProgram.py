@@ -109,10 +109,15 @@ class _RecordInstance:
 
 class Mixed:
     def __init__(self, *args):
+        resolvedArgs = []
         for i, a in enumerate(args):
-            if not isType(a):
-                raise TypeError(f"Das {i+1}. Argument von Mixed ist kein Typ sondern {repr(a)}.")
-        self.alternatives = args
+            if a is None:
+                resolvedArgs.append(type(None))
+            else:
+                if not isType(a):
+                    raise TypeError(f"Das {i+1}. Argument von Mixed ist kein Typ sondern {repr(a)}.")
+                resolvedArgs.append(a)
+        self.alternatives = resolvedArgs
     def isWyppType(self):
         return True
     def isSome(self, x):

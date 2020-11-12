@@ -1,2 +1,5 @@
-- Contracts checken
-- Mixed nach Union umbennen?
+# Next iteration
+- Contracts checking
+- Rename Mixed to Union?
+- Write records in the style of dataclasses
+- Require explict import of wypp: better interaction with tools
