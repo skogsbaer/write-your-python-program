@@ -11,8 +11,12 @@ import runpy
 import argparse
 import json
 import traceback
+import shutil
+import site
+import importlib
 
-libDir = os.path.dirname(__file__)
+LIB_DIR = os.path.dirname(__file__)
+MODULES_TO_INSTALL = ['writeYourProgram.py', 'deepEq.py', 'drawingLib.py', '__init__.py']
 
 def parseCmdlineArgs():
     parser = argparse.ArgumentParser(description='Run Your Program!')
@@ -38,7 +42,7 @@ def parseCmdlineArgs():
 def readVersion():
     version = None
     try:
-        with open(os.path.join(libDir, '..', '..', 'package.json')) as file:
+        with open(os.path.join(LIB_DIR, '..', '..', 'package.json')) as file:
             content = file.read()
             d = json.loads(content)
             version = d['version']
@@ -54,11 +58,45 @@ def printWelcomeString(file, version):
     print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
           f'({versionStr}Python {pythonVersion}, {file}) ===')
 
+def installLib():
+    userDir = site.USER_SITE
+    try:
+        os.makedirs(userDir)
+        for f in os.listdir(userDir):
+            p = os.path.join(userDir, f)
+            if os.path.isfile(p):
+                os.remove(p)
+        d = os.path.join(userDir, 'wypp')
+        for m in MODULES_TO_INSTALL:
+            src = os.path.join(LIB_DIR, m)
+            tgt = os.path.join(userDir, m)
+            shutil.copyFile(src, tgt)
+    except Exception as e:
+        print(f'Installation of python files failed: {e}')
+
+class Lib:
+    def __init__(self, mod, isDict):
+        if isDict:
+            self.initModule = mod['initModule']
+            self.resetTestCount = mod['resetTestCount']
+            self.printTestResults = mod['printTestResults']
+        else:
+            self.initModule = mod.initModule
+            self.resetTestCount = mod.resetTestCount
+            self.printTestResults = mod.printTestResults
+
 def loadLib(onlyCheckRunnable):
-    libFile = os.path.join(libDir, 'writeYourProgram.py')
-    libDefs = runpy.run_path(libFile)
-    libDefs['_initModule'](enableChecks=not onlyCheckRunnable,
-                           quiet=onlyCheckRunnable)
+    libDefs = None
+    try:
+        wypp = importlib.import_module('wypp')
+        libDefs = Lib(wypp, False)
+    except:
+        pass
+    if not libDefs:
+        libFile = os.path.join(LIB_DIR, 'writeYourProgram.py')
+        libDefs = runpy.run_path(libFile)
+    libDefs.initModule(enableChecks=not onlyCheckRunnable,
+                       quiet=onlyCheckRunnable)
     return libDefs
 
 def runCode(fileToRun, libDefs, onlyCheckRunnable):
@@ -81,15 +119,15 @@ def runTestsInFile(testFile, libDefs):
         allDefs[k] = v
     for k, v in userDefs.items():
         allDefs[k] = v
-    libDefs['_resetTestCount']()
+    libDefs.resetTestCount()
     runpy.run_path(testFile, allDefs)
-    return libDefs['_printTestResults']('Dozent:  ')
+    return libDefs['printTestResults']('Dozent:  ')
 
 def performChecks(check, testFile, libDefs):
     prefix = ''
     if check and testFile:
         prefix = 'Student: '
-    testResultsStudent = libDefs['_printTestResults'](prefix)
+    testResultsStudent = libDefs.printTestResults(prefix)
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
@@ -115,6 +153,7 @@ def main():
     version = readVersion()
     if isInteractive:
         prepareInteractive()
+    installLib()
     if not args.checkRunnable:
         printWelcomeString(fileToRun, version)
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)

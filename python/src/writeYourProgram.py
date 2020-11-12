@@ -2,7 +2,7 @@
 import time
 import os
 import typing
-import deepEq
+from . import deepEq
 
 _DEBUG = False
 def _debug(s):
@@ -205,16 +205,16 @@ def _dieOnCheckFailures():
 _testCount = {'total': 0, 'failing': 0}
 _checksEnabled = True
 
-def _initModule(enableChecks=True, quiet=False):
+def initModule(enableChecks=True, quiet=False):
     global _checksEnabled
     _checksEnabled = enableChecks
-    _resetTestCount()
+    resetTestCount()
 
-def _resetTestCount():
+def resetTestCount():
     global _testCount
     _testCount = {'total': 0, 'failing': 0}
 
-def _printTestResults(prefix=''):
+def printTestResults(prefix=''):
     total = _testCount['total']
     failing = _testCount['failing']
     if total == 0:
