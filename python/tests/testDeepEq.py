@@ -1,7 +1,7 @@
 import unittest
 import writeYourProgram as wypp
 import testSample
-from deepEq import deepEq
+from writeYourProgram import deepEq
 
 wypp.setDieOnCheckFailures(True)
 
