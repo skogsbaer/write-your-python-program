@@ -205,17 +205,10 @@ def _dieOnCheckFailures():
 _testCount = {'total': 0, 'failing': 0}
 _checksEnabled = True
 
-def _initModule(file, version, pythonVersion, enableChecks=True, quiet=False):
+def _initModule(enableChecks=True, quiet=False):
     global _checksEnabled
     _checksEnabled = enableChecks
     _resetTestCount()
-    cwd = os.getcwd() + "/"
-    if file.startswith(cwd):
-        file = file[len(cwd):]
-    versionStr = '' if not version else f'Version {version}, '
-    if not quiet:
-        print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
-              f'({versionStr}Python {pythonVersion}, {file}) ===')
 
 def _resetTestCount():
     global _testCount
