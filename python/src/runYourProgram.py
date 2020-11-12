@@ -14,9 +14,20 @@ import traceback
 import shutil
 import site
 import importlib
+import re
 
+# Simulates that wypp cannot be imported so that we can test the code path where
+# wypp is directly loaded from the writeYourProgram.py file. The default is False.
+SIMULATE_LIB_FROM_FILE = False
+VERBOSE = True
 LIB_DIR = os.path.dirname(__file__)
-MODULES_TO_INSTALL = ['writeYourProgram.py', 'deepEq.py', 'drawingLib.py', '__init__.py']
+
+INSTALLED_MODULE_NAME = 'wypp'
+MODULES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
+
+def verbose(s):
+    if VERBOSE:
+        print(f'[V] {s}')
 
 def parseCmdlineArgs():
     parser = argparse.ArgumentParser(description='Run Your Program!')
@@ -60,47 +71,91 @@ def printWelcomeString(file, version):
 
 def installLib():
     userDir = site.USER_SITE
+    installDir = os.path.join(userDir, INSTALLED_MODULE_NAME)
     try:
-        os.makedirs(userDir)
-        for f in os.listdir(userDir):
-            p = os.path.join(userDir, f)
+        os.makedirs(installDir, exist_ok=True)
+        for f in os.listdir(installDir):
+            p = os.path.join(installDir, f)
             if os.path.isfile(p):
                 os.remove(p)
-        d = os.path.join(userDir, 'wypp')
+        d = os.path.join(installDir, 'wypp')
         for m in MODULES_TO_INSTALL:
             src = os.path.join(LIB_DIR, m)
-            tgt = os.path.join(userDir, m)
-            shutil.copyFile(src, tgt)
+            tgt = os.path.join(installDir, m)
+            shutil.copyfile(src, tgt)
+        verbose(f'Successfully installed wypp files to {userDir}')
     except Exception as e:
-        print(f'Installation of python files failed: {e}')
+        print(f'Installation of wypp files failed: {e}')
 
 class Lib:
-    def __init__(self, mod, isDict):
-        if isDict:
+    def __init__(self, mod, properlyImported):
+        self.properlyImported = properlyImported
+        if not properlyImported:
             self.initModule = mod['initModule']
             self.resetTestCount = mod['resetTestCount']
             self.printTestResults = mod['printTestResults']
+            self.dict = mod
         else:
+            print(mod)
             self.initModule = mod.initModule
             self.resetTestCount = mod.resetTestCount
             self.printTestResults = mod.printTestResults
+            d = {}
+            self.dict = d
+            for name in dir(mod):
+                if name and name[0] != '_':
+                  d[name] = getattr(mod, name)
 
 def loadLib(onlyCheckRunnable):
     libDefs = None
+    mod = INSTALLED_MODULE_NAME
+    verbose(f'Attempting to import {mod}')
     try:
-        wypp = importlib.import_module('wypp')
-        libDefs = Lib(wypp, False)
-    except:
+        if SIMULATE_LIB_FROM_FILE:
+            raise ImportError(f'deliberately failing when import {mod}')
+        # It's the prefered way to properly import wypp. With this setup, student's code
+        # may or may not import wypp. And if it does import wypp, there is no suffering from
+        # module schizophrenia.
+        wypp = importlib.import_module(mod)
+        libDefs = Lib(wypp, True)
+        verbose(f'Successfully imported {mod} module')
+    except Exception as e:
+        verbose(f'Failed to import {mod}: {e}')
         pass
     if not libDefs:
+        # This code path is only here to support the case that installation fails.
         libFile = os.path.join(LIB_DIR, 'writeYourProgram.py')
-        libDefs = runpy.run_path(libFile)
+        d = runpy.run_path(libFile)
+        verbose(f'Successfully loaded library code from {libFile}')
+        libDefs = Lib(d, False)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
                        quiet=onlyCheckRunnable)
     return libDefs
 
+importRe = importRe = re.compile(r'^import\s+wypp\s*$|^from\s+wypp\s+import\s+\*\s*$')
+
+def findWyppImport(fileName):
+    lines = []
+    try:
+        with open(fileName) as f:
+            lines = f.readlines()
+    except Exception as e:
+        verbose(f'Failed to read code from {fileName}: {e}')
+    for l in lines:
+        if importRe.match(l):
+            return True
+    return False
+
 def runCode(fileToRun, libDefs, onlyCheckRunnable):
-    doRun = lambda: runpy.run_path(fileToRun, libDefs)
+    importsWypp = findWyppImport(fileToRun)
+    globalsForRun = {}
+    if importsWypp:
+        if not libDefs.properlyImported:
+            globalsForRun = {INSTALLED_MODULE_NAME: libDefs.dict}
+    else:
+        # This case will go away once we required students to import wypp explicitly
+        globalsForRun = libDefs.dict
+    doRun = lambda: runpy.run_path(fileToRun, globalsForRun)
     if onlyCheckRunnable:
         try:
             doRun()

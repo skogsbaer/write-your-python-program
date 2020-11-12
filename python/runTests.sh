@@ -1,11 +1,21 @@
 #!/bin/bash
 
+set -e
+
 cd $(dirname $0)
 
-export PYTHONPATH=src:tests
-
 if [ -z "$1" ]; then
-    python3 -m unittest tests/*.py
+    PYTHONPATH=src:tests python3 -m unittest tests/*.py
 else
-    python3 -m unittest "$@"
+    PYTHONPATH=src:tests python3 -m unittest "$@"
 fi
+
+function check()
+{
+    echo "Checking with $1"
+    python3 src/runYourProgram.py --check "$1"
+}
+check file-tests/fileWithImport.py
+check file-tests/fileWithoutImport.py
+check file-tests/fileWithOnlyDrawingImport.py
+check file-tests/fileWithBothImports.py
