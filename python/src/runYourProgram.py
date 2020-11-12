@@ -99,7 +99,6 @@ class Lib:
             self.printTestResults = mod['printTestResults']
             self.dict = mod
         else:
-            print(mod)
             self.initModule = mod.initModule
             self.resetTestCount = mod.resetTestCount
             self.printTestResults = mod.printTestResults
@@ -199,7 +198,7 @@ def prepareInteractive():
     # the command just entered is echoed again (2020-10-14).
     os.system('cls' if os.name == 'nt' else 'reset')
 
-def enterInteractive():
+def enterInteractive(userDefs):
     for k, v in userDefs.items():
         globals()[k] = v
     print()
@@ -221,7 +220,7 @@ def main():
     userDefs = runCode(fileToRun, libDefs, args.checkRunnable)
     performChecks(args.check, args.testFile, libDefs)
     if isInteractive:
-        enterInteractive()
+        enterInteractive(userDefs)
 
 if __name__ == '__main__':
     main()
