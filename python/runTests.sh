@@ -13,7 +13,10 @@ fi
 function check()
 {
     echo "Checking with $1"
-    python3 src/runYourProgram.py --check "$1"
+    d=$(pwd)
+    pushd /tmp
+    python3 $d/src/runYourProgram.py --check $d/"$1"
+    popd
 }
 check file-tests/fileWithImport.py
 check file-tests/fileWithoutImport.py
