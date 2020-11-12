@@ -19,7 +19,7 @@ import re
 # Simulates that wypp cannot be imported so that we can test the code path where
 # wypp is directly loaded from the writeYourProgram.py file. The default is False.
 SIMULATE_LIB_FROM_FILE = False
-VERBOSE = True
+VERBOSE = False # set via commandline
 LIB_DIR = os.path.dirname(__file__)
 
 INSTALLED_MODULE_NAME = 'wypp'
@@ -39,6 +39,9 @@ def parseCmdlineArgs():
     parser.add_argument('--check', dest='check', action='store_const',
                         const=True, default=False,
                         help='Abort with exit code 1 if there are test errors.')
+    parser.add_argument('--verbose', dest='verbose', action='store_const',
+                        const=True, default=False,
+                        help='Be verbose')
     parser.add_argument('--test-file', dest='testFile',
                         type=str, help='Run additional tests contained in this file.')
     try:
@@ -203,6 +206,9 @@ def enterInteractive():
 
 def main():
     args = parseCmdlineArgs()
+    global VERBOSE
+    if args.verbose:
+        VERBOSE = True
     fileToRun = args.file
     isInteractive = sys.flags.interactive
     version = readVersion()
