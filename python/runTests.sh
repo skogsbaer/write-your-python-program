@@ -10,12 +10,17 @@ else
     PYTHONPATH=src:tests python3 -m unittest "$@"
 fi
 
+siteDir=$(python3 -c 'import site; print(site.USER_SITE)')
 function check()
 {
     echo "Checking with $1"
     d=$(pwd)
     pushd /tmp
     python3 $d/src/runYourProgram.py --check $d/"$1"
+    python3 $d/src/runYourProgram.py --check --install-mode libFromFile $d/"$1"
+    rm -rf "$siteDir/wypp"
+    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1"
+    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1"
     popd
 }
 check file-tests/fileWithImport.py

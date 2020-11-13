@@ -19,6 +19,7 @@ import re
 # Simulates that wypp cannot be imported so that we can test the code path where
 # wypp is directly loaded from the writeYourProgram.py file. The default is False.
 SIMULATE_LIB_FROM_FILE = False
+ASSERT_INSTALL = False # if True, then a failing installation causes a total failure
 VERBOSE = False # set via commandline
 LIB_DIR = os.path.dirname(__file__)
 
@@ -39,6 +40,8 @@ def parseCmdlineArgs():
     parser.add_argument('--check', dest='check', action='store_const',
                         const=True, default=False,
                         help='Abort with exit code 1 if there are test errors.')
+    parser.add_argument('--install-mode', dest='installMode', type=str,
+                        help='One of "regular", "assertInstall", "libFromFile"')
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
@@ -53,13 +56,16 @@ def parseCmdlineArgs():
         os._exit(0)
     return args
 
+def readFile(f):
+    with open(f) as file:
+        return file.read()
+
 def readVersion():
     version = None
     try:
-        with open(os.path.join(LIB_DIR, '..', '..', 'package.json')) as file:
-            content = file.read()
-            d = json.loads(content)
-            version = d['version']
+        content = readFile(os.path.join(LIB_DIR, '..', '..', 'package.json'))
+        d = json.loads(content)
+        version = d['version']
     except:
         pass
     return version
@@ -72,23 +78,44 @@ def printWelcomeString(file, version):
     print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
           f'({versionStr}Python {pythonVersion}, {file}) ===')
 
+def isSameFile(f1, f2):
+    x = readFile(f1)
+    y = readFile(f2)
+    return x == y
+
 def installLib():
     userDir = site.USER_SITE
     installDir = os.path.join(userDir, INSTALLED_MODULE_NAME)
     try:
         os.makedirs(installDir, exist_ok=True)
-        for f in os.listdir(installDir):
+        installedFiles = sorted([f for f in os.listdir(installDir)
+                                   if os.path.isfile(os.path.join(installDir, f))])
+        wantedFiles = sorted(MODULES_TO_INSTALL)
+        if installedFiles == wantedFiles:
+            for i in range(len(installedFiles)):
+                f1 = os.path.join(installDir, installedFiles[i])
+                f2 = os.path.join(LIB_DIR, wantedFiles[i])
+                if not isSameFile(f1, f2):
+                    break
+            else:
+                # no break, all files equal
+                verbose(f'All wypp files already installed in {userDir}')
+                return
+        for f in installedFiles:
             p = os.path.join(installDir, f)
-            if os.path.isfile(p):
-                os.remove(p)
+            os.remove(p)
         d = os.path.join(installDir, 'wypp')
         for m in MODULES_TO_INSTALL:
             src = os.path.join(LIB_DIR, m)
             tgt = os.path.join(installDir, m)
             shutil.copyfile(src, tgt)
-        verbose(f'Successfully installed wypp files to {userDir}')
+        print(f'Die Python-Bibliothek wurde erfolgreich in {userDir} installiert.\n' +
+              'Bitte starten Sie Visual Studio Code neu, um sicherzustellen, dass überall\n' +
+              'die neueste Version verwendet wird.\n')
     except Exception as e:
-        print(f'Installation of wypp files failed: {e}')
+        print(f'Die Installation der Python-Bibliothek ist fehlgeschlagen: {e}')
+        if ASSERT_INSTALL:
+            raise e
 
 class Lib:
     def __init__(self, mod, properlyImported):
@@ -205,9 +232,18 @@ def enterInteractive(userDefs):
 
 def main():
     args = parseCmdlineArgs()
-    global VERBOSE
+    global VERBOSE, SIMULATE_LIB_FROM_FILE, ASSERT_INSTALL
     if args.verbose:
         VERBOSE = True
+    if args.installMode == 'regular' or args.installMode is None:
+        pass
+    elif args.installMode == 'libFromFile':
+        SIMULATE_LIB_FROM_FILE = True
+    elif args.installMode == 'assertInstall':
+        ASSERT_INSTALL = True
+    else:
+        print(f'Invalid value for --install-mode: {args.installMode}')
+        sys.exit(1)
     fileToRun = args.file
     isInteractive = sys.flags.interactive
     version = readVersion()
