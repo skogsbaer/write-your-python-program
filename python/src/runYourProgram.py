@@ -1,3 +1,7 @@
+# coding=utf-8
+# NOTE: this file must have valid python 2 syntax. We want to display an error message
+# when running with python 2.
+
 import sys
 import os
 
@@ -28,7 +32,7 @@ MODULES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
 
 def verbose(s):
     if VERBOSE:
-        print(f'[V] {s}')
+        print('[V] ' + s)
 
 def parseCmdlineArgs():
     parser = argparse.ArgumentParser(description='Run Your Program!')
@@ -74,9 +78,9 @@ def printWelcomeString(file, version):
     cwd = os.getcwd() + "/"
     if file.startswith(cwd):
         file = file[len(cwd):]
-    versionStr = '' if not version else f'Version {version}, '
-    print(f'=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
-          f'({versionStr}Python {pythonVersion}, {file}) ===')
+    versionStr = '' if not version else 'Version %s, ' % version
+    print('=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
+          '(%sPython %s, %s) ===' % (versionStr, pythonVersion, file))
 
 def isSameFile(f1, f2):
     x = readFile(f1)
@@ -99,7 +103,7 @@ def installLib():
                     break
             else:
                 # no break, all files equal
-                verbose(f'All wypp files already installed in {userDir}')
+                verbose('All wypp files already installed in ' + userDir)
                 return
         for f in installedFiles:
             p = os.path.join(installDir, f)
@@ -109,11 +113,11 @@ def installLib():
             src = os.path.join(LIB_DIR, m)
             tgt = os.path.join(installDir, m)
             shutil.copyfile(src, tgt)
-        print(f'Die Python-Bibliothek wurde erfolgreich in {userDir} installiert.\n' +
+        print('Die Python-Bibliothek wurde erfolgreich in ' + userDir + ' installiert.\n' +
               'Bitte starten Sie Visual Studio Code neu, um sicherzustellen, dass überall\n' +
               'die neueste Version verwendet wird.\n')
     except Exception as e:
-        print(f'Die Installation der Python-Bibliothek ist fehlgeschlagen: {e}')
+        print('Die Installation der Python-Bibliothek ist fehlgeschlagen: ' + str(e))
         if ASSERT_INSTALL:
             raise e
 
@@ -138,24 +142,24 @@ class Lib:
 def loadLib(onlyCheckRunnable):
     libDefs = None
     mod = INSTALLED_MODULE_NAME
-    verbose(f'Attempting to import {mod}')
+    verbose('Attempting to import ' + mod)
     try:
         if SIMULATE_LIB_FROM_FILE:
-            raise ImportError(f'deliberately failing when import {mod}')
+            raise ImportError('deliberately failing when importing ' + mod)
         # It's the prefered way to properly import wypp. With this setup, student's code
         # may or may not import wypp. And if it does import wypp, there is no suffering from
         # module schizophrenia.
         wypp = importlib.import_module(mod)
         libDefs = Lib(wypp, True)
-        verbose(f'Successfully imported {mod} module')
+        verbose('Successfully imported module ' + mod)
     except Exception as e:
-        verbose(f'Failed to import {mod}: {e}')
+        verbose('Failed to import %s: %s' % (mod, e))
         pass
     if not libDefs:
         # This code path is only here to support the case that installation fails.
         libFile = os.path.join(LIB_DIR, 'writeYourProgram.py')
         d = runpy.run_path(libFile)
-        verbose(f'Successfully loaded library code from {libFile}')
+        verbose('Successfully loaded library code from ' + libFile)
         libDefs = Lib(d, False)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
                        quiet=onlyCheckRunnable)
@@ -169,7 +173,7 @@ def findWyppImport(fileName):
         with open(fileName) as f:
             lines = f.readlines()
     except Exception as e:
-        verbose(f'Failed to read code from {fileName}: {e}')
+        verbose('Failed to read code from %s: %s' % (fileName, e))
     for l in lines:
         if importRe.match(l):
             return True
@@ -189,7 +193,7 @@ def runCode(fileToRun, libDefs, onlyCheckRunnable):
         try:
             doRun()
         except Exception as e:
-            print(f'Loading file {fileToRun} crashed')
+            print('Loading file %s crashed' % fileToRun)
             traceback.print_exc()
             os._exit(1)
         else:
@@ -242,7 +246,7 @@ def main():
     elif args.installMode == 'assertInstall':
         ASSERT_INSTALL = True
     else:
-        print(f'Invalid value for --install-mode: {args.installMode}')
+        print('Invalid value for --install-mode: %s' % args.installMode)
         sys.exit(1)
     fileToRun = args.file
     isInteractive = sys.flags.interactive
