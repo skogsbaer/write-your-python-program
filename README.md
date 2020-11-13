@@ -22,6 +22,10 @@ The ideas of this environment are based on the great ideas from
   but might cause unwanted effects when you rely on linting. In such cases, you have to
   deactivate the extension.
 
+## What's new?
+
+Here is the [Changelog](ChangeLog.md).
+
 ## Features
 
 Here is a screen shot:
