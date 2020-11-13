@@ -48,7 +48,12 @@
 	    		"write-your-python-program.python3Cmd": {
 	    			"type": "string",
 	    			"required": false,
-	    			"description": "Path to the Python 3 executable"
+	    			"description": "Path to the Python 3 executable. Usually, the python interpreter selected by the regular python extension is used. Only set the value here if you want to override this setting."
+				},
+	    		"write-your-python-program.verbose": {
+	    			"type": "boolean",
+	    			"required": false,
+	    			"description": "Output some more diagnostic messages."
 				}
 	    	}
 		}

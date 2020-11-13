@@ -16,9 +16,8 @@ The ideas of this environment are based on the great ideas from
 
 ### Troubleshooting
 
-- If the extension cannot find the Python interpreter, you might need to set the path to the
-  Python interpreter in the settings of the extension. Note that the extension has its own settings,
-  it does not use the settings of the regular Python extension.
+- By default, the extension use the python interpreter of the regular python extension.
+  To use a different interpreter, configure it in the settings.
 - The extension disables linting of Python code when activated. This is well-suited for beginners
   but might cause unwanted effects when you rely on linting. In such cases, you have to
   deactivate the extension.
@@ -103,6 +102,16 @@ then second argument the expected result.
 ~~~python
 check(factorial(4), 24)
 ~~~
+
+### Import
+
+You don't have to import the features explicitly, but you can import them like this:
+
+~~~python
+from wypp import *
+~~~
+
+This allows integration with tools like to python debugger.
 
 ## Hacking
 
