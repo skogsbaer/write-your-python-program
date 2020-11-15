@@ -209,7 +209,7 @@ def runTestsInFile(testFile, libDefs, userDefs):
         allDefs[k] = v
     libDefs.resetTestCount()
     runpy.run_path(testFile, allDefs)
-    return libDefs['printTestResults']('Dozent:  ')
+    return libDefs.dict['printTestResults']('Dozent:  ')
 
 def performChecks(check, testFile, libDefs, userDefs):
     prefix = ''
