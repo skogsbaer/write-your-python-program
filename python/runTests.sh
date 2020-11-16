@@ -27,3 +27,6 @@ check file-tests/fileWithImport.py
 check file-tests/fileWithoutImport.py
 check file-tests/fileWithOnlyDrawingImport.py
 check file-tests/fileWithBothImports.py
+
+python3 $d/src/runYourProgram.py --check --test-file $d/file-tests/student-submission-tests.py \
+    $d/file-tests/student-submission.py
