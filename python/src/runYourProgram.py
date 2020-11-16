@@ -201,17 +201,17 @@ def runCode(fileToRun, libDefs, onlyCheckRunnable):
     userDefs = doRun()
     return userDefs
 
-def runTestsInFile(testFile, libDefs):
+def runTestsInFile(testFile, libDefs, userDefs):
     allDefs = {}
-    for k, v in libDefs.items():
+    for k, v in libDefs.dict.items():
         allDefs[k] = v
     for k, v in userDefs.items():
         allDefs[k] = v
     libDefs.resetTestCount()
     runpy.run_path(testFile, allDefs)
-    return libDefs['printTestResults']('Dozent:  ')
+    return libDefs.dict['printTestResults']('Dozent:  ')
 
-def performChecks(check, testFile, libDefs):
+def performChecks(check, testFile, libDefs, userDefs):
     prefix = ''
     if check and testFile:
         prefix = 'Student: '
@@ -219,7 +219,7 @@ def performChecks(check, testFile, libDefs):
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
-            testResultsInstr = runTestsInFile(args.testFile, libDefs)
+            testResultsInstr = runTestsInFile(testFile, libDefs, userDefs)
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
         os._exit(0 if failingSum < 1 else 1)
 
@@ -258,7 +258,7 @@ def main():
         printWelcomeString(fileToRun, version)
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
     userDefs = runCode(fileToRun, libDefs, args.checkRunnable)
-    performChecks(args.check, args.testFile, libDefs)
+    performChecks(args.check, args.testFile, libDefs, userDefs)
     if isInteractive:
         enterInteractive(userDefs)
 
