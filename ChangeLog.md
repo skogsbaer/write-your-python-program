@@ -2,6 +2,8 @@
 
 * 0.7.2 (2020-11-17)
   * Allow types such as `List[int]` in records and mixeds.
+* 0.7.1. (2020-11-13)
+  * Better error message when used with python 2.
 * Version 0.7.0 (2020-11-13)
   * The path to the python interpreter is read from the configuration of the regular python
     extension (if not configured explicitly for wypp).
