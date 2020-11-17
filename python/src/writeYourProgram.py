@@ -2,6 +2,8 @@
 import time
 import os
 import typing
+import collections
+
 # For the moment, we do not import anything from this very module here. Reason: for backwards
 # compat we load wypp either as a module (the new way) or via runpy (the old way). It seems
 # too complicated to make imports working for both ways, so we wait until after WS2020/21
@@ -17,9 +19,11 @@ Any = typing.Any
 Optional = typing.Optional
 
 Iterable = typing.Iterable
+Iterator = typing.Iterator
 Sequence = typing.Sequence
 List = typing.List
 Tuple = typing.Tuple
+Generator = typing.Generator
 
 Mapping = typing.Mapping
 Dict = typing.Dict
@@ -166,35 +170,54 @@ class DefinedLater:
         self.caller = caller
     def isWyppType(self):
         return True
+    def resolve(self):
+        resolved = self.resolved
+        if not resolved:
+            resolved = _resolveType(self.caller, self.ref)
+            _debug(f"Resolved {self.ref} to {resolved}")
+            setattr(self, 'resolved', resolved)
+        return resolved
     def __repr__(self):
         if self.resolved:
             return repr(self.resolved)
         else:
             return "DefinedLater(" + repr(self.ref) + ")"
     def __getattr__(self, attr):
-        resolved = self.resolved
-        if not resolved:
-            resolved = _resolveType(self.caller, self.ref)
-            _debug(f"Resolved {self.ref} to {resolved}")
-            setattr(self, 'resolved', resolved)
+        resolved = self.resolve()
         return getattr(resolved, attr)
 
 # Tests
 
-def isType(ty):
+def isType(ty, rec=True):
     if isinstance(ty, type):
         return True
+    elif ty in [None, Any, Optional, typing.Union]:
+        return True
     pred = getattr(ty, "isWyppType", None)
-    if pred is None:
-        return False
-    else:
+    if pred is not None:
         return pred()
+    origin = getattr(ty, '__origin__', None)
+    if origin and rec:
+        return isType(origin, rec=False)
 
-def hasType(ty, x):
-    if type(x) is ty:
+def _safeIsInstance(x, ty):
+    try:
+        return isinstance(x, ty)
+    except TypeError:
+        return False
+
+def hasType(ty, x, rec=True):
+    if isinstance(ty, DefinedLater):
+        ty = ty.resolve()
+    if _safeIsInstance(x, ty):
         return True
-    elif ty is Any:
+    elif ty in [Any, Optional, typing.Union]:
         return True
+    elif ty is None:
+        return x is None
+    origin = getattr(ty, '__origin__', None)
+    if origin and rec:
+        return hasType(origin, x, rec=False)
     else:
         pred = getattr(ty, "isSome", None)
         if pred:

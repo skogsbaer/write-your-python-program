@@ -11,17 +11,22 @@ else
 fi
 
 siteDir=$(python3 -c 'import site; print(site.USER_SITE)')
+t=$(mktemp)
+
+echo
+echo "Running file tests ..."
+echo "Writing logs to $t"
 function check()
 {
     echo "Checking with $1"
     d=$(pwd)
-    pushd /tmp
-    python3 $d/src/runYourProgram.py --check $d/"$1"
-    python3 $d/src/runYourProgram.py --check --install-mode libFromFile $d/"$1"
+    pushd /tmp > /dev/null
+    python3 $d/src/runYourProgram.py --check $d/"$1" >> "$t"
+    python3 $d/src/runYourProgram.py --check --install-mode libFromFile $d/"$1" >> "$t"
     rm -rf "$siteDir/wypp"
-    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1"
-    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1"
-    popd
+    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
+    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
+    popd > /dev/null
 }
 check file-tests/fileWithImport.py
 check file-tests/fileWithoutImport.py
@@ -29,4 +34,4 @@ check file-tests/fileWithOnlyDrawingImport.py
 check file-tests/fileWithBothImports.py
 
 python3 $d/src/runYourProgram.py --check --test-file $d/file-tests/student-submission-tests.py \
-    $d/file-tests/student-submission.py
+    $d/file-tests/student-submission.py >> "$t"

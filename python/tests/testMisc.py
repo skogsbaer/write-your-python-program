@@ -4,6 +4,14 @@ import testSample
 
 setDieOnCheckFailures(True)
 
+class C:
+    pass
+
+def abcGenerator():
+    yield("a")
+    yield("b")
+    yield("c")
+
 class TestMixed(unittest.TestCase):
 
     def test_types(self):
@@ -17,13 +25,50 @@ class TestMixed(unittest.TestCase):
         math.sqrt(2)
         math.sin(2)
 
+    def assertType(self, ty, yesVal, noVal=None):
+        self.assertTrue(isType(ty))
+        self.assertTrue(hasType(ty, yesVal))
+        if noVal is not None:
+            self.assertFalse(hasType(ty, noVal))
+
     def test_isType(self):
-        self.assertTrue(isType(int))
-        self.assertTrue(isType(str))
-        self.assertTrue(isType(float))
-        self.assertTrue(isType(testSample.Point))
-        self.assertTrue(isType(testSample.Shape))
-        self.assertTrue(isType(testSample.Drink))
+        self.assertType(int, 2, '2')
+        #self.assertType(complex, 2, '2')
+        self.assertType(str, '2', 2)
+        self.assertType(float, 2.3, 'foo')
+        self.assertType(List[float], [2.3, 1.0], 'foo')
+        self.assertType(List, [1, 'bar'], ('foo',))
+        self.assertType(list, [1, 'bar'], ('foo',))
+        self.assertType(tuple, (1, 'bar'), [1])
+        self.assertType(dict, {1: 'foo'}, [])
+        self.assertType(Tuple, (1, 'bar'), [])
+        self.assertType(Tuple[str, ...], ('bar',), [])
+        self.assertType(Tuple[int, Tuple[List[int], str]], (1, ([1], 'foo')), 'foo')
+        self.assertType(Dict, {1: 'foo'}, [])
+        self.assertType(Dict[str, List[int]], {'1': [1]}, [])
+        self.assertType(Mapping, {'1': [1]}, [])
+        self.assertType(Mapping[str, List[int]], {'1': [1]}, [])
+        self.assertType(C, C(), 1)
+        self.assertType(None, None, 1)
+        self.assertType(Any, 'foobar')
+        self.assertType(Iterable, [1,2], 1)
+        self.assertType(Iterable[int], [1,2], 1)
+        self.assertType(Iterator, reversed([1]), 1)
+        self.assertType(Iterator[int], reversed([1]), 1)
+        self.assertType(Generator, abcGenerator(), 1)
+        self.assertType(Generator[int, float, str], abcGenerator(), 1)
+        self.assertType(Sequence, [1,2,3], 1)
+        self.assertType(Sequence[int], [1,2,3], 1)
+        self.assertType(Set, set([1]), 1)
+        self.assertType(Set[int], set([1]), 1)
+        self.assertType(Optional, None)
+        self.assertType(Optional[int], 1)
+        self.assertType(Callable, lambda x: x, 1)
+        self.assertType(Callable[[int, str], int], lambda x,y: x, 1)
+        self.assertType(testSample.Point, testSample.Point(1,2), 1)
+        self.assertType(testSample.Circle, testSample.Circle(testSample.Point(1,2), 3.1), 1)
+        self.assertType(testSample.Shape, testSample.Circle(testSample.Point(1,2), 3.1), 1)
+        self.assertType(testSample.Drink, 'Tea', 'foo')
 
     def assertTypeError(self, thunk, msg):
         try:

@@ -3,3 +3,4 @@
 - Rename Mixed to Union?
 - Write records in the style of dataclasses
 - Require explict import of wypp: better interaction with tools
+- use lowercase types list, tuple, dict etc. (requires python 3.9)
