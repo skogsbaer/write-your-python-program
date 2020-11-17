@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.7.2 (2020-11-17)
+  * Allow types such as `List[int]` in records and mixeds.
 * Version 0.7.0 (2020-11-13)
   * The path to the python interpreter is read from the configuration of the regular python
     extension (if not configured explicitly for wypp).
