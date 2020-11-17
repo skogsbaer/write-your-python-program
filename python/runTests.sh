@@ -4,34 +4,16 @@ set -e
 
 cd $(dirname $0)
 
-if [ -z "$1" ]; then
-    PYTHONPATH=src:tests python3 -m unittest tests/*.py
-else
-    PYTHONPATH=src:tests python3 -m unittest "$@"
-fi
-
-siteDir=$(python3 -c 'import site; print(site.USER_SITE)')
-t=$(mktemp)
-
-echo
-echo "Running file tests ..."
-echo "Writing logs to $t"
-function check()
+function run()
 {
-    echo "Checking with $1"
-    d=$(pwd)
-    pushd /tmp > /dev/null
-    python3 $d/src/runYourProgram.py --check $d/"$1" >> "$t"
-    python3 $d/src/runYourProgram.py --check --install-mode libFromFile $d/"$1" >> "$t"
-    rm -rf "$siteDir/wypp"
-    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
-    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
-    popd > /dev/null
+    echo
+    echo "Running tests for Python version $PYENV_VERSION"
+    echo
+    ./runTestsForPyVersion.sh
+    echo
+    echo "Finished tests for Python version $PYENV_VERSION"
+    echo
 }
-check file-tests/fileWithImport.py
-check file-tests/fileWithoutImport.py
-check file-tests/fileWithOnlyDrawingImport.py
-check file-tests/fileWithBothImports.py
 
-python3 $d/src/runYourProgram.py --check --test-file $d/file-tests/student-submission-tests.py \
-    $d/file-tests/student-submission.py >> "$t"
+PYENV_VERSION=3.8.6 run
+PYENV_VERSION=3.9.0 run
