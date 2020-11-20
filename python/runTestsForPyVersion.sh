@@ -8,6 +8,7 @@ if [ -z "$1" ]; then
     PYTHONPATH=src:tests python3 -m unittest tests/*.py
 else
     PYTHONPATH=src:tests python3 -m unittest "$@"
+    exit $?
 fi
 
 siteDir=$(python3 -c 'import site; print(site.USER_SITE)')

@@ -3,6 +3,7 @@ import time
 import os
 import typing
 import collections
+import dataclasses
 
 # For the moment, we do not import anything from this very module here. Reason: for backwards
 # compat we load wypp either as a module (the new way) or via runpy (the old way). It seems
@@ -30,6 +31,29 @@ Dict = typing.Dict
 Set = typing.Set
 
 Callable = typing.Callable
+
+def _isDataclassInstance(obj):
+    return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
+
+def _patchDataClass(cls):
+    def isSome(obj):
+        if not _isDataclassInstance(obj):
+            return False
+        return obj.__class__ == cls
+    setattr(cls, "isSome", isSome)
+    return cls
+
+def record(cls=None, mutable=False):
+    def wrap(cls):
+        newCls = dataclasses.dataclass(cls, frozen=not mutable)
+        return _patchDataClass(newCls)
+    # See if we're being called as @record or @record().
+    if cls is None:
+        # We're called with parens.
+        return wrap
+    else:
+        # We're called as @dataclass without parens.
+        return wrap(cls)
 
 # Records
 # The goal is the make everything as simple and consistent as possible, so that
