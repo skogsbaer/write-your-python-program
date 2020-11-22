@@ -7,8 +7,7 @@ The ideas of this environment are based on the great ideas from
 
 ## Quick start
 
-* Step 1. Install Python 3.8.x. I've tested with 3.8.5, I guess 3.9.x schould also work
-  but I did not check.
+* Step 1. Install Python 3.8.x or 3.9.x.
 * Step 2. Install the write-your-python-program extension. You need at least Visual Studio Code
   version 1.49.0.
 * Step 3. Open or create a Python file. The "RUN" button in the taskbar at the bottom will
@@ -74,6 +73,8 @@ You work with a record like this:
 p = Point(2, 3) # point at x=2, y=3
 print(p.x)      # Print 2
 ~~~
+
+Fields of records are immutable by default. You get mutable fields with `@record(mutable=True)`.
 
 #### Mixed Data Types
 
