@@ -188,6 +188,9 @@ def runCode(fileToRun, libDefs, onlyCheckRunnable):
     else:
         # This case will go away once we required students to import wypp explicitly
         globalsForRun = libDefs.dict
+    localDir = os.path.dirname(fileToRun)
+    if localDir not in sys.path:
+        sys.path.insert(0, localDir)
     doRun = lambda: runpy.run_path(fileToRun, globalsForRun)
     if onlyCheckRunnable:
         try:

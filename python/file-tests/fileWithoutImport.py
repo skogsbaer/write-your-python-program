@@ -1,3 +1,5 @@
+import localMod
+
 def use(x):
     pass
 
