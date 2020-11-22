@@ -1,6 +1,7 @@
 # Next iteration
 - Contracts checking
 - Rename Mixed to Union?
-- Write records in the style of dataclasses
+- Write records in the style of dataclasses, drop support for old-style records
 - Require explict import of wypp: better interaction with tools
 - use lowercase types list, tuple, dict etc. (requires python 3.9)
+- rename DefinedLater into ForwardRef (from the typing module)

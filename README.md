@@ -57,8 +57,15 @@ Color = Enum('red', 'green', 'blue')
 #### Records
 
 ~~~python
-Point = Record("Point", "x", float, "y", float)
-Circle = Record("Circle", "center", Point, "radius", float)
+@record
+class Record:
+    x: float
+    y: float
+
+@record
+class Circle:
+    center: Point
+    radius: float
 ~~~
 
 You work with a record like this:
