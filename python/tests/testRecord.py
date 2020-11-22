@@ -2,6 +2,7 @@ import unittest
 from writeYourProgram import *
 import sys
 import traceback
+import dataclasses
 
 setDieOnCheckFailures(True)
 
@@ -33,6 +34,10 @@ class SquareNewstyle:
 class NameNewstyle:
     firstName: str
     lastName: str
+
+@record(mutable=True)
+class Box:
+    x: int
 
 class TestRecords(unittest.TestCase):
 
@@ -171,3 +176,16 @@ class TestRecords(unittest.TestCase):
             self.fail("Expected an AttributeError")
         self.assertTrue("'PointNewstyle' object has no attribute 'foo'" in excMsg)
 
+    def test_immutable(self):
+        p1 = PointNewstyle(1, 2)
+        try:
+            p1.x = 5
+            self.fail('Expected FrozenInstanceError')
+        except dataclasses.FrozenInstanceError:
+            pass
+
+    def test_mutable(self):
+        b = Box(4)
+        self.assertEqual(b.x, 4)
+        b.x = 5
+        self.assertEqual(b.x, 5)
