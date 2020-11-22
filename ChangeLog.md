@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+0.8.0 (2020-11-22)
+  * Alternative form for records
+  * Fix bug when importing local modules
 * 0.7.2 (2020-11-17)
   * Allow types such as `List[int]` in records and mixeds.
 * 0.7.1. (2020-11-13)
