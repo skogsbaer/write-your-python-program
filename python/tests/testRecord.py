@@ -51,6 +51,9 @@ class TestRecords(unittest.TestCase):
         square = Square(p1, 5)
         self.assertEqual(square.center, p1)
         self.assertEqual(square.size, 5)
+        List[Point] # just use it
+        List[PointNewstyle] # just use it
+        List[Enum('foo', 'bar')] # just use it
 
     def test_createNewsystyle(self):
         p1 = PointNewstyle(1, 2)

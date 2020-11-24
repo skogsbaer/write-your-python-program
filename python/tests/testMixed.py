@@ -16,3 +16,4 @@ class TestMixed(unittest.TestCase):
         self.assertTrue(WithNone.isSome('foo'))
         self.assertTrue(WithNone.isSome(None))
         self.assertFalse(WithNone.isSome(42))
+        List[PointOrFloat] # just use it

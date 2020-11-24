@@ -79,8 +79,6 @@ class Record:
                 raise TypeError(f"Das {i+2}. Argument von Record ist kein Typ sondern " \
                     f"{repr(fieldTy)}. Es wird aber der Typ der Eigenschaft {fieldName} erwartet.")
             fields.append((fieldName, fieldTy))
-        def make(*args):
-            return _RecordInstance(recordName, fields, args)
         def isSome(x):
             ty = type(x)
             return ty is _RecordInstance and x.recordName == recordName
@@ -153,6 +151,9 @@ class Mixed:
             if hasType(alt, x):
                 return True
         return False
+    def __call__(self, *args, **kwArgs):
+        # make it callable so that it can be used as a type argument of a generic
+        raise 'Mixed is not callable'
 
 # Enums
 class Enum:
@@ -166,6 +167,9 @@ class Enum:
         return True
     def isSome(self, x):
         return x in self.alternatives
+    def __call__(self, *args, **kwArgs):
+        # make it callable so that it can be used as a type argument of a generic
+        raise 'Enum is not callable'
 
 # Deferred references
 
@@ -209,6 +213,9 @@ class DefinedLater:
     def __getattr__(self, attr):
         resolved = self.resolve()
         return getattr(resolved, attr)
+    def __call__(self, *args, **kwArgs):
+        # make it callable so that it can be used as a type argument of a generic
+        raise TypeError('DefinedLater is not callable')
 
 # Tests
 
