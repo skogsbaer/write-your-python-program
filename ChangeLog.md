@@ -1,5 +1,9 @@
 # Write Your Python Program - CHANGELOG
 
+0.8.1 (2020-11-24)
+  * Fix command execution under powershell
+  * Allow `List[T]` if `T` is an `Enum`, `Mixed` or `DefinedLater`
+  * Better formatting of tracebacks
 0.8.0 (2020-11-22)
   * Alternative form for records
   * Fix bug when importing local modules
