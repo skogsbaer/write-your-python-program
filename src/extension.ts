@@ -36,18 +36,6 @@ function showButtons() {
         b.show();
     });
 }
-const POWERSHELLS = [/(powershell.exe$|powershell$)/i, /(pwsh.exe$|pwsh$)/i];
-
-type ShellKind = 'powershell' | 'other';
-
-function identifyShell(t: vscode.Terminal): ShellKind {
-    for (let pat of POWERSHELLS) {
-        if (pat.test(t.name)) {
-            return 'powershell';
-        }
-    }
-    return 'other'
-}
 
 function startTerminal(
     existing: vscode.Terminal | undefined, name: string, cmd: string
@@ -55,10 +43,13 @@ function startTerminal(
     if (existing) {
         existing.dispose();
     }
-    const terminal = vscode.window.createTerminal({name: name});
+    const terminalOptions: vscode.TerminalOptions = {name: name};
+    if (isWindows) {
+        terminalOptions.shellPath = "C:\\Windows\\System32\\cmd.exe";
+    }
+    const terminal = vscode.window.createTerminal(terminalOptions);
     terminal.show(false); // focus the terminal
-    const cmdPrefix = (identifyShell(terminal) === 'powershell') ? '? ' : '';
-    terminal.sendText(cmdPrefix + cmd);
+    terminal.sendText(cmd);
     return terminal;
 }
 
