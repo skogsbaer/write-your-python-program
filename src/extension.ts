@@ -7,7 +7,7 @@ import * as path from 'path';
 
 const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
-const verboseConfigKey = 'verbose'
+const verboseConfigKey = 'verbose';
 const isWindows = process.platform === "win32";
 const exeExt = isWindows ? ".exe" : "";
 
@@ -50,7 +50,7 @@ function getTerminalConfig(): {shellPath: string | undefined, shellArgs: string 
     }
     if (osSection) {
         return {
-            shellPath: shellConfig.get<string>(osSection) || undefined, 
+            shellPath: shellConfig.get<string>(osSection) || undefined,
             shellArgs: shellArgsConfig.get<string | string[]>(osSection) || undefined
         };
     } else {
@@ -71,7 +71,7 @@ function identifyShell(shellPath: string): ShellKind {
             return 'powershell';
         }
     }
-    return 'other'
+    return 'other';
 }
 
 function startTerminal(
