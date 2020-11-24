@@ -37,6 +37,43 @@ function showButtons() {
     });
 }
 
+function getTerminalConfig(): {shellPath: string | undefined, shellArgs: string | string[] | undefined} {
+    const shellConfig = vscode.workspace.getConfiguration('terminal.integrated.shell');
+    const shellArgsConfig = vscode.workspace.getConfiguration('terminal.integrated.shellArgs');
+    let osSection: string | undefined;
+    if (process.platform === "win32") {
+        osSection = 'windows';
+    } else if (process.platform === "darwin") {
+        osSection = 'osx';
+    } else if (process.platform === "linux") {
+        osSection = 'linux';
+    }
+    if (osSection) {
+        return {
+            shellPath: shellConfig.get<string>(osSection) || undefined, 
+            shellArgs: shellArgsConfig.get<string | string[]>(osSection) || undefined
+        };
+    } else {
+        return {
+            shellPath: undefined,
+            shellArgs: undefined
+        };
+    }
+}
+
+const POWERSHELLS = [/(powershell.exe$|powershell$)/i, /(pwsh.exe$|pwsh$)/i];
+
+type ShellKind = 'powershell' | 'other';
+
+function identifyShell(shellPath: string): ShellKind {
+    for (let pat of POWERSHELLS) {
+        if (pat.test(shellPath)) {
+            return 'powershell';
+        }
+    }
+    return 'other'
+}
+
 function startTerminal(
     existing: vscode.Terminal | undefined, name: string, cmd: string
 ): vscode.Terminal {
@@ -44,12 +81,27 @@ function startTerminal(
         existing.dispose();
     }
     const terminalOptions: vscode.TerminalOptions = {name: name};
+    let cmdPrefix = "";
     if (isWindows) {
-        terminalOptions.shellPath = "C:\\Windows\\System32\\cmd.exe";
+        const shellCfg = getTerminalConfig();
+        const shellPath = shellCfg.shellPath;
+        const shellArgs = shellCfg.shellArgs;
+        if (shellPath) {
+            terminalOptions.shellPath = shellPath;
+            if (shellArgs) {
+                terminalOptions.shellArgs = shellArgs;
+            }
+            if (identifyShell(shellPath) === "powershell") {
+                cmdPrefix = "& ";
+            }
+        } else {
+            // powershell is the default
+            cmdPrefix = "& ";
+        }
     }
     const terminal = vscode.window.createTerminal(terminalOptions);
     terminal.show(false); // focus the terminal
-    terminal.sendText(cmd);
+    terminal.sendText(cmdPrefix + cmd);
     return terminal;
 }
 
