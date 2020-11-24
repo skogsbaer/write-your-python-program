@@ -5,10 +5,18 @@
 import sys
 import os
 
+__wypp_runYourProgram = 1
+
+def die(ecode=1):
+    if sys.flags.interactive:
+        os._exit(ecode)
+    else:
+        sys.exit(ecode)
+
 pythonVersion = sys.version.split()[0]
 if not pythonVersion.startswith('3.'):
     sys.stderr.write("\nFEHLER: es wird Python 3 benoetigt, nicht " + pythonVersion + ".\n\n")
-    os._exit(0)
+    die()
 
 import os.path
 import runpy
@@ -49,15 +57,18 @@ def parseCmdlineArgs():
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
+    parser.add_argument('--quiet', dest='quiet', action='store_const',
+                        const=True, default=False,
+                        help='Be extra quiet')
     parser.add_argument('--test-file', dest='testFile',
                         type=str, help='Run additional tests contained in this file.')
     try:
         args = parser.parse_args()
     except SystemExit as ex:
-        os._exit(ex.code)
+        die(ex.code)
     if not args.file.endswith('.py'):
         print("FEHLER: die angegebene Datei ist keine Python Datei.")
-        os._exit(0)
+        die()
     return args
 
 def readFile(f):
@@ -198,9 +209,9 @@ def runCode(fileToRun, libDefs, onlyCheckRunnable):
         except Exception as e:
             print('Loading file %s crashed' % fileToRun)
             traceback.print_exc()
-            os._exit(1)
+            die()
         else:
-            os._exit(0)
+            die(0)
     userDefs = doRun()
     return userDefs
 
@@ -224,7 +235,7 @@ def performChecks(check, testFile, libDefs, userDefs):
         if testFile:
             testResultsInstr = runTestsInFile(testFile, libDefs, userDefs)
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
-        os._exit(0 if failingSum < 1 else 1)
+        die(0 if failingSum < 1 else 1)
 
 def prepareInteractive():
     print('\n')
@@ -236,6 +247,28 @@ def enterInteractive(userDefs):
     for k, v in userDefs.items():
         globals()[k] = v
     print()
+
+def isRunPy(frame):
+    d = frame.f_globals
+    if not '__file__' in d:
+        return False
+    if not d['__file__'].endswith('runpy.py'):
+        return False
+    return 'run_path' in d and 'run_module' in d
+
+def isMyCode(frame):
+    return '__wypp_runYourProgram' in frame.f_globals
+
+def ignoreFrame(frame):
+    return isRunPy(frame) or isMyCode(frame)
+
+def limitTraceback(fullTb):
+    tb = fullTb
+    while tb:
+        if not ignoreFrame(tb.tb_frame):
+            return tb
+        tb = tb.tb_next
+    return fullTb
 
 def main():
     args = parseCmdlineArgs()
@@ -257,10 +290,16 @@ def main():
     if isInteractive:
         prepareInteractive()
     installLib()
-    if not args.checkRunnable:
+    if not args.checkRunnable and not args.quiet:
         printWelcomeString(fileToRun, version)
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
-    userDefs = runCode(fileToRun, libDefs, args.checkRunnable)
+    try:
+        userDefs = runCode(fileToRun, libDefs, args.checkRunnable)
+    except:
+        (etype, val, tb) = sys.exc_info()
+        limitedTb = limitTraceback(tb)
+        traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
+        die(1)
     performChecks(args.check, args.testFile, libDefs, userDefs)
     if isInteractive:
         enterInteractive(userDefs)
