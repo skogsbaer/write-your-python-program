@@ -70,3 +70,5 @@ function checkoutWithOutput()
 }
 
 checkoutWithOutput 1 file-tests/testTraceback.py
+checkoutWithOutput 1 file-tests/testTraceback2.py
+checkoutWithOutput 1 file-tests/testTraceback3.py

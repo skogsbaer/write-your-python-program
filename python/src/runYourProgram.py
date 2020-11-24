@@ -266,9 +266,12 @@ def limitTraceback(fullTb):
     tb = fullTb
     while tb:
         if not ignoreFrame(tb.tb_frame):
+            verbose('Stopping at first non-ignorable frame ' + str(tb.tb_frame))
             return tb
+        verbose('Ignoring frame ' + str(tb.tb_frame))
         tb = tb.tb_next
-    return fullTb
+    verbose('I would ignore all frames, so I return None')
+    return None
 
 def main():
     args = parseCmdlineArgs()
@@ -298,6 +301,7 @@ def main():
     except:
         (etype, val, tb) = sys.exc_info()
         limitedTb = limitTraceback(tb)
+        sys.stderr.write('\n')
         traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
         die(1)
     performChecks(args.check, args.testFile, libDefs, userDefs)
