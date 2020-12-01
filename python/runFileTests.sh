@@ -44,6 +44,12 @@ function checkoutWithOutput()
         echo "File $expectedErr does not exist"
         exit 1
     fi
+    if [ -e "${expectedOut}-$PYENV_VERSION" ]; then
+        expectedOut="${expectedOut}-$PYENV_VERSION"
+    fi
+    if [ -e "${expectedErr}-$PYENV_VERSION" ]; then
+        expectedErr="${expectedErr}-$PYENV_VERSION"
+    fi
     local t=$(mktemp)
     local out=$t.out
     local err=$t.err
