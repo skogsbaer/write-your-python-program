@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+0.8.2 (2020-12-01)
+  * Raise an error if a field of an old-style record is mutated.
 0.8.1 (2020-11-24)
   * Fix command execution under windows and powershell
   * Allow `List[T]` if `T` is an `Enum`, `Mixed` or `DefinedLater`

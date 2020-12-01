@@ -97,12 +97,14 @@ class Record:
 
 class _RecordInstance:
     def __init__(self, recordName, fields, args):
+        self.__dict__['_frozen'] = False
         self.recordName = recordName
         self.values = {}
         for ((name, ty), val) in zip(fields, args):
             self.values[name] = val
         _debug(f'__init__ for {self.recordName} finished, self.values={self.values}, '\
             f'fields={fields}, args={args}')
+        self.__dict__['_frozen'] = True
 
     def __getattr__(self, name):
         if name in self.values:
@@ -111,6 +113,14 @@ class _RecordInstance:
             attrs = ", ".join([x[0] for x in self.values.items()])
             raise AttributeError(f"Der Record {self.recordName} besitzt die Eigenschaft " \
                 f"{name} nicht. Es gibt folgende Eigenschaften: {attrs}")
+
+    def __setattr__(self, name, val):
+        if self._frozen:
+            raise AttributeError(
+                f'Das Attribut {name} des Records {self.recordName} kann nicht geändert werden.'
+            )
+        else:
+            self.__dict__[name] = val
 
     def __repr__(self):
         result = self.recordName + '('

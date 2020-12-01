@@ -192,3 +192,12 @@ class TestRecords(unittest.TestCase):
         self.assertEqual(b.x, 4)
         b.x = 5
         self.assertEqual(b.x, 5)
+
+    def test_mutableOldStyle(self):
+        p = Point(1, 3)
+        try:
+            p.x = 5
+            self.fail("Expected an AttributeError")
+        except AttributeError:
+            pass
+        self.assertEqual(Point(1,3), p)
