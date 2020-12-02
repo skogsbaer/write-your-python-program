@@ -214,7 +214,9 @@ function fixPythonConfig(context: vscode.ExtensionContext) {
     const libDir = context.asAbsolutePath('python/src/');
     const pyComplConfig = vscode.workspace.getConfiguration("python.autoComplete");
     const oldPath: string[] = pyComplConfig.get("extraPaths") || [];
-    const newPath = oldPath.slice();
+    const newPath = oldPath.filter(v => {
+        return !v.includes(extensionId);
+    });
     if (!newPath.includes(libDir)) {
         newPath.push(libDir);
     }
