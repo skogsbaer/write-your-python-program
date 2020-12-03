@@ -35,18 +35,28 @@ Callable = typing.Callable
 def _isDataclassInstance(obj):
     return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
 
-def _patchDataClass(cls):
+def _patchDataClass(cls, mutable):
     def isSome(obj):
         if not _isDataclassInstance(obj):
             return False
         return obj.__class__ == cls
     setattr(cls, "isSome", isSome)
+    if mutable:
+        # prevent new fields being added
+        fields = set([f.name for f in dataclasses.fields(cls)])
+        oldSetattr = cls.__setattr__
+        def _setattr(obj, k, v):
+            if k in fields:
+                oldSetattr(obj, k, v)
+            else:
+                raise AttributeError(f'Unknown attribute {k} for record {cls.__name__}')
+        setattr(cls, "__setattr__", _setattr)
     return cls
 
 def record(cls=None, mutable=False):
     def wrap(cls):
         newCls = dataclasses.dataclass(cls, frozen=not mutable)
-        return _patchDataClass(newCls)
+        return _patchDataClass(newCls, mutable)
     # See if we're being called as @record or @record().
     if cls is None:
         # We're called with parens.

@@ -201,3 +201,17 @@ class TestRecords(unittest.TestCase):
         except AttributeError:
             pass
         self.assertEqual(Point(1,3), p)
+
+    def test_addField(self):
+        b = Box(5)
+        try:
+            b.foobar = 'foobar'
+            self.fail("Expected AttributeError")
+        except AttributeError:
+            pass
+        p1 = PointNewstyle(1, 2)
+        try:
+            p1.z = 5
+            self.fail('Expected FrozenInstanceError')
+        except dataclasses.FrozenInstanceError:
+            pass
