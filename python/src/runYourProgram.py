@@ -1,7 +1,7 @@
 # coding=utf-8
 # NOTE: this file must have valid python 2 syntax. We want to display an error message
 # when running with python 2.
-
+from __future__ import annotations as anns
 import sys
 import os
 
@@ -192,7 +192,8 @@ def findWyppImport(fileName):
 def _runCode(fileToRun, globals):
     myGlobals = globals.copy()
     with open(fileToRun) as f:
-        code = compile(f.read(), fileToRun, 'exec')
+        flags = 0 | anns.compiler_flag
+        code = compile(f.read(), fileToRun, 'exec', flags=flags, dont_inherit=True)
         exec(code, myGlobals, myGlobals)
         return myGlobals
 
