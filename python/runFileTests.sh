@@ -54,6 +54,7 @@ function checkoutWithOutput()
     local out=$t.out
     local err=$t.err
     set +e
+    echo "Checking $file"
     python3 $d/src/runYourProgram.py --quiet "$file" 2>> "$err" > "$out"
     ecode=$?
     set -e

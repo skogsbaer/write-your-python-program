@@ -190,6 +190,13 @@ def findWyppImport(fileName):
             return True
     return False
 
+def _runCode(fileToRun, globals):
+    myGlobals = globals.copy()
+    with open(fileToRun) as f:
+        code = compile(f.read(), fileToRun, 'exec')
+        exec(code, myGlobals, myGlobals)
+        return myGlobals
+
 def runCode(fileToRun, libDefs, onlyCheckRunnable):
     importsWypp = findWyppImport(fileToRun)
     globalsForRun = {}
@@ -202,7 +209,7 @@ def runCode(fileToRun, libDefs, onlyCheckRunnable):
     localDir = os.path.dirname(fileToRun)
     if localDir not in sys.path:
         sys.path.insert(0, localDir)
-    doRun = lambda: runpy.run_path(fileToRun, globalsForRun)
+    doRun = lambda: _runCode(fileToRun, globalsForRun)
     if onlyCheckRunnable:
         try:
             doRun()
