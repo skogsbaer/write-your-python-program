@@ -1,7 +1,7 @@
 import sys
 import doctest
-import runpy
 import os
+from runYourProgram import runCode
 
 def usage():
     print('USAGE: python3 testReplSamples.py LIB_1 ... LIB_n --repl SAMPLE_1 ... SAMPLE_m')
@@ -39,10 +39,10 @@ libDict = {}
 
 libDir = os.path.dirname(__file__)
 libFile = os.path.join(libDir, 'writeYourProgram.py')
-libDefs = runpy.run_path(libFile)
+libDefs = runCode(libFile, {})
 
 for lib in libs:
-    defs = runpy.run_path(lib, libDefs)
+    defs = runCode(lib, libDefs)
     libDict.update(defs)
 
 totalFailures = 0

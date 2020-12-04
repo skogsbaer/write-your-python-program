@@ -168,7 +168,7 @@ def loadLib(onlyCheckRunnable):
     if not libDefs:
         # This code path is only here to support the case that installation fails.
         libFile = os.path.join(LIB_DIR, 'writeYourProgram.py')
-        d = _runCode(libFile, {})
+        d = runCode(libFile, {})
         verbose('Successfully loaded library code from ' + libFile)
         libDefs = Lib(d, False)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
@@ -189,7 +189,7 @@ def findWyppImport(fileName):
             return True
     return False
 
-def _runCode(fileToRun, globals):
+def runCode(fileToRun, globals):
     myGlobals = globals.copy()
     with open(fileToRun) as f:
         flags = 0 | anns.compiler_flag
@@ -197,7 +197,7 @@ def _runCode(fileToRun, globals):
         exec(code, myGlobals, myGlobals)
         return myGlobals
 
-def runCode(fileToRun, libDefs, onlyCheckRunnable):
+def _runCode(fileToRun, libDefs, onlyCheckRunnable):
     importsWypp = findWyppImport(fileToRun)
     globalsForRun = {}
     if importsWypp:
@@ -209,7 +209,7 @@ def runCode(fileToRun, libDefs, onlyCheckRunnable):
     localDir = os.path.dirname(fileToRun)
     if localDir not in sys.path:
         sys.path.insert(0, localDir)
-    doRun = lambda: _runCode(fileToRun, globalsForRun)
+    doRun = lambda: runCode(fileToRun, globalsForRun)
     if onlyCheckRunnable:
         try:
             doRun()
@@ -296,7 +296,7 @@ def main():
         printWelcomeString(fileToRun, version)
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
     try:
-        userDefs = runCode(fileToRun, libDefs, args.checkRunnable)
+        userDefs = _runCode(fileToRun, libDefs, args.checkRunnable)
     except:
         (etype, val, tb) = sys.exc_info()
         limitedTb = limitTraceback(tb)
