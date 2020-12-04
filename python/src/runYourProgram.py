@@ -19,7 +19,6 @@ if not pythonVersion.startswith('3.'):
     die()
 
 import os.path
-import runpy
 import argparse
 import json
 import traceback
@@ -169,7 +168,7 @@ def loadLib(onlyCheckRunnable):
     if not libDefs:
         # This code path is only here to support the case that installation fails.
         libFile = os.path.join(LIB_DIR, 'writeYourProgram.py')
-        d = runpy.run_path(libFile)
+        d = _runCode(libFile, {})
         verbose('Successfully loaded library code from ' + libFile)
         libDefs = Lib(d, False)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
@@ -229,7 +228,7 @@ def runTestsInFile(testFile, libDefs, userDefs):
     for k, v in userDefs.items():
         allDefs[k] = v
     libDefs.resetTestCount()
-    runpy.run_path(testFile, allDefs)
+    _runCode(testFile, allDefs)
     return libDefs.dict['printTestResults']('Dozent:  ')
 
 def performChecks(check, testFile, libDefs, userDefs):
@@ -255,19 +254,11 @@ def enterInteractive(userDefs):
         globals()[k] = v
     print()
 
-def isRunPy(frame):
-    d = frame.f_globals
-    if not '__file__' in d:
-        return False
-    if not d['__file__'].endswith('runpy.py'):
-        return False
-    return 'run_path' in d and 'run_module' in d
-
 def isMyCode(frame):
     return '__wypp_runYourProgram' in frame.f_globals
 
 def ignoreFrame(frame):
-    return isRunPy(frame) or isMyCode(frame)
+    return isMyCode(frame)
 
 def limitTraceback(fullTb):
     tb = fullTb
