@@ -76,6 +76,9 @@ class TestMixed(unittest.TestCase):
         except TypeError as e:
             self.assertEqual(str(e), msg)
 
+    def test_checkEq(self):
+        check(1.0000000000000001, 1)
+
     def test_typechking(self):
         self.assertTypeError(lambda : Enum('Stefan', 1),
             'Das 2. Argument von Enum ist kein String sondern 1.')

@@ -215,3 +215,19 @@ class TestRecords(unittest.TestCase):
             self.fail('Expected FrozenInstanceError')
         except dataclasses.FrozenInstanceError:
             pass
+
+    def test_eqOldstyle(self):
+        p1 = Point(0.3, 2)
+        p2 = Point(0.1 + 0.1 + 0.1, 2)
+        # general equality must not use special logic for floats, otherwise == is not transitive
+        self.assertEqual(p1 == p2, False)
+        # check should use special logic for floats
+        check(p1, p2)
+
+    def test_eqNewstyle(self):
+        p1 = PointNewstyle(0.3, 2)
+        p2 = PointNewstyle(0.1 + 0.1 + 0.1, 2)
+        # general equality must not use special logic for floats, otherwise == is not transitive
+        self.assertEqual(p1 == p2, False)
+        # check should use special logic for floats
+        check(p1, p2)

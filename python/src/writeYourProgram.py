@@ -41,9 +41,11 @@ def _patchDataClass(cls, mutable):
             return False
         return obj.__class__ == cls
     setattr(cls, "isSome", isSome)
+    fieldNames = [f.name for f in dataclasses.fields(cls)]
+    setattr(cls, EQ_ATTRS_ATTR, fieldNames)
     if mutable:
         # prevent new fields being added
-        fields = set([f.name for f in dataclasses.fields(cls)])
+        fields = set(fieldNames)
         oldSetattr = cls.__setattr__
         def _setattr(obj, k, v):
             if k in fields:
@@ -112,6 +114,7 @@ class _RecordInstance:
         self.values = {}
         for ((name, ty), val) in zip(fields, args):
             self.values[name] = val
+        self.__eqAttrs__ = [f[0] for f in fields]
         _debug(f'__init__ for {self.recordName} finished, self.values={self.values}, '\
             f'fields={fields}, args={args}')
         self.__dict__['_frozen'] = True
@@ -140,7 +143,7 @@ class _RecordInstance:
 
     def __eq__(self, other):
         return type(other) is _RecordInstance and self.recordName == other.recordName and \
-            deepEq(self.values, other.values, structuralObjEq=False)
+            deepEq(self.values, other.values)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -310,11 +313,12 @@ def printTestResults(prefix=''):
 def checkEq(actual, expected):
     return check(actual, expected, structuralObjEq=False)
 
-def check(actual, expected, structuralObjEq=True):
+def check(actual, expected, structuralObjEq=True, floatEqWithDelta=True):
     if not _checksEnabled:
         return
     global _testCount
-    matches = deepEq(actual, expected, structuralObjEq)
+    flags = {'structuralObjEq': structuralObjEq, 'floatEqWithDelta': floatEqWithDelta}
+    matches = deepEq(actual, expected, **flags)
     _testCount = {
         'total': _testCount['total'] + 1,
         'failing': _testCount['failing'] + (0 if matches else 1)
@@ -341,49 +345,67 @@ def _isNumber(x):
     t = type(x)
     return (t is int or t is float)
 
-_EPSILON = 0.00001
-
-def _seqEq(seq1, seq2, structuralObjEq):
+def _seqEq(seq1, seq2, flags):
     if len(seq1) != len(seq2):
         return False
     for i, x in enumerate(seq1):
         y = seq2[i]
-        if not deepEq(x, y, structuralObjEq):
+        if not deepEq(x, y, **flags):
             return False
     return True
 
-def _dictEq(d1, d2, structuralObjEq):
+def _dictEq(d1, d2, flags):
     ks1 = sorted(d1.keys())
     ks2 = sorted(d2.keys())
     if ks1 != ks2: # keys should be exactly equal
         return False
     for k in ks1:
-        if not deepEq(d1[k], d2[k], structuralObjEq):
+        if not deepEq(d1[k], d2[k], **flags):
             return False
     return True
 
 def _objToDict(o):
     d = {}
-    for n in dir(o):
-        if n and n[0] == '_':
+    attrs = dir(o)
+    useAll = False
+    if hasattr(o, EQ_ATTRS_ATTR):
+        useAll = True
+        attrs = getattr(o, EQ_ATTRS_ATTR)
+    for n in attrs:
+        if not useAll and n and n[0] == '_':
             continue
         x = getattr(o, n)
         d[n] = x
     return d
 
-def _objEq(o1, o2, structuralObjEq):
-    return _dictEq(_objToDict(o1), _objToDict(o2), structuralObjEq)
+def _objEq(o1, o2, flags):
+    return _dictEq(_objToDict(o1), _objToDict(o2), flags)
 
-def deepEq(v1, v2, structuralObjEq=False):
+_EPSILON = 0.00001
+EQ_ATTRS_ATTR = '__eqAttrs__'
+
+def _useFloatEqWithDelta(flags):
+    return flags.get('floatEqWithDelta', False)
+
+def _useStructuralObjEq(flags):
+    return flags.get('structuralObjEq', False)
+
+# Supported flags:
+# - structuralObjEq: causes objects to be compared as dictionaries. The keys are by default
+#   taken from dir(obj), if obj as the attribute __eqAttrs__, then the names listed there
+#   are taken. Defaults to False.
+# - floatEqWithDelta: compares floats by checking whether the difference is smaller than a
+#   small delta. Setting this to True loses transitivity of eq.
+def deepEq(v1, v2, **flags):
     """
     Computes deep equality of v1 and v2. With structuralObjEq=False, objects are compared
     by __eq__. Otherwise, objects are compared attribute-wise, only those attributes
     returned by dir that do not start with an underscore are compared.
     """
-    # print(f'v1={v1}, v2={v2}, structuralObjEq={structuralObjEq}')
+    # print(f'v1={v1}, v2={v2}, flags={flags}')
     if v1 == v2:
         return True
-    if _isNumber(v1) and _isNumber(v2):
+    if _isNumber(v1) and _isNumber(v2) and _useFloatEqWithDelta(flags):
         diff = v1 - v2
         if abs(diff) < _EPSILON:
             return True
@@ -393,14 +415,14 @@ def deepEq(v1, v2, structuralObjEq=False):
     if ty1 != type(v2):
         return False
     if ty1 == list or ty1 == tuple:
-        return _seqEq(v1, v2, structuralObjEq)
+        return _seqEq(v1, v2, flags)
     if ty1 == dict:
-        return _dictEq(v1, v2, structuralObjEq)
+        return _dictEq(v1, v2, flags)
     if ty1 == str:
         return False
     if hasattr(v1, '__class__'):
-        if structuralObjEq:
-            return _objEq(v1, v2, structuralObjEq)
+        if _useStructuralObjEq(flags):
+            return _objEq(v1, v2, flags)
         else:
             return False # v1 == v2 already checked
     return False
