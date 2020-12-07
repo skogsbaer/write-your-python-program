@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+0.9.1 (2020-12-07)
+  * Fix equality for records.
 0.9.0 (2020-12-04)
   * Enable `from __future__ import annotations` for all code executed via the RUN button.
 0.8.2 (2020-12-01)
