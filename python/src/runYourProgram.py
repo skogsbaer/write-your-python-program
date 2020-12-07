@@ -229,7 +229,7 @@ def runTestsInFile(testFile, libDefs, userDefs):
     for k, v in userDefs.items():
         allDefs[k] = v
     libDefs.resetTestCount()
-    _runCode(testFile, allDefs)
+    runCode(testFile, allDefs)
     return libDefs.dict['printTestResults']('Dozent:  ')
 
 def performChecks(check, testFile, libDefs, userDefs):
