@@ -130,7 +130,8 @@ This allows integration with tools like to python debugger.
 Currently, type annotations serve only the purpose of documentation, they are **not** checked in any way. Also, the code is run with `from __future__ import annotations`
 (see [PEP 563](https://www.python.org/dev/peps/pep-0563/)), which will be
 the default from python 3.10 on. This means that you can use a type as an annotation
-before the type being defined. In fact, there is no check at all to make sure
+before the type being defined, for example to define recursive types or as
+the type of `self` inside of classes. In fact, there is no check at all to make sure
 that anotations refer to existing types.
 
 For the future, it is planned to check anotations dynamically, along the lines
