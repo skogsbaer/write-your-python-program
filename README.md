@@ -125,6 +125,21 @@ from wypp import *
 
 This allows integration with tools like to python debugger.
 
+## Annotations
+
+Currently, type annotations serve only the purpose of documentation, they are **not** checked in any way. Also, the code is run with `from __future__ import annotations`
+(see [PEP 563](https://www.python.org/dev/peps/pep-0563/)), which will be
+the default from python 3.10 on. This means that you can use a type as an annotation
+before the type being defined. In fact, there is no check at all to make sure
+that anotations refer to existing types.
+
+For the future, it is planned to check anotations dynamically, along the lines
+of [contracts for racket](https://users.cs.northwestern.edu/~robby/pubs/papers/ho-contracts-icfp2002.pdf).
+
+## Bugs & Problems
+
+Please report them in the [issue tracker](https://github.com/skogsbaer/write-your-python-program/issues).
+
 ## Hacking
 
 You can debug the extension from Visual Studio Code:
