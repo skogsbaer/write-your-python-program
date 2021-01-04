@@ -44,7 +44,7 @@ def verbose(s):
 def parseCmdlineArgs():
     parser = argparse.ArgumentParser(description='Run Your Program!')
     parser.add_argument('file', metavar='FILE',
-                        help='The file to run')
+                        help='The file to run', nargs='?')
     parser.add_argument('--check-runnable', dest='checkRunnable', action='store_const',
                         const=True, default=False,
                         help='Abort with exit code 1 if loading the file raises errors')
@@ -57,15 +57,16 @@ def parseCmdlineArgs():
                         const=True, default=False,
                         help='Be verbose')
     parser.add_argument('--quiet', dest='quiet', action='store_const',
-                        const=True, default=False,
-                        help='Be extra quiet')
+                        const=True, default=False, help='Be extra quiet')
+    parser.add_argument('--no-install', dest='noInstall', action='store_const',
+                        const=True, default=False, help='Do not install the wypp files')
     parser.add_argument('--test-file', dest='testFile',
                         type=str, help='Run additional tests contained in this file.')
     try:
         args, restArgs = parser.parse_known_args()
     except SystemExit as ex:
         die(ex.code)
-    if not args.file.endswith('.py'):
+    if args.file and not args.file.endswith('.py'):
         print("FEHLER: die angegebene Datei ist keine Python Datei.")
         die()
     return (args, restArgs)
@@ -296,7 +297,10 @@ def main():
     version = readVersion()
     if isInteractive:
         prepareInteractive()
-    installLib()
+    if not args.noInstall:
+        installLib()
+    if fileToRun is None:
+        return
     if not args.checkRunnable and not args.quiet:
         printWelcomeString(fileToRun, version)
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
