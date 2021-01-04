@@ -62,13 +62,13 @@ def parseCmdlineArgs():
     parser.add_argument('--test-file', dest='testFile',
                         type=str, help='Run additional tests contained in this file.')
     try:
-        args = parser.parse_args()
+        args, restArgs = parser.parse_known_args()
     except SystemExit as ex:
         die(ex.code)
     if not args.file.endswith('.py'):
         print("FEHLER: die angegebene Datei ist keine Python Datei.")
         die()
-    return args
+    return (args, restArgs)
 
 def readFile(f):
     with open(f) as file:
@@ -168,7 +168,7 @@ def loadLib(onlyCheckRunnable):
     if not libDefs:
         # This code path is only here to support the case that installation fails.
         libFile = os.path.join(LIB_DIR, 'writeYourProgram.py')
-        d = runCode(libFile, {})
+        d = runCode(libFile, {}, [])
         verbose('Successfully loaded library code from ' + libFile)
         libDefs = Lib(d, False)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
@@ -189,15 +189,20 @@ def findWyppImport(fileName):
             return True
     return False
 
-def runCode(fileToRun, globals):
+def runCode(fileToRun, globals, args):
     myGlobals = globals.copy()
     with open(fileToRun) as f:
         flags = 0 | anns.compiler_flag
         code = compile(f.read(), fileToRun, 'exec', flags=flags, dont_inherit=True)
-        exec(code, myGlobals, myGlobals)
+        oldArgs = sys.argv
+        try:
+            sys.argv = [fileToRun] + args
+            exec(code, myGlobals, myGlobals)
+        finally:
+            sys.argv = oldArgs
         return myGlobals
 
-def _runCode(fileToRun, libDefs, onlyCheckRunnable):
+def _runCode(fileToRun, libDefs, onlyCheckRunnable, args):
     importsWypp = findWyppImport(fileToRun)
     globalsForRun = {}
     if importsWypp:
@@ -209,7 +214,7 @@ def _runCode(fileToRun, libDefs, onlyCheckRunnable):
     localDir = os.path.dirname(fileToRun)
     if localDir not in sys.path:
         sys.path.insert(0, localDir)
-    doRun = lambda: runCode(fileToRun, globalsForRun)
+    doRun = lambda: runCode(fileToRun, globalsForRun, args)
     if onlyCheckRunnable:
         try:
             doRun()
@@ -229,7 +234,7 @@ def runTestsInFile(testFile, libDefs, userDefs):
     for k, v in userDefs.items():
         allDefs[k] = v
     libDefs.resetTestCount()
-    runCode(testFile, allDefs)
+    runCode(testFile, allDefs, [])
     return libDefs.dict['printTestResults']('Dozent:  ')
 
 def performChecks(check, testFile, libDefs, userDefs):
@@ -273,7 +278,7 @@ def limitTraceback(fullTb):
     return None
 
 def main():
-    args = parseCmdlineArgs()
+    (args, restArgs) = parseCmdlineArgs()
     global VERBOSE, SIMULATE_LIB_FROM_FILE, ASSERT_INSTALL
     if args.verbose:
         VERBOSE = True
@@ -296,7 +301,7 @@ def main():
         printWelcomeString(fileToRun, version)
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
     try:
-        userDefs = _runCode(fileToRun, libDefs, args.checkRunnable)
+        userDefs = _runCode(fileToRun, libDefs, args.checkRunnable, restArgs)
     except:
         (etype, val, tb) = sys.exc_info()
         limitedTb = limitTraceback(tb)
