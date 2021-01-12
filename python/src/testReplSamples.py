@@ -39,10 +39,15 @@ libDict = {}
 
 libDir = os.path.dirname(__file__)
 libFile = os.path.join(libDir, 'writeYourProgram.py')
-libDefs = runCode(libFile, {})
+libDefs = runCode(libFile, {}, [])
 
 for lib in libs:
-    defs = runCode(lib, libDefs)
+    d = os.path.dirname(lib)
+    if d not in sys.path:
+        sys.path.insert(0, d)
+
+for lib in libs:
+    defs = runCode(lib, libDefs, [])
     libDict.update(defs)
 
 totalFailures = 0
