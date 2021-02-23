@@ -1,8 +1,14 @@
+- Correctly set current working dir. That is, if you hit the run button,
+  the current working directory should be the directory of the module being run.
+- Imports to modules in the same directory are marked as warnings in VSCode
+- Correctly set module name. If you hit the run button, the name should be '__wypp__'
+  Otherwise, it should be the module name.
+- BUG: Peter's scope bug
+
 # Next iteration
 - Contracts checking
-- Rename Mixed to Union?
+- Rename Mixed to Union and DefinedLater to ForwardRef
 - Write records in the style of dataclasses, drop support for old-style records
 - Require explict import of wypp: better interaction with tools
 - use lowercase types list, tuple, dict etc. (requires python 3.9)
-- rename DefinedLater into ForwardRef (from the typing module)
 - make installable via pip (for those we do not use the extension)
