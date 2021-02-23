@@ -31,7 +31,7 @@ check file-tests/fileWithRecursiveTypes.py
 python3 $d/src/runYourProgram.py --check --test-file $d/file-tests/student-submission-tests.py \
     $d/file-tests/student-submission.py >> "$t"
 
-function checkoutWithOutput()
+function checkWithOutput()
 {
     local expectedEcode=$1
     local file="$2"
@@ -78,7 +78,20 @@ function checkoutWithOutput()
     rm -f "$err"
 }
 
-checkoutWithOutput 1 file-tests/testTraceback.py
-checkoutWithOutput 1 file-tests/testTraceback2.py
-checkoutWithOutput 1 file-tests/testTraceback3.py
-checkoutWithOutput 0 file-tests/testArgs.py ARG_1 ARG_2
+checkWithOutput 1 file-tests/testTraceback.py
+checkWithOutput 1 file-tests/testTraceback2.py
+checkWithOutput 1 file-tests/testTraceback3.py
+checkWithOutput 0 file-tests/testArgs.py ARG_1 ARG_2
+
+set +e
+echo -n 'local_test(); print(spam)' | \
+    python3 -i $d/src/runYourProgram.py --quiet --no-clear file-tests/scope-bug-peter.py |
+    grep 'IT WORKS' > /dev/null
+ecode="${PIPESTATUS[2]}"
+set -e
+if [ $ecode -ne 0 ]; then
+    echo "scope-bug-peter test failed!"
+    exit 1
+fi
+
+python3 $d/src/runYourProgram.py --quiet "$file" "$@" 2>> "$err" > "$out"

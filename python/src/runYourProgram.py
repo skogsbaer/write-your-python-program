@@ -60,6 +60,8 @@ def parseCmdlineArgs():
                         const=True, default=False, help='Be extra quiet')
     parser.add_argument('--no-install', dest='noInstall', action='store_const',
                         const=True, default=False, help='Do not install the wypp files')
+    parser.add_argument('--no-clear', dest='noClear', action='store_const',
+                        const=True, default=False, help='Do not clear the terminal')
     parser.add_argument('--test-file', dest='testFile',
                         type=str, help='Run additional tests contained in this file.')
     try:
@@ -250,11 +252,12 @@ def performChecks(check, testFile, libDefs, userDefs):
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
         die(0 if failingSum < 1 else 1)
 
-def prepareInteractive():
+def prepareInteractive(reset=True):
     print('\n')
     # clear the terminal, reset on Mac OSX and Linux. This prevents strange history bugs where
     # the command just entered is echoed again (2020-10-14).
-    os.system('cls' if os.name == 'nt' else 'reset')
+    if reset:
+        os.system('cls' if os.name == 'nt' else 'reset')
 
 def enterInteractive(userDefs):
     for k, v in userDefs.items():
@@ -296,7 +299,7 @@ def main():
     isInteractive = sys.flags.interactive
     version = readVersion()
     if isInteractive:
-        prepareInteractive()
+        prepareInteractive(reset=not args.noClear)
     if not args.noInstall:
         installLib()
     if fileToRun is None:
