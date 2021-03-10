@@ -94,4 +94,3 @@ if [ $ecode -ne 0 ]; then
     exit 1
 fi
 
-python3 $d/src/runYourProgram.py --quiet "$file" "$@" 2>> "$err" > "$out"
