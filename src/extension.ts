@@ -266,7 +266,8 @@ export function activate(context: vscode.ExtensionContext) {
                     terminals[cmdId],
                     "WYPP - RUN",
                     pythonCmd + " -i " + fileToCommandArgument(runProg) + verboseOpt +
-                        " " + fileToCommandArgument(file)
+                        " --change-directory " +
+                        fileToCommandArgument(file)
                 );
                 if (pyCmd.kind === "warning") {
                     vscode.window.showInformationMessage(pyCmd.msg);

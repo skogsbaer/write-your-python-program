@@ -55,6 +55,9 @@ def parseCmdlineArgs():
                         const=True, default=False, help='Do not clear the terminal')
     parser.add_argument('--test-file', dest='testFile',
                         type=str, help='Run additional tests contained in this file.')
+    parser.add_argument('--change-directory', dest='changeDir', action='store_const',
+                        const=True, default=False,
+                        help='Change to the directory of FILE before running')
     try:
         args, restArgs = parser.parse_known_args()
     except SystemExit as ex:
@@ -282,6 +285,8 @@ def main(globals):
         print('Invalid value for --install-mode: %s' % args.installMode)
         sys.exit(1)
     fileToRun = args.file
+    if args.changeDir:
+        os.chdir(os.path.dirname(fileToRun))
     isInteractive = sys.flags.interactive
     version = readVersion()
     if isInteractive:
