@@ -82,6 +82,8 @@ checkWithOutput 1 file-tests/testTraceback.py
 checkWithOutput 1 file-tests/testTraceback2.py
 checkWithOutput 1 file-tests/testTraceback3.py
 checkWithOutput 0 file-tests/testArgs.py ARG_1 ARG_2
+checkWithOutput 0 file-tests/printModuleName.py
+checkWithOutput 0 file-tests/printModuleNameImport.py
 
 set +e
 echo -n 'local_test(); print(spam)' | \
