@@ -299,6 +299,7 @@ def main(globals):
         printWelcomeString(fileToRun, version)
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
     globals['__name__'] = '__wypp__'
+    sys.modules['__wypp__'] = sys.modules['__main__']
     try:
         runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs)
     except:
