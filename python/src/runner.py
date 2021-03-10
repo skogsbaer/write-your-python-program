@@ -298,6 +298,7 @@ def main(globals):
     if not args.checkRunnable and not args.quiet:
         printWelcomeString(fileToRun, version)
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
+    globals['__name__'] = '__wypp__'
     try:
         runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs)
     except:
