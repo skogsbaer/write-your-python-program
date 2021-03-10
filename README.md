@@ -137,6 +137,12 @@ that anotations refer to existing types.
 For the future, it is planned to check anotations dynamically, along the lines
 of [contracts for racket](https://users.cs.northwestern.edu/~robby/pubs/papers/ho-contracts-icfp2002.pdf).
 
+## Module name and current working directory
+
+When executing a python file with the RUN button, the current working directory is set to
+the directory of the file being executed. The `__name__` attribute is set to the value
+`'__wypp__'`.
+
 ## Bugs & Problems
 
 Please report them in the [issue tracker](https://github.com/skogsbaer/write-your-python-program/issues).
