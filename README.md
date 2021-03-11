@@ -25,6 +25,9 @@ The ideas of this environment are based on the great ideas from
 
 Here is the [Changelog](ChangeLog.md).
 
+**Breaking change** in version 0.11.0 (2021-03-11): wypp is no longer automatically imported.
+You need an explicit import statement such as `from wypp import *`.
+
 ## Features
 
 Here is a screen shot:

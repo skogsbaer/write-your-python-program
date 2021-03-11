@@ -1,16 +1,23 @@
 # Write Your Python Program - CHANGELOG
 
-0.9.1 (2020-12-07)
+* 0.11.0 (2021-03-11)
+  * **Breaking change:** wypp is no longer automatically imported. You need an explicit
+    import statement such as `from wypp import *`.
+* 0.10.X (2021-03-10)
+  * Module name is now `'__wypp__'` when executed via RUN button.
+  * Fix scoping bug
+  * Hitting the RUN button now changes to the directory of the current file.
+* 0.9.1 (2020-12-07)
   * Fix equality for records.
-0.9.0 (2020-12-04)
+* 0.9.0 (2020-12-04)
   * Enable `from __future__ import annotations` for all code executed via the RUN button.
-0.8.2 (2020-12-01)
+* 0.8.2 (2020-12-01)
   * Raise an error if a field of an old-style record is mutated.
-0.8.1 (2020-11-24)
+* 0.8.1 (2020-11-24)
   * Fix command execution under windows and powershell
   * Allow `List[T]` if `T` is an `Enum`, `Mixed` or `DefinedLater`
   * Better formatting of tracebacks
-0.8.0 (2020-11-22)
+* 0.8.0 (2020-11-22)
   * Alternative form for records
   * Fix bug when importing local modules
 * 0.7.2 (2020-11-17)
