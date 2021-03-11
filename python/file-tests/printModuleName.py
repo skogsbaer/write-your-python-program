@@ -1,5 +1,6 @@
 # Should print 'wypp' when loaded via the RUN button.
 # When imported, it should print 'printModuleName'
+import wypp
 print(__name__)
 
 class C:

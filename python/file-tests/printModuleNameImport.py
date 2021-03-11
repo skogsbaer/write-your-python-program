@@ -1,3 +1,4 @@
+import wypp
 import printModuleName
 print(__name__)
 

@@ -32,9 +32,6 @@ Set = typing.Set
 
 Callable = typing.Callable
 
-ForwardRef = DefinedLater
-Union = Mixed
-
 def _isDataclassInstance(obj):
     return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
 
@@ -430,9 +427,12 @@ def deepEq(v1, v2, **flags):
             return False # v1 == v2 already checked
     return False
 
-# Additional functions
+# Additional functions and aliases
 
 import math as moduleMath
 
 math = moduleMath
+
+ForwardRef = DefinedLater
+Union = Mixed
 

@@ -24,7 +24,6 @@ function check()
 }
 check file-tests/fileWithImport.py
 check file-tests/fileWithoutImport.py
-check file-tests/fileWithOnlyDrawingImport.py
 check file-tests/fileWithBothImports.py
 check file-tests/fileWithRecursiveTypes.py
 
