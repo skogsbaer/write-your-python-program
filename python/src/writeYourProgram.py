@@ -32,6 +32,9 @@ Set = typing.Set
 
 Callable = typing.Callable
 
+ForwardRef = DefinedLater
+Union = Mixed
+
 def _isDataclassInstance(obj):
     return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
 
