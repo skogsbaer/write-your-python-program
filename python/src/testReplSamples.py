@@ -1,7 +1,7 @@
 import sys
 import doctest
 import os
-from runYourProgram import runCode
+from runner import runCode
 
 def usage():
     print('USAGE: python3 testReplSamples.py LIB_1 ... LIB_n --repl SAMPLE_1 ... SAMPLE_m')
@@ -35,11 +35,10 @@ else:
 if len(repls) == 0:
     usage()
 
-libDict = {}
-
 libDir = os.path.dirname(__file__)
 libFile = os.path.join(libDir, 'writeYourProgram.py')
-libDefs = runCode(libFile, {}, [])
+defs = {}
+runCode(libFile, defs, [])
 
 for lib in libs:
     d = os.path.dirname(lib)
@@ -47,14 +46,13 @@ for lib in libs:
         sys.path.insert(0, d)
 
 for lib in libs:
-    defs = runCode(lib, libDefs, [])
-    libDict.update(defs)
+    runCode(lib, defs, [])
 
 totalFailures = 0
 totalTests = 0
 
 for repl in repls:
-    (failures, tests) = doctest.testfile(repl, globs=libDict, module_relative=False)
+    (failures, tests) = doctest.testfile(repl, globs=defs, module_relative=False)
     totalFailures += failures
     totalTests += tests
     if failures == 0:
