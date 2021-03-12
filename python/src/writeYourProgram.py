@@ -31,6 +31,7 @@ Dict = typing.Dict
 Set = typing.Set
 
 Callable = typing.Callable
+dataclass = dataclasses.dataclass
 
 def _isDataclassInstance(obj):
     return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
