@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "USAGE: $0 FILE.vsix"
+    exit 1
+fi
+
+code --install-extension "$1"
