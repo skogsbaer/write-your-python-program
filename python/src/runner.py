@@ -204,10 +204,6 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args):
     if importsWypp:
         if not libDefs.properlyImported:
             globals[INSTALLED_MODULE_NAME] = libDefs.dict
-    else:
-        print(f'{fileToRun} importiert wypp nicht. Möglicherweise ist das Absicht,\n' +
-               'aber falls Features aus wypp verwendet werden, muss eine Importanweisung\n' +
-              '"from wypp import *" hinzugefügt werden.')
     localDir = os.path.dirname(fileToRun)
     if localDir not in sys.path:
         sys.path.insert(0, localDir)
