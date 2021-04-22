@@ -221,9 +221,20 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args):
 
 # globals already contain libDefs
 def runTestsInFile(testFile, globals, libDefs):
+    print()
+    print(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
-    runCode(testFile, globals, [])
-    return libDefs.dict['printTestResults']('Dozent:  ')
+    inserted = False
+    testDir = os.path.dirname(testFile)
+    try:
+        if testDir not in sys.path:
+            inserted = True
+            sys.path.insert(0, testDir)
+        runCode(testFile, globals, [])
+    finally:
+        if inserted:
+            sys.path.remove(testDir)
+    return libDefs.dict['printTestResults']('Tutor:  ')
 
 # globals already contain libDefs
 def performChecks(check, testFile, globals, libDefs):
