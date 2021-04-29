@@ -32,6 +32,9 @@ def verbose(s):
     if VERBOSE:
         print('[V] ' + s)
 
+def printStderr(s=''):
+    sys.stderr.write(s + '\n')
+
 def parseCmdlineArgs():
     parser = argparse.ArgumentParser(description='Run Your Program!')
     parser.add_argument('file', metavar='FILE',
@@ -63,7 +66,7 @@ def parseCmdlineArgs():
     except SystemExit as ex:
         die(ex.code)
     if args.file and not args.file.endswith('.py'):
-        print("FEHLER: die angegebene Datei ist keine Python Datei.")
+        printStderr("FEHLER: die angegebene Datei ist keine Python Datei.")
         die()
     return (args, restArgs)
 
@@ -87,8 +90,8 @@ def printWelcomeString(file, version):
         file = file[len(cwd):]
     versionStr = '' if not version else 'Version %s, ' % version
     pythonVersion = sys.version.split()[0]
-    print('=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
-          '(%sPython %s, %s) ===' % (versionStr, pythonVersion, file))
+    printStderr('=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
+                '(%sPython %s, %s) ===' % (versionStr, pythonVersion, file))
 
 def isSameFile(f1, f2):
     x = readFile(f1)
@@ -121,11 +124,11 @@ def installLib():
             src = os.path.join(LIB_DIR, m)
             tgt = os.path.join(installDir, m)
             shutil.copyfile(src, tgt)
-        print('Die Python-Bibliothek wurde erfolgreich in ' + userDir + ' installiert.\n' +
-              'Bitte starten Sie Visual Studio Code neu, um sicherzustellen, dass überall\n' +
-              'die neueste Version verwendet wird.\n')
+        printStderr('Die Python-Bibliothek wurde erfolgreich in ' + userDir + ' installiert.\n' +
+                    'Bitte starten Sie Visual Studio Code neu, um sicherzustellen, dass überall\n' +
+                    'die neueste Version verwendet wird.\n')
     except Exception as e:
-        print('Die Installation der Python-Bibliothek ist fehlgeschlagen: ' + str(e))
+        printStderr('Die Installation der Python-Bibliothek ist fehlgeschlagen: ' + str(e))
         if ASSERT_INSTALL:
             raise e
 
@@ -212,7 +215,7 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args):
         try:
             doRun()
         except Exception as e:
-            print('Loading file %s crashed' % fileToRun)
+            printStderr('Loading file %s crashed' % fileToRun)
             traceback.print_exc()
             die()
         else:
@@ -221,8 +224,8 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args):
 
 # globals already contain libDefs
 def runTestsInFile(testFile, globals, libDefs):
-    print()
-    print(f"Running tutor's tests in {testFile}")
+    printStderr()
+    printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
     inserted = False
     testDir = os.path.dirname(testFile)
@@ -290,7 +293,7 @@ def main(globals):
     elif args.installMode == 'assertInstall':
         ASSERT_INSTALL = True
     else:
-        print('Invalid value for --install-mode: %s' % args.installMode)
+        printStderr('Invalid value for --install-mode: %s' % args.installMode)
         sys.exit(1)
     fileToRun = args.file
     if args.changeDir:
