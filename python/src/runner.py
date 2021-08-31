@@ -9,6 +9,9 @@ import shutil
 import site
 import importlib
 import re
+import untypy
+import code
+import glob
 
 __wypp_runYourProgram = 1
 
@@ -61,6 +64,12 @@ def parseCmdlineArgs():
     parser.add_argument('--change-directory', dest='changeDir', action='store_const',
                         const=True, default=False,
                         help='Change to the directory of FILE before running')
+    parser.add_argument('--interactive', dest='interactive', action='store_const',
+                        const=True, default=False,
+                        help='Run REPL after the programm has endet')
+    parser.add_argument('--no-untypy', dest='noUntypy', action='store_const',
+                    const=True, default=False,
+                    help='Do not use untypy for typechecking')
     try:
         args, restArgs = parser.parse_known_args()
     except SystemExit as ex:
@@ -191,18 +200,23 @@ def findWyppImport(fileName):
             return True
     return False
 
-def runCode(fileToRun, globals, args):
+def runCode(fileToRun, globals, args, *, use_untypy=True):
     with open(fileToRun) as f:
         flags = 0 | anns.compiler_flag
-        code = compile(f.read(), fileToRun, 'exec', flags=flags, dont_inherit=True)
+        code = f.read()
+        if use_untypy:
+            code = untypy.just_transform(code, fileToRun)
+        code = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
         oldArgs = sys.argv
         try:
             sys.argv = [fileToRun] + args
             exec(code, globals)
+        except untypy.error.UntypyTypeError as e:
+            print(str(e))
         finally:
             sys.argv = oldArgs
 
-def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args):
+def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, use_untypy=True):
     importsWypp = findWyppImport(fileToRun)
     if importsWypp:
         if not libDefs.properlyImported:
@@ -210,7 +224,7 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args):
     localDir = os.path.dirname(fileToRun)
     if localDir not in sys.path:
         sys.path.insert(0, localDir)
-    doRun = lambda: runCode(fileToRun, globals, args)
+    doRun = lambda: runCode(fileToRun, globals, args, use_untypy=use_untypy)
     if onlyCheckRunnable:
         try:
             doRun()
@@ -254,8 +268,6 @@ def performChecks(check, testFile, globals, libDefs):
 
 def prepareInteractive(reset=True):
     print('\n')
-    # clear the terminal, reset on Mac OSX and Linux. This prevents strange history bugs where
-    # the command just entered is echoed again (2020-10-14).
     if reset:
         if os.name == 'nt':
             # clear the terminal
@@ -286,6 +298,23 @@ def limitTraceback(fullTb):
     verbose('I would ignore all frames, so I return None')
     return None
 
+def findModuleCandiates():
+    """
+    Find possible modules in current directory.
+    This is used for specifing which modules should be 
+    typechecked in Untypy  
+    """
+
+    modules = []
+    # Files with ending py can be loaded
+    for path in glob.glob("*.py"):
+        modules.append(path.replace(".py", ""))
+    # Or folders with an __init__.py
+    for path in glob.glob("*/__init__.py"):
+        modules.append(path.replace("/__init__.py", ""))
+    
+    return modules
+
 def main(globals):
     (args, restArgs) = parseCmdlineArgs()
     global VERBOSE, SIMULATE_LIB_FROM_FILE, ASSERT_INSTALL
@@ -303,27 +332,66 @@ def main(globals):
     fileToRun = args.file
     if args.changeDir:
         os.chdir(os.path.dirname(fileToRun))
-    isInteractive = sys.flags.interactive
+    isInteractive = args.interactive
     version = readVersion()
     if isInteractive:
         prepareInteractive(reset=not args.noClear)
+    
     if not args.noInstall:
         installLib()
     if fileToRun is None:
         return
     if not args.checkRunnable and not args.quiet:
         printWelcomeString(fileToRun, version)
+
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
+
+    if not args.noUntypy:
+        mods = findModuleCandiates()
+        verbose("installing import hook on " + repr(mods))
+        untypy.just_install_hook(mods)
+
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
-        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs)
+        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs, use_untypy=not args.noUntypy)
     except:
         (etype, val, tb) = sys.exc_info()
         limitedTb = limitTraceback(tb)
         sys.stderr.write('\n')
         traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
         die(1)
+    
     performChecks(args.check, args.testFile, globals, libDefs)
+
     if isInteractive:
         enterInteractive(globals)
+        if not args.noUntypy:
+            consoleClass = TypecheckedInteractiveConsole
+        else:
+            consoleClass = code.InteractiveConsole
+        consoleClass(locals=globals).interact(banner="\n\n")
+
+class TypecheckedInteractiveConsole(code.InteractiveConsole):
+
+    def runsource(self, source, filename="<input>", symbol="single"):
+        try:
+            code = self.compile(source, filename, symbol)
+        except (OverflowError, SyntaxError, ValueError):
+            self.showsyntaxerror(filename)
+            return False
+
+        if code is None:
+            return True
+
+        try:
+            ast = untypy.just_transform("\n".join(self.buffer), filename, symbol)
+            code = compile(ast, filename, symbol)
+        except Exception as e:
+            if e.text == "":
+                pass
+            else:
+                traceback.print_tb(e.__traceback__) 
+            
+        self.runcode(code)
+        return False

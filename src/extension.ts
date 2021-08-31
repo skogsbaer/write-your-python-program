@@ -265,7 +265,8 @@ export function activate(context: vscode.ExtensionContext) {
                 terminals[cmdId] = startTerminal(
                     terminals[cmdId],
                     "WYPP - RUN",
-                    pythonCmd + " -i " + fileToCommandArgument(runProg) + verboseOpt +
+                    pythonCmd +  " " + fileToCommandArgument(runProg) + verboseOpt +
+                        " --interactive " +
                         " --change-directory " +
                         fileToCommandArgument(file)
                 );
