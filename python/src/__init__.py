@@ -1,6 +1,6 @@
 from . import writeYourProgram as w
 
-blacklist = ['writeYourProgram', 'drawingLib']
+blacklist = ['writeYourProgram', 'drawingLib', 'untypy']
 __all__ = ['drawingLib']
 
 for k in dir(w):

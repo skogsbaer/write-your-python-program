@@ -33,6 +33,22 @@ Set = typing.Set
 Callable = typing.Callable
 dataclass = dataclasses.dataclass
 
+# Reexports for Untypy
+try:
+    from untypy import unchecked, precondition, postcondition
+except ImportError:
+    def _dummy_decorator(fn):
+        return fn
+    
+    def _higher_order_dummy_decorator(*args):
+        # Match Pre/Post-Cond Arg
+        return _dummy_decorator
+
+    unchecked = _dummy_decorator
+    precondition = _higher_order_dummy_decorator
+    postcondition = _higher_order_dummy_decorator
+
+
 def _isDataclassInstance(obj):
     return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
 
