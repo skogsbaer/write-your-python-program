@@ -257,7 +257,12 @@ def prepareInteractive(reset=True):
     # clear the terminal, reset on Mac OSX and Linux. This prevents strange history bugs where
     # the command just entered is echoed again (2020-10-14).
     if reset:
-        os.system('cls' if os.name == 'nt' else 'reset')
+        if os.name == 'nt':
+            # clear the terminal
+            os.system('cls')
+        else: 
+            # On linux & mac use ANSI Sequence for this
+            print('\033[2J\033[H')
 
 def enterInteractive(userDefs):
     for k, v in userDefs.items():
