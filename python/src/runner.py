@@ -11,6 +11,7 @@ import importlib
 import re
 import untypy
 import code
+import ast
 import glob
 
 __wypp_runYourProgram = 1
@@ -203,14 +204,19 @@ def findWyppImport(fileName):
 def runCode(fileToRun, globals, args, *, use_untypy=True):
     with open(fileToRun) as f:
         flags = 0 | anns.compiler_flag
-        code = f.read()
+        codeTxt = f.read()
         if use_untypy:
-            code = untypy.just_transform(code, fileToRun)
-        code = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
+            tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
+                           dont_inherit=True, optimize=-1)
+            untypy.transform_tree(tree)
+            code = tree
+        else:
+            code = codeTxt
+        compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
         oldArgs = sys.argv
         try:
             sys.argv = [fileToRun] + args
-            exec(code, globals)
+            exec(compiledCode, globals)
         except untypy.error.UntypyTypeError as e:
             print(str(e))
         finally:
@@ -272,7 +278,7 @@ def prepareInteractive(reset=True):
         if os.name == 'nt':
             # clear the terminal
             os.system('cls')
-        else: 
+        else:
             # On linux & mac use ANSI Sequence for this
             print('\033[2J\033[H')
 
@@ -301,8 +307,8 @@ def limitTraceback(fullTb):
 def findModuleCandiates():
     """
     Find possible modules in current directory.
-    This is used for specifing which modules should be 
-    typechecked in Untypy  
+    This is used for specifing which modules should be
+    typechecked in Untypy
     """
 
     modules = []
@@ -312,7 +318,7 @@ def findModuleCandiates():
     # Or folders with an __init__.py
     for path in glob.glob("*/__init__.py"):
         modules.append(path.replace("/__init__.py", ""))
-    
+
     return modules
 
 def main(globals):
@@ -336,7 +342,7 @@ def main(globals):
     version = readVersion()
     if isInteractive:
         prepareInteractive(reset=not args.noClear)
-    
+
     if not args.noInstall:
         installLib()
     if fileToRun is None:
@@ -361,7 +367,7 @@ def main(globals):
         sys.stderr.write('\n')
         traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
         die(1)
-    
+
     performChecks(args.check, args.testFile, globals, libDefs)
 
     if isInteractive:
@@ -391,7 +397,7 @@ class TypecheckedInteractiveConsole(code.InteractiveConsole):
             if e.text == "":
                 pass
             else:
-                traceback.print_tb(e.__traceback__) 
-            
+                traceback.print_tb(e.__traceback__)
+
         self.runcode(code)
         return False
