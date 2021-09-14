@@ -1,9 +1,14 @@
-- Imports of modules in the same directory are marked as warnings in VSCode
-- make installable via pip (for those we do not use the extension)
+# untypy
+- run all tests with and without untypy
+- support for python 3.8
+- add tests with type annotations
 
-# Next iteration
-- Contracts checking
-- Rename Mixed to Union and DefinedLater to ForwardRef
-- Write records in the style of dataclasses, drop support for old-style records
-- Require explict import of wypp: better interaction with tools
+# other
+- fix __init__.py file so that pylance does not complain about missing variables
+- imports of modules in the same directory are marked as warnings in VSCode
+- make installable via pip (for those we do not use the extension)
+- rename Mixed to Union and DefinedLater to ForwardRef
+- write records in the style of dataclasses, drop support for old-style records
+- require explict import of wypp: better interaction with tools
 - use lowercase types list, tuple, dict etc. (requires python 3.9)
+- only install if running under VSCode
