@@ -67,10 +67,10 @@ def parseCmdlineArgs():
                         help='Change to the directory of FILE before running')
     parser.add_argument('--interactive', dest='interactive', action='store_const',
                         const=True, default=False,
-                        help='Run REPL after the programm has endet')
-    parser.add_argument('--no-untypy', dest='noUntypy', action='store_const',
-                    const=True, default=False,
-                    help='Do not use untypy for typechecking')
+                        help='Run REPL after the programm has finished')
+    parser.add_argument('--no-typechecking', dest='checkTypes', action='store_const',
+                        const=False, default=True,
+                        help='Do not check type annotations')
     try:
         args, restArgs = parser.parse_known_args()
     except SystemExit as ex:
@@ -201,11 +201,11 @@ def findWyppImport(fileName):
             return True
     return False
 
-def runCode(fileToRun, globals, args, *, use_untypy=True):
+def runCode(fileToRun, globals, args, *, useUntypy=True):
     with open(fileToRun) as f:
         flags = 0 | anns.compiler_flag
         codeTxt = f.read()
-        if use_untypy:
+        if useUntypy:
             tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
                            dont_inherit=True, optimize=-1)
             untypy.transform_tree(tree)
@@ -222,7 +222,7 @@ def runCode(fileToRun, globals, args, *, use_untypy=True):
         finally:
             sys.argv = oldArgs
 
-def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, use_untypy=True):
+def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useUntypy=True):
     importsWypp = findWyppImport(fileToRun)
     if importsWypp:
         if not libDefs.properlyImported:
@@ -230,7 +230,7 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, use_
     localDir = os.path.dirname(fileToRun)
     if localDir not in sys.path:
         sys.path.insert(0, localDir)
-    doRun = lambda: runCode(fileToRun, globals, args, use_untypy=use_untypy)
+    doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy)
     if onlyCheckRunnable:
         try:
             doRun()
@@ -310,7 +310,6 @@ def findModuleCandiates():
     This is used for specifing which modules should be
     typechecked in Untypy
     """
-
     modules = []
     # Files with ending py can be loaded
     for path in glob.glob("*.py"):
@@ -318,7 +317,6 @@ def findModuleCandiates():
     # Or folders with an __init__.py
     for path in glob.glob("*/__init__.py"):
         modules.append(path.replace("/__init__.py", ""))
-
     return modules
 
 def main(globals):
@@ -352,7 +350,7 @@ def main(globals):
 
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
 
-    if not args.noUntypy:
+    if args.checkTypes:
         mods = findModuleCandiates()
         verbose("installing import hook on " + repr(mods))
         untypy.just_install_hook(mods)
@@ -360,7 +358,8 @@ def main(globals):
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
-        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs, use_untypy=not args.noUntypy)
+        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs,
+                       useUntypy=args.checkTypes)
     except:
         (etype, val, tb) = sys.exc_info()
         limitedTb = limitTraceback(tb)
@@ -372,7 +371,7 @@ def main(globals):
 
     if isInteractive:
         enterInteractive(globals)
-        if not args.noUntypy:
+        if args.checkTypes:
             consoleClass = TypecheckedInteractiveConsole
         else:
             consoleClass = code.InteractiveConsole
