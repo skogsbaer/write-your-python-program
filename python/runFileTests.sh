@@ -30,11 +30,18 @@ check file-tests/fileWithRecursiveTypes.py
 python3 $d/src/runYourProgram.py --check --test-file $d/file-tests/student-submission-tests.py \
     $d/file-tests/student-submission.py >> "$t"
 
-function checkWithOutput()
+function checkWithOutputAux()
 {
-    local expectedEcode=$1
-    local file="$2"
-    shift 2
+    local tycheck="$1"
+    local expectedEcode=$2
+    local file="$3"
+    shift 3
+    tycheckOpt=""
+    suffixes="${PYENV_VERSION}"
+    if [ "$tycheck" == "no" ]; then
+        tycheckOpt="--no-typechecking"
+        suffixes="${PYENV_VERSION}-notypes ${PYENV_VERSION} notypes"
+    fi
     local expectedOut="${file%.py}.out"
     if [ ! -f "$expectedOut" ]; then
         echo "File $expectedOut does not exist"
@@ -45,18 +52,20 @@ function checkWithOutput()
         echo "File $expectedErr does not exist"
         exit 1
     fi
-    if [ -e "${expectedOut}-$PYENV_VERSION" ]; then
-        expectedOut="${expectedOut}-$PYENV_VERSION"
-    fi
-    if [ -e "${expectedErr}-$PYENV_VERSION" ]; then
-        expectedErr="${expectedErr}-$PYENV_VERSION"
-    fi
+    for suf in $suffixes; do
+        if [ -e "${expectedOut}-${suf}" ]; then
+            expectedOut="${expectedOut}-${suf}"
+        fi
+        if [ -e "${expectedErr}-${suf}" ]; then
+            expectedErr="${expectedErr}-${suf}"
+        fi
+    done
     local t=$(mktemp)
     local out=$t.out
     local err=$t.err
     set +e
-    echo "Checking $file"
-    python3 $d/src/runYourProgram.py --quiet "$file" "$@" 2>> "$err" > "$out"
+    echo "Checking $file (typecheck: $tycheck)"
+    python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$err" > "$out"
     ecode=$?
     set -e
     if [ $ecode != $expectedEcode ]; then
@@ -64,17 +73,23 @@ function checkWithOutput()
         exit 1
     fi
     if ! diff -u $expectedOut $out; then
-        echo "Wrong output on stdout for $file"
+        echo "Wrong output on stdout for $file ($expectedOut contains the expected output)"
         echo "Full output: $out"
         exit 1
     fi
     if ! diff -u $expectedErr $err; then
-        echo "Wrong output on stderr for $file"
+        echo "Wrong output on stderr for $file ($expectedErr contains the expected output)"
         echo "Full output: $err"
         exit 1
     fi
     rm -f "$out"
     rm -f "$err"
+}
+
+function checkWithOutput()
+{
+    checkWithOutputAux yes "$@"
+    checkWithOutputAux no "$@"
 }
 
 checkWithOutput 1 file-tests/testTraceback.py
