@@ -214,17 +214,11 @@ def runCode(fileToRun, globals, args, *, useUntypy=True):
             code = codeTxt
         compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
         oldArgs = sys.argv
-        abort = False
         try:
             sys.argv = [fileToRun] + args
             exec(compiledCode, globals)
-        except untypy.error.UntypyTypeError as e:
-            sys.stderr.write(str(e))
-            sys.stderr.write("\n")
-            abort = True
         finally:
             sys.argv = oldArgs
-        return abort
 
 def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useUntypy=True):
     importsWypp = findWyppImport(fileToRun)
@@ -238,13 +232,12 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useU
     if onlyCheckRunnable:
         try:
             doRun()
-        except Exception as e:
+        except:
             printStderr('Loading file %s crashed' % fileToRun)
-            traceback.print_exc()
-            die()
+            handleCurrentException()
         else:
             die(0)
-    return doRun()
+    doRun()
 
 # globals already contain libDefs
 def runTestsInFile(testFile, globals, libDefs):
@@ -258,6 +251,8 @@ def runTestsInFile(testFile, globals, libDefs):
             inserted = True
             sys.path.insert(0, testDir)
         runCode(testFile, globals, [])
+    except:
+        handleCurrentException()
     finally:
         if inserted:
             sys.path.remove(testDir)
@@ -307,6 +302,17 @@ def limitTraceback(fullTb):
         tb = tb.tb_next
     verbose('I would ignore all frames, so I return None')
     return None
+
+def handleCurrentException():
+    (etype, val, tb) = sys.exc_info()
+    if isinstance(val, untypy.error.UntypyTypeError):
+        sys.stderr.write(str(val))
+        sys.stderr.write('\n')
+    else:
+        limitedTb = limitTraceback(tb)
+        sys.stderr.write('\n')
+        traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
+    die(1)
 
 def findModuleCandiates():
     """
@@ -362,16 +368,10 @@ def main(globals):
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
-        abort = runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs,
-                               useUntypy=args.checkTypes)
+        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs,
+                       useUntypy=args.checkTypes)
     except:
-        (etype, val, tb) = sys.exc_info()
-        limitedTb = limitTraceback(tb)
-        sys.stderr.write('\n')
-        traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
-        die(1)
-    if abort:
-        die(1)
+        handleCurrentException()
 
     performChecks(args.check, args.testFile, globals, libDefs)
 
