@@ -1,7 +1,14 @@
 * untypy
 ** support for python 3.8
 ** add tests with type annotations
-** option for vscode plugin
+*** in interactive mode
+*** in imported modules
+*** for enums
+*** for mixed types
+*** for records
+**** construction
+**** write access
+** option for vscode plugin to turn-off type checking
 
 * other
 ** fix __init__.py file so that pylance does not complain about missing variables
@@ -12,3 +19,4 @@
 ** require explict import of wypp: better interaction with tools
 ** use lowercase types list, tuple, dict etc. (requires python 3.9)
 ** only install if running under VSCode
+** port runFileTests.sh to python

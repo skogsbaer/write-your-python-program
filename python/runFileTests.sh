@@ -30,6 +30,10 @@ check file-tests/fileWithRecursiveTypes.py
 python3 $d/src/runYourProgram.py --check --test-file $d/file-tests/student-submission-tests.py \
     $d/file-tests/student-submission.py >> "$t"
 
+# First argument: whether to do type checking or not
+# Second argument: expected exit code. If given as X:Y, then X is the exit code with active
+#   type checking, and Y is the exit code without type checking.
+# Third argument: input file
 function checkWithOutputAux()
 {
     local tycheck="$1"
@@ -41,6 +45,13 @@ function checkWithOutputAux()
     if [ "$tycheck" == "no" ]; then
         tycheckOpt="--no-typechecking"
         suffixes="${PYENV_VERSION}-notypes ${PYENV_VERSION} notypes"
+    fi
+    if echo "$expectedEcode" | grep ':' > /dev/null; then
+        if [ "$tycheck" == "no" ]; then
+            expectedEcode=$(echo "$expectedEcode" | sed 's/^.*://g')
+        else
+            expectedEcode=$(echo "$expectedEcode" | sed 's/:.*$//g')
+        fi
     fi
     local expectedOut="${file%.py}.out"
     if [ ! -f "$expectedOut" ]; then
@@ -98,6 +109,8 @@ checkWithOutput 1 file-tests/testTraceback3.py
 checkWithOutput 0 file-tests/testArgs.py ARG_1 ARG_2
 checkWithOutput 0 file-tests/printModuleName.py
 checkWithOutput 0 file-tests/printModuleNameImport.py
+checkWithOutput 1 file-tests/testTypes1.py
+checkWithOutput 1:0 file-tests/testTypes2.py
 
 set +e
 echo -n 'local_test(); print(spam)' | \

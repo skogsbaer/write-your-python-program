@@ -214,13 +214,17 @@ def runCode(fileToRun, globals, args, *, useUntypy=True):
             code = codeTxt
         compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
         oldArgs = sys.argv
+        abort = False
         try:
             sys.argv = [fileToRun] + args
             exec(compiledCode, globals)
         except untypy.error.UntypyTypeError as e:
-            print(str(e))
+            sys.stderr.write(str(e))
+            sys.stderr.write("\n")
+            abort = True
         finally:
             sys.argv = oldArgs
+        return abort
 
 def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useUntypy=True):
     importsWypp = findWyppImport(fileToRun)
@@ -240,7 +244,7 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useU
             die()
         else:
             die(0)
-    doRun()
+    return doRun()
 
 # globals already contain libDefs
 def runTestsInFile(testFile, globals, libDefs):
@@ -358,13 +362,15 @@ def main(globals):
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
-        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs,
-                       useUntypy=args.checkTypes)
+        abort = runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs,
+                               useUntypy=args.checkTypes)
     except:
         (etype, val, tb) = sys.exc_info()
         limitedTb = limitTraceback(tb)
         sys.stderr.write('\n')
         traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
+        die(1)
+    if abort:
         die(1)
 
     performChecks(args.check, args.testFile, globals, libDefs)
