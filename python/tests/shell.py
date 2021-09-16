@@ -82,7 +82,7 @@ class RunError(ShellError):
         self.stderr = stderr
         msg = 'Command ' + repr(self.cmd) + " failed with exit code " + str(self.exitcode)
         if stderr:
-            msg = msg + 'stderr:\n' + str(stderr)
+            msg = msg + '\nstderr:\n' + str(stderr)
         super(RunError, self).__init__(msg)
 
 def splitOn(splitter):

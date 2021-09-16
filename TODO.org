@@ -1,8 +1,6 @@
 * untypy
 ** support for python 3.8
 ** add tests with type annotations
-*** in interactive mode
-*** in imported modules
 *** for enums
 *** for mixed types
 *** for records

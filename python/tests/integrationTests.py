@@ -2,7 +2,17 @@ import shell
 import unittest
 import os
 
-def runInteractive(path, input, tycheck=True):
+def run(path, input='', tycheck=True, ecode=0):
+    flags = ['--quiet', '--no-clear']
+    if not tycheck:
+        flags.append('--no-typechecking')
+    cmd = f'python3 src/runYourProgram.py {" ".join(flags)} {path}'
+    res = shell.run(cmd, captureStdout=True, stderrToStdout=True, onError='ignore')
+    if res.exitcode != ecode:
+        raise Exception(f'Unexpected exit code: {res.exitcode} (expected {ecode})')
+    return res.stdout
+
+def runInteractive(path, input='', tycheck=True):
     flags = ['--interactive', '--quiet', '--no-clear']
     if not tycheck:
         flags.append('--no-typechecking')
@@ -54,3 +64,10 @@ file-tests/testTypesInteractive.py:1
                               tycheck=False)
         self.assertIn(">>> 'x'", out)
 
+    def test_typesInImportedModule1(self):
+        out = run('file-tests/testTypes3.py', ecode=1)
+        self.assertIn('\nexpected: int', out)
+
+    def test_typesInImportedModule2(self):
+        out = run('file-tests/testTypes3.py', tycheck=False)
+        self.assertIn('END', out)

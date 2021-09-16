@@ -13,6 +13,7 @@ import untypy
 import code
 import ast
 import glob
+from modulefinder import ModuleFinder
 
 __wypp_runYourProgram = 1
 
@@ -201,11 +202,25 @@ def findWyppImport(fileName):
             return True
     return False
 
+def findImportedModules(file):
+    finder = ModuleFinder()
+    finder.run_script(file)
+    res = []
+    for name, mod in finder.modules.items():
+        # if mod.__file__ is set, the module is not a system module
+        if name != '__main__' and mod.__file__:
+            res.append(name)
+    return res
+
 def runCode(fileToRun, globals, args, *, useUntypy=True):
     with open(fileToRun) as f:
         flags = 0 | anns.compiler_flag
         codeTxt = f.read()
         if useUntypy:
+            importedMods = findImportedModules(fileToRun)
+            verbose("installing import hook on " + repr(importedMods))
+            untypy.just_install_hook(importedMods)
+
             tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
                            dont_inherit=True, optimize=-1)
             untypy.transform_tree(tree)
@@ -317,21 +332,6 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     if exit:
         die(1)
 
-def findModuleCandiates():
-    """
-    Find possible modules in current directory.
-    This is used for specifing which modules should be
-    typechecked in Untypy
-    """
-    modules = []
-    # Files with ending py can be loaded
-    for path in glob.glob("*.py"):
-        modules.append(path.replace(".py", ""))
-    # Or folders with an __init__.py
-    for path in glob.glob("*/__init__.py"):
-        modules.append(path.replace("/__init__.py", ""))
-    return modules
-
 HISTORY_SIZE = 1000
 
 def getHistoryFilePath():
@@ -374,11 +374,6 @@ def main(globals):
         printWelcomeString(fileToRun, version)
 
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
-
-    if args.checkTypes:
-        mods = findModuleCandiates()
-        verbose("installing import hook on " + repr(mods))
-        untypy.just_install_hook(mods)
 
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
