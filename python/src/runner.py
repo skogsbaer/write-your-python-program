@@ -203,12 +203,14 @@ def findWyppImport(fileName):
     return False
 
 def findImportedModules(file):
-    finder = ModuleFinder()
-    finder.run_script(file)
+    finder = ModuleFinder(path=[sys.path[0]])
+    try:
+        finder.run_script(file)
+    except:
+        return []
     res = []
     for name, mod in finder.modules.items():
-        # if mod.__file__ is set, the module is not a system module
-        if name != '__main__' and mod.__file__:
+        if name != '__main__' and mod.__file__ and not os.path.isabs(mod.__file__):
             res.append(name)
     return res
 
@@ -217,13 +219,15 @@ def runCode(fileToRun, globals, args, *, useUntypy=True):
         flags = 0 | anns.compiler_flag
         codeTxt = f.read()
         if useUntypy:
+            verbose(f'finding modules imported by {fileToRun}')
             importedMods = findImportedModules(fileToRun)
-            verbose("installing import hook on " + repr(importedMods))
+            verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
             untypy.just_install_hook(importedMods)
-
+            verbose(f"transforming {fileToRun} for typechecking")
             tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
                            dont_inherit=True, optimize=-1)
             untypy.transform_tree(tree)
+            verbose(f'done with transformation of {fileToRun}')
             code = tree
         else:
             code = codeTxt
@@ -320,7 +324,7 @@ def limitTraceback(fullTb):
 
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
-    if isinstance(val, untypy.error.UntypyTypeError):
+    if isinstance(val, untypy.error.UntypyTypeError) or isinstance(val, untypy.error.UntypyAttributeError):
         file.write(str(val))
         file.write('\n')
     else:
@@ -378,6 +382,7 @@ def main(globals):
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
+        verbose(f'running code in {fileToRun}')
         runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs,
                        useUntypy=args.checkTypes)
     except:
