@@ -202,8 +202,8 @@ def findWyppImport(fileName):
             return True
     return False
 
-def findImportedModules(file):
-    finder = ModuleFinder(path=[sys.path[0]])
+def findImportedModules(path, file):
+    finder = ModuleFinder(path=path)
     try:
         finder.run_script(file)
     except:
@@ -214,39 +214,51 @@ def findImportedModules(file):
             res.append(name)
     return res
 
+class sysPathPrepended:
+    def __init__(self, d):
+        self.dir = d
+        self.inserted = False
+    def __enter__(self):
+        if self.dir not in sys.path:
+            sys.path.insert(0, self.dir)
+            self.inserted = True
+    def __exit__(self, exc_type, value, traceback):
+        if self.inserted:
+            sys.path.remove(self.dir)
+            self.inserted = False
+
 def runCode(fileToRun, globals, args, *, useUntypy=True):
-    with open(fileToRun) as f:
-        flags = 0 | anns.compiler_flag
-        codeTxt = f.read()
-        if useUntypy:
-            verbose(f'finding modules imported by {fileToRun}')
-            importedMods = findImportedModules(fileToRun)
-            verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
-            untypy.just_install_hook(importedMods)
-            verbose(f"transforming {fileToRun} for typechecking")
-            tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
-                           dont_inherit=True, optimize=-1)
-            untypy.transform_tree(tree)
-            verbose(f'done with transformation of {fileToRun}')
-            code = tree
-        else:
-            code = codeTxt
-        compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
-        oldArgs = sys.argv
-        try:
-            sys.argv = [fileToRun] + args
-            exec(compiledCode, globals)
-        finally:
-            sys.argv = oldArgs
+    localDir = os.path.dirname(fileToRun)
+    with sysPathPrepended(localDir):
+        with open(fileToRun) as f:
+            flags = 0 | anns.compiler_flag
+            codeTxt = f.read()
+            if useUntypy:
+                verbose(f'finding modules imported by {fileToRun}')
+                importedMods = findImportedModules([localDir], fileToRun)
+                verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
+                untypy.just_install_hook(importedMods)
+                verbose(f"transforming {fileToRun} for typechecking")
+                tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
+                               dont_inherit=True, optimize=-1)
+                untypy.transform_tree(tree)
+                verbose(f'done with transformation of {fileToRun}')
+                code = tree
+            else:
+                code = codeTxt
+            compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
+            oldArgs = sys.argv
+            try:
+                sys.argv = [fileToRun] + args
+                exec(compiledCode, globals)
+            finally:
+                sys.argv = oldArgs
 
 def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useUntypy=True):
     importsWypp = findWyppImport(fileToRun)
     if importsWypp:
         if not libDefs.properlyImported:
             globals[INSTALLED_MODULE_NAME] = libDefs.dict
-    localDir = os.path.dirname(fileToRun)
-    if localDir not in sys.path:
-        sys.path.insert(0, localDir)
     doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy)
     if onlyCheckRunnable:
         try:
@@ -263,18 +275,10 @@ def runTestsInFile(testFile, globals, libDefs):
     printStderr()
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
-    inserted = False
-    testDir = os.path.dirname(testFile)
     try:
-        if testDir not in sys.path:
-            inserted = True
-            sys.path.insert(0, testDir)
         runCode(testFile, globals, [])
     except:
         handleCurrentException()
-    finally:
-        if inserted:
-            sys.path.remove(testDir)
     return libDefs.dict['printTestResults']('Tutor:  ')
 
 # globals already contain libDefs
