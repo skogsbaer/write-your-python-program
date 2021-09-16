@@ -272,7 +272,7 @@ def performChecks(check, testFile, globals, libDefs):
         die(0 if failingSum < 1 else 1)
 
 def prepareInteractive(reset=True):
-    print('\n')
+    print()
     if reset:
         if os.name == 'nt':
             # clear the terminal
@@ -303,16 +303,19 @@ def limitTraceback(fullTb):
     verbose('I would ignore all frames, so I return None')
     return None
 
-def handleCurrentException():
+def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
     if isinstance(val, untypy.error.UntypyTypeError):
-        sys.stderr.write(str(val))
-        sys.stderr.write('\n')
+        file.write(str(val))
+        file.write('\n')
     else:
+        if tb and removeFirstTb:
+            tb = tb.tb_next
         limitedTb = limitTraceback(tb)
-        sys.stderr.write('\n')
-        traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
-    die(1)
+        file.write('\n')
+        traceback.print_exception(etype, val, limitedTb, file=file)
+    if exit:
+        die(1)
 
 def findModuleCandiates():
     """
@@ -328,6 +331,18 @@ def findModuleCandiates():
     for path in glob.glob("*/__init__.py"):
         modules.append(path.replace("/__init__.py", ""))
     return modules
+
+HISTORY_SIZE = 1000
+
+def getHistoryFilePath():
+    envVar = 'HOME'
+    if os.name == 'nt':
+        envVar = 'USERPROFILE'
+    d = os.getenv(envVar, None)
+    if d:
+        return os.path.join(d, ".wypp_history")
+    else:
+        return None
 
 def main(globals):
     (args, restArgs) = parseCmdlineArgs()
@@ -381,9 +396,25 @@ def main(globals):
             consoleClass = TypecheckedInteractiveConsole
         else:
             consoleClass = code.InteractiveConsole
-        consoleClass(locals=globals).interact(banner="\n\n")
+        historyFile = getHistoryFilePath()
+        try:
+            import readline
+            readline.parse_and_bind('tab: complete')
+            if historyFile and os.path.exists(historyFile):
+                readline.read_history_file(historyFile)
+        except:
+            pass
+        try:
+            consoleClass(locals=globals).interact(banner="", exitmsg='')
+        finally:
+            if readline and historyFile:
+                readline.set_history_length(HISTORY_SIZE)
+                readline.write_history_file(historyFile)
 
 class TypecheckedInteractiveConsole(code.InteractiveConsole):
+
+    def showtraceback(self) -> None:
+        handleCurrentException(exit=False, removeFirstTb=True, file=sys.stdout)
 
     def runsource(self, source, filename="<input>", symbol="single"):
         try:
@@ -391,10 +422,8 @@ class TypecheckedInteractiveConsole(code.InteractiveConsole):
         except (OverflowError, SyntaxError, ValueError):
             self.showsyntaxerror(filename)
             return False
-
         if code is None:
             return True
-
         try:
             ast = untypy.just_transform("\n".join(self.buffer), filename, symbol)
             code = compile(ast, filename, symbol)
@@ -403,6 +432,5 @@ class TypecheckedInteractiveConsole(code.InteractiveConsole):
                 pass
             else:
                 traceback.print_tb(e.__traceback__)
-
         self.runcode(code)
         return False

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# FIXME (sw, 2021-09-16): we should migrate this mess to tests/integrationTests.py!
+
 set -e
 
 cd $(dirname $0)
@@ -111,15 +113,3 @@ checkWithOutput 0 file-tests/printModuleName.py
 checkWithOutput 0 file-tests/printModuleNameImport.py
 checkWithOutput 1 file-tests/testTypes1.py
 checkWithOutput 1:0 file-tests/testTypes2.py
-
-set +e
-echo -n 'local_test(); print(spam)' | \
-    python3 -i $d/src/runYourProgram.py --quiet --no-clear file-tests/scope-bug-peter.py |
-    grep 'IT WORKS' > /dev/null
-ecode="${PIPESTATUS[2]}"
-set -e
-if [ $ecode -ne 0 ]; then
-    echo "scope-bug-peter test failed!"
-    exit 1
-fi
-
