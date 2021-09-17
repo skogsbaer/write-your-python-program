@@ -29,9 +29,6 @@ check file-tests/fileWithoutImport.py
 check file-tests/fileWithBothImports.py
 check file-tests/fileWithRecursiveTypes.py
 
-python3 $d/src/runYourProgram.py --check --test-file $d/file-tests/student-submission-tests.py \
-    $d/file-tests/student-submission.py >> "$t"
-
 # First argument: whether to do type checking or not
 # Second argument: expected exit code. If given as X:Y, then X is the exit code with active
 #   type checking, and Y is the exit code without type checking.

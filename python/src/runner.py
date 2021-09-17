@@ -271,18 +271,18 @@ def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useU
     doRun()
 
 # globals already contain libDefs
-def runTestsInFile(testFile, globals, libDefs):
+def runTestsInFile(testFile, globals, libDefs, useUntypy=True):
     printStderr()
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
     try:
-        runCode(testFile, globals, [])
+        runCode(testFile, globals, [], useUntypy=useUntypy)
     except:
         handleCurrentException()
     return libDefs.dict['printTestResults']('Tutor:  ')
 
 # globals already contain libDefs
-def performChecks(check, testFile, globals, libDefs):
+def performChecks(check, testFile, globals, libDefs, useUntypy=True):
     prefix = ''
     if check and testFile:
         prefix = 'Student: '
@@ -290,7 +290,7 @@ def performChecks(check, testFile, globals, libDefs):
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
-            testResultsInstr = runTestsInFile(testFile, globals, libDefs)
+            testResultsInstr = runTestsInFile(testFile, globals, libDefs, useUntypy=useUntypy)
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
         die(0 if failingSum < 1 else 1)
 
@@ -392,7 +392,7 @@ def main(globals):
     except:
         handleCurrentException()
 
-    performChecks(args.check, args.testFile, globals, libDefs)
+    performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes)
 
     if isInteractive:
         enterInteractive(globals)
