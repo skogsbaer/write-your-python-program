@@ -18,6 +18,8 @@ def _debug(s):
 # Types
 Any = typing.Any
 Optional = typing.Optional
+Literal = typing.Literal
+Union = typing.Union
 
 Iterable = typing.Iterable
 Iterator = typing.Iterator
@@ -39,7 +41,7 @@ try:
 except ImportError:
     def _dummy_decorator(fn):
         return fn
-    
+
     def _higher_order_dummy_decorator(*args):
         # Match Pre/Post-Cond Arg
         return _dummy_decorator
@@ -196,6 +198,7 @@ class Mixed:
         raise 'Mixed is not callable'
 
 # Enums
+# FIXME: remove in favor of literal
 class Enum:
     def __init__(self, *args):
         for i, a in enumerate(args):
@@ -451,5 +454,4 @@ import math as moduleMath
 math = moduleMath
 
 ForwardRef = DefinedLater
-Union = Mixed
 

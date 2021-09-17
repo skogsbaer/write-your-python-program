@@ -28,6 +28,15 @@ LOG_FILE = shell.mkTempFile(prefix="wypp-tests", suffix=".log", deleteAtExit='if
 print(f'Output of integration tests goes to {LOG_FILE}')
 LOG_REDIR = f'> {LOG_FILE} 2>&1'
 
+class FeatureTests(unittest.TestCase):
+    def test_enumOk(self):
+        out = runInteractive('file-tests/testEnumTypes.py', 'colorToNumber("red")')
+        self.assertIn('>>> 0\n', out)
+
+    def test_enumTypeError(self):
+        out = runInteractive('file-tests/testEnumTypes.py', 'colorToNumber(1)')
+        self.assertIn("expected: Literal['red', 'yellow', 'green']", out)
+
 class StudentSubmissionTests(unittest.TestCase):
     def check(self, file, testFile, ecode, tycheck=True):
         flags = ['--check']
