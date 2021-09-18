@@ -1,6 +1,5 @@
 import shell
 import unittest
-import os
 
 def run(path, input='', tycheck=True, ecode=0):
     flags = ['--quiet', '--no-clear']
@@ -10,7 +9,7 @@ def run(path, input='', tycheck=True, ecode=0):
     res = shell.run(cmd, captureStdout=True, stderrToStdout=True, onError='ignore')
     if res.exitcode != ecode:
         raise Exception(f'Unexpected exit code: {res.exitcode} (expected {ecode})')
-    return res.stdout
+    return res.stdout.strip()
 
 def runInteractive(path, input='', tycheck=True):
     flags = ['--interactive', '--quiet', '--no-clear']
@@ -86,7 +85,6 @@ formatAnimal(None)
         self.assertEqual("\"Parrot Mike says: Let's go to the punkrock show\"", out[1])
         self.assertIn('given: None\nexpected: Union[Cat, Parrot]', out[2])
 
-
 class StudentSubmissionTests(unittest.TestCase):
     def check(self, file, testFile, ecode, tycheck=True):
         flags = ['--check']
@@ -121,7 +119,7 @@ class StudentSubmissionTests(unittest.TestCase):
 class InteractiveTests(unittest.TestCase):
 
     def test_scopeBugPeter(self):
-        out = runInteractive('file-tests/scope-bug-peter.py', 'local_test(); print(spam)')
+        out = runInteractive('file-tests/scope-bug-peter.py', 'local_test()\nprint(spam)')
         self.assertIn('IT WORKS', out)
 
     def test_types1(self):
@@ -144,24 +142,24 @@ file-tests/testTypesInteractive.py:1
 
     def test_types3(self):
         out = runInteractive('file-tests/testTypesInteractive.py',
-                             'def f(x: int) -> int: return x\n\nf("x")')[0]
+                             'def f(x: int) -> int: return x\n\nf("x")')[1]
         self.assertIn('expected: int', out)
 
     def test_types4(self):
         out = runInteractive('file-tests/testTypesInteractive.py',
                              'def f(x: int) -> int: return x\n\nf(3)')
-        self.assertEqual(['3'], out)
+        self.assertEqual(['...', '3'], out)
 
     def test_types5(self):
         out = runInteractive('file-tests/testTypesInteractive.py',
                              'def f(x: int) -> int: return x\n\nf("x")',
                               tycheck=False)
-        self.assertIn(["'x'"], out)
+        self.assertEqual(['...', "'x'"], out)
 
     def test_typesInImportedModule1(self):
-        out = run('file-tests/testTypes3.py', ecode=1)[0]
+        out = run('file-tests/testTypes3.py', ecode=1)
         self.assertIn('expected: int', out)
 
     def test_typesInImportedModule2(self):
         out = run('file-tests/testTypes3.py', tycheck=False)
-        self.assertEqual(['END'], out)
+        self.assertEqual('END', out)
