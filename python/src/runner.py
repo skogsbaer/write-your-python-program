@@ -9,10 +9,12 @@ import shutil
 import site
 import importlib
 import re
+untypyPath = os.path.join(os.path.dirname(__file__), "..", "deps", "untypy")
+if untypyPath not in sys.path:
+    sys.path.insert(1, untypyPath)
 import untypy
 import code
 import ast
-import glob
 from modulefinder import ModuleFinder
 
 __wypp_runYourProgram = 1
