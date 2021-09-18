@@ -1,7 +1,6 @@
 * untypy
 ** support for python 3.8
 ** add tests with type annotations
-*** for mixed types
 *** for records
 **** construction
 **** write access

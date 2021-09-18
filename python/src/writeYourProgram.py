@@ -72,7 +72,6 @@ def _patchDataClass(cls, mutable):
             else:
                 raise AttributeError(f'Unknown attribute {k} for record {cls.__name__}')
         setattr(cls, "__setattr__", _setattr)
-    cls.__eq__.__annotations__ = {'other': typing.Any, 'return': bool}
     return cls
 
 def record(cls=None, mutable=False):

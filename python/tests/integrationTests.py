@@ -18,7 +18,8 @@ def runInteractive(path, input='', tycheck=True):
         flags.append('--no-typechecking')
     cmd = f'python3 src/runYourProgram.py {" ".join(flags)} {path}'
     res = shell.run(cmd, input=input, captureStdout=True, stderrToStdout=True, onError='raise')
-    return res.stdout
+    lines = res.stdout.strip().split('>>>')[1:-1]
+    return [l.strip() for l in lines]
 
 def stripTrailingWs(s):
     s = s.strip()
@@ -31,18 +32,60 @@ LOG_REDIR = f'> {LOG_FILE} 2>&1'
 class TypeTests(unittest.TestCase):
     def test_enumOk(self):
         out = runInteractive('file-tests/typeEnums.py', 'colorToNumber("red")')
-        self.assertIn('>>> 0\n', out)
+        self.assertEqual(['0'], out)
 
     def test_enumTypeError(self):
-        out = runInteractive('file-tests/typeEnums.py', 'colorToNumber(1)')
+        out = runInteractive('file-tests/typeEnums.py', 'colorToNumber(1)')[0]
         self.assertIn("expected: Literal['red', 'yellow', 'green']", out)
 
-# FIXME
-#    def test_recordOk(self):
-#        rec = 'file-tests/typeRecords.py'
-#        runInteractive(rec, 'Person("stefan", 42)')
-#        out = runInteractive(rec, 'incAge(Person("stefan", 42))')
-#        self.assertIn("Person(name='stefan', age=43)")
+    def test_recordOk(self):
+        rec = 'file-tests/typeRecords.py'
+        out1 = runInteractive(rec, 'Person("stefan", 42)')
+        self.assertEqual(["Person(name='stefan', age=42)"], out1)
+        out2 = runInteractive(rec, 'incAge(Person("stefan", 42))')
+        self.assertEqual(["Person(name='stefan', age=43)"], out2)
+
+    def test_recordFail1(self):
+        rec = 'file-tests/typeRecords.py'
+        out = runInteractive(rec, 'Person("stefan", 42.3)')[0]
+        self.assertIn('expected: int', out)
+
+    def test_recordFail2(self):
+        rec = 'file-tests/typeRecords.py'
+        out = runInteractive(rec, 'mutableIncAge(Person("stefan", 42))')[0]
+        self.assertIn('expected: MutablePerson', out)
+
+    def test_recordMutableOk(self):
+        rec = 'file-tests/typeRecords.py'
+        out1 = runInteractive(rec, 'MutablePerson("stefan", 42)')
+        self.assertEqual(["MutablePerson(name='stefan', age=42)"], out1)
+        out2 = runInteractive(rec, 'p = MutablePerson("stefan", 42)\nmutableIncAge(p)\np')
+        self.assertEqual(['', '', "MutablePerson(name='stefan', age=43)"], out2)
+
+    def test_mutableRecordFail1(self):
+        rec = 'file-tests/typeRecords.py'
+        out = runInteractive(rec, 'MutablePerson("stefan", 42.3)')[0]
+        self.assertIn('expected: int', out)
+
+    def test_mutableRecordFail2(self):
+        rec = 'file-tests/typeRecords.py'
+        out = runInteractive(rec, 'incAge(MutablePerson("stefan", 42))')[0]
+        self.assertIn('expected: Person', out)
+
+    def test_mutableRecordFail3(self):
+        rec = 'file-tests/typeRecords.py'
+        out = runInteractive(rec, 'p = MutablePerson("stefan", 42)\np.age = 42.4')
+        self.assertIn('expected: int', out)
+
+    def test_union(self):
+        out = runInteractive('file-tests/typeUnion.py', """formatAnimal(myCat)
+formatAnimal(myParrot)
+formatAnimal(None)
+        """)
+        self.assertEqual("'Cat Pumpernickel'", out[0])
+        self.assertEqual("\"Parrot Mike says: Let's go to the punkrock show\"", out[1])
+        self.assertIn('given: None\nexpected: Union[Cat, Parrot]', out[2])
+
 
 class StudentSubmissionTests(unittest.TestCase):
     def check(self, file, testFile, ecode, tycheck=True):
@@ -83,10 +126,10 @@ class InteractiveTests(unittest.TestCase):
 
     def test_types1(self):
         out = runInteractive('file-tests/testTypesInteractive.py', 'inc(3)')
-        self.assertIn('>>> 4', out)
+        self.assertEqual(['4'], out)
 
     def test_types2(self):
-        out = runInteractive('file-tests/testTypesInteractive.py', 'inc("3")')
+        out = runInteractive('file-tests/testTypesInteractive.py', 'inc("3")')[0]
         expected = """given: '3'
 expected: int
           ^^^
@@ -101,24 +144,24 @@ file-tests/testTypesInteractive.py:1
 
     def test_types3(self):
         out = runInteractive('file-tests/testTypesInteractive.py',
-                             'def f(x: int) -> int: return x\n\nf("x")')
+                             'def f(x: int) -> int: return x\n\nf("x")')[0]
         self.assertIn('expected: int', out)
 
     def test_types4(self):
         out = runInteractive('file-tests/testTypesInteractive.py',
                              'def f(x: int) -> int: return x\n\nf(3)')
-        self.assertIn('>>> 3', out)
+        self.assertEqual(['3'], out)
 
     def test_types5(self):
         out = runInteractive('file-tests/testTypesInteractive.py',
                              'def f(x: int) -> int: return x\n\nf("x")',
                               tycheck=False)
-        self.assertIn(">>> 'x'", out)
+        self.assertIn(["'x'"], out)
 
     def test_typesInImportedModule1(self):
-        out = run('file-tests/testTypes3.py', ecode=1)
-        self.assertIn('\nexpected: int', out)
+        out = run('file-tests/testTypes3.py', ecode=1)[0]
+        self.assertIn('expected: int', out)
 
     def test_typesInImportedModule2(self):
         out = run('file-tests/testTypes3.py', tycheck=False)
-        self.assertIn('END', out)
+        self.assertEqual(['END'], out)

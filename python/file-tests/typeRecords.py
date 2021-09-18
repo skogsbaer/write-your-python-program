@@ -6,6 +6,12 @@ class Person:
     age: int
 
 def incAge(p: Person) -> Person:
-   Person(p.name, p.age + 1)
+   return Person(p.name, p.age + 1)
 
-# mutability
+@record(mutable=True)
+class MutablePerson:
+    name: str
+    age: int
+
+def mutableIncAge(p: MutablePerson) -> None:
+    p.age = p.age + 1
