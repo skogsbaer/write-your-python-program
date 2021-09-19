@@ -337,13 +337,15 @@ _hooks.hook()
 def registerAtExit(action, mode):
     def f():
         e = _hooks.exitCode
-        debug(f'Running exit hook, exit code: {e}')
+        debug(f'Running exit hook, exit code: {e}, mode: {mode}')
         if mode is True:
             action()
         elif mode in ['ifSuccess'] and e == 0:
             action()
         elif mode in ['ifFailure'] and e != 0:
             action()
+        else:
+            debug('Not running exit action')
     atexit.register(f)
 
 # deleteAtExit is one of the following:
