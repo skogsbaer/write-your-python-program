@@ -266,7 +266,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd();
             const verboseOpt = beVerbose(context) ? " --verbose" : "";
-            const disableOpt = disableTypechecking(content) ? " --no-typechecking" : "";
+            const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
                 const pythonCmd = fileToCommandArgument(pyCmd.cmd);
                 terminals[cmdId] = startTerminal(
