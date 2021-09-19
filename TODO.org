@@ -4,9 +4,6 @@
 *** for records
 **** construction
 **** write access
-** option for vscode plugin to turn-off type checking
-** installation under vscode
-
 * other
 ** fix __init__.py file so that pylance does not complain about missing variables
 ** imports of modules in the same directory are marked as warnings in VSCode

@@ -94,14 +94,17 @@ def readVersion():
         pass
     return version
 
-def printWelcomeString(file, version):
+def printWelcomeString(file, version, useUntypy):
     cwd = os.getcwd() + "/"
     if file.startswith(cwd):
         file = file[len(cwd):]
     versionStr = '' if not version else 'Version %s, ' % version
     pythonVersion = sys.version.split()[0]
-    printStderr('=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
-                '(%sPython %s, %s) ===' % (versionStr, pythonVersion, file))
+    tycheck = ''
+    if not useUntypy:
+        tycheck = ', no typechecking'
+    printStderr('=== WELCOME to "Write Your Python Program" ' +
+                '(%sPython %s, %s%s) ===' % (versionStr, pythonVersion, file, tycheck))
 
 def isSameFile(f1, f2):
     x = readFile(f1)
@@ -388,7 +391,7 @@ def main(globals):
     if fileToRun is None:
         return
     if not args.checkRunnable and not args.quiet:
-        printWelcomeString(fileToRun, version)
+        printWelcomeString(fileToRun, version, useUntypy=args.checkTypes)
 
     libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
 
