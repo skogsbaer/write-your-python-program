@@ -37,7 +37,7 @@
 				"title": "Python interpreter"
 			},
 			{
-				"command": "write-yout-python-program.run",
+				"command": "write-your-python-program.run",
 				"title": "Run program"
 			}
 		],
@@ -54,6 +54,11 @@
 	    			"type": "boolean",
 	    			"required": false,
 	    			"description": "Output some more diagnostic messages."
+				},
+				"write-your-python-program.disableTypechecking": {
+					"type": "boolean",
+					"required": false,
+					"description": "Disable checking of type annotations."
 				}
 	    	}
 		}
