@@ -1,12 +1,15 @@
 import shell
 import unittest
+import os
 
 def run(path, input='', tycheck=True, ecode=0):
     flags = ['--quiet', '--no-clear']
     if not tycheck:
         flags.append('--no-typechecking')
-    cmd = f'python3 src/runYourProgram.py {" ".join(flags)} {path}'
-    res = shell.run(cmd, captureStdout=True, stderrToStdout=True, onError='ignore')
+    d = shell.pwd()
+    path = os.path.join(d, path)
+    cmd = f'python3 {d}/src/runYourProgram.py {" ".join(flags)} {path}'
+    res = shell.run(cmd, captureStdout=True, stderrToStdout=True, onError='ignore', cwd='/tmp')
     if res.exitcode != ecode:
         raise Exception(f'Unexpected exit code: {res.exitcode} (expected {ecode})')
     return res.stdout.strip()
@@ -15,8 +18,11 @@ def runInteractive(path, input='', tycheck=True):
     flags = ['--interactive', '--quiet', '--no-clear']
     if not tycheck:
         flags.append('--no-typechecking')
-    cmd = f'python3 src/runYourProgram.py {" ".join(flags)} {path}'
-    res = shell.run(cmd, input=input, captureStdout=True, stderrToStdout=True, onError='raise')
+    d = shell.pwd()
+    path = os.path.join(d, path)
+    cmd = f'python3 {d}/src/runYourProgram.py {" ".join(flags)} {path}'
+    res = shell.run(cmd, input=input, captureStdout=True, stderrToStdout=True, onError='raise',
+                    cwd='/tmp')
     lines = res.stdout.strip().split('>>>')[1:-1]
     return [l.strip() for l in lines]
 
@@ -137,10 +143,7 @@ expected: int
 
 inside of inc(x: int) -> int
                  ^^^
-declared at:
-file-tests/testTypesInteractive.py:1
-  1 | def inc(x: int) -> int:
-  2 |     return x + 1"""
+declared at:"""
         self.assertIn(expected, stripTrailingWs(out))
 
     def test_types3(self):

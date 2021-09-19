@@ -18,7 +18,6 @@ function check()
     echo "Checking with $1"
     pushd /tmp > /dev/null
     python3 $d/src/runYourProgram.py --check $d/"$1" >> "$t"
-    python3 $d/src/runYourProgram.py --check --install-mode libFromFile $d/"$1" >> "$t"
     rm -rf "$siteDir/wypp"
     python3 $d/src/runYourProgram.py --check $d/"$1" >> "$t"
     python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"

@@ -1,15 +1,6 @@
 import time
 import threading
-import importlib
-# do not import writeYourProgram unqualified. Otherwise, we get problems because of
-# module schizophrenia. This goes away once we are sure that we can always rely on wypp
-# being installed in the site path.
-try:
-    # First, we try to import the module installed in user site path.
-    _w = importlib.import_module('wypp')
-except:
-    # Old-style (wypp not installed)
-    import writeYourProgram as _w
+import writeYourProgram as _w
 
 Size = _w.Record('Size', 'width', float, 'height', float)
 Point = _w.Record('Point', 'x', float, 'y', float)

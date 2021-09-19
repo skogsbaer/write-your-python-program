@@ -1,14 +1,7 @@
 # FIXME: make exceptions nicer
-import time
-import os
+import untypy
 import typing
 import dataclasses
-import sys
-
-# For the moment, we do not import anything from this very module here. Reason: for backwards
-# compat we load wypp either as a module (the new way) or via runpy (the old way). It seems
-# too complicated to make imports working for both ways, so we wait until after WS2020/21
-# so that we can drop support for the old way.
 
 _DEBUG = False
 def _debug(s):
@@ -36,17 +29,6 @@ Callable = typing.Callable
 dataclass = dataclasses.dataclass
 
 # Reexports for Untypy
-try:
-    import untypy
-    _debug("Successfully imported untypy")
-except ImportError:
-    untypyPath = os.path.join(os.path.dirname(__file__), "..", "deps", "untypy")
-    if untypyPath not in sys.path:
-        sys.path.insert(1, untypyPath)
-    _debug(f"Could not import untypy from unpatched path, trying to import untypy from {untypyPath}")
-    import untypy
-    _debug("Successfully imported untypy")
-
 unchecked = untypy.unchecked
 nat = typing.Annotated[int, lambda i: i >= 0]
 

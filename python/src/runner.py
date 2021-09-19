@@ -9,13 +9,10 @@ import shutil
 import site
 import importlib
 import re
-untypyPath = os.path.join(os.path.dirname(__file__), "..", "deps", "untypy")
-if untypyPath not in sys.path:
-    sys.path.insert(1, untypyPath)
-import untypy
 import code
 import ast
 from modulefinder import ModuleFinder
+from pathlib import Path
 
 __wypp_runYourProgram = 1
 
@@ -25,15 +22,15 @@ def die(ecode=1):
     else:
         sys.exit(ecode)
 
-# Simulates that wypp cannot be imported so that we can test the code path where
-# wypp is directly loaded from the writeYourProgram.py file. The default is False.
-SIMULATE_LIB_FROM_FILE = False
 ASSERT_INSTALL = False # if True, then a failing installation causes a total failure
 VERBOSE = False # set via commandline
-LIB_DIR = os.path.dirname(__file__)
 
+LIB_DIR = os.path.dirname(__file__)
 INSTALLED_MODULE_NAME = 'wypp'
-MODULES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
+FILES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
+
+UNTYPY_DIR = os.path.join(LIB_DIR, "..", "deps", "untypy", "untypy")
+UNTYPY_MODULE_NAME = 'untypy'
 
 def verbose(s):
     if VERBOSE:
@@ -53,7 +50,7 @@ def parseCmdlineArgs():
                         const=True, default=False,
                         help='Abort with exit code 1 if there are test errors.')
     parser.add_argument('--install-mode', dest='installMode', type=str,
-                        help='One of "regular", "assertInstall", "libFromFile"')
+                        help='One of "regular" or "assertInstall"')
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
@@ -111,35 +108,51 @@ def isSameFile(f1, f2):
     y = readFile(f2)
     return x == y
 
+def installFromDir(srcDir, mod, files=None):
+    if files is None:
+        files = [p.relative_to(srcDir) for p in Path(srcDir).rglob('*.py')]
+    else:
+        files = [Path(f) for f in files]
+    userDir = site.USER_SITE
+    installDir = os.path.join(userDir, mod)
+    os.makedirs(installDir, exist_ok=True)
+    installedFiles = sorted([p.relative_to(installDir) for p in Path(installDir).rglob('*.py')])
+    wantedFiles = sorted(files)
+    if installedFiles == wantedFiles:
+        for i in range(len(installedFiles)):
+            f1 = os.path.join(installDir, installedFiles[i])
+            f2 = os.path.join(srcDir, wantedFiles[i])
+            if not isSameFile(f1, f2):
+                verbose(f'{f1} and {f2} differ')
+                break
+        else:
+            # no break, all files equal
+            verbose(f'All files from {srcDir} already installed in {userDir}/{mod}')
+            return True
+    else:
+        verbose(f'Installed files {installedFiles} and wanted files {wantedFiles} are different')
+    for f in installedFiles:
+        p = os.path.join(installDir, f)
+        os.remove(p)
+    d = os.path.join(installDir, mod)
+    for f in wantedFiles:
+        src = os.path.join(srcDir, f)
+        tgt = os.path.join(installDir, f)
+        os.makedirs(os.path.dirname(tgt), exist_ok=True)
+        shutil.copyfile(src, tgt)
+    return False
+
 def installLib():
     userDir = site.USER_SITE
-    installDir = os.path.join(userDir, INSTALLED_MODULE_NAME)
     try:
-        os.makedirs(installDir, exist_ok=True)
-        installedFiles = sorted([f for f in os.listdir(installDir)
-                                   if os.path.isfile(os.path.join(installDir, f))])
-        wantedFiles = sorted(MODULES_TO_INSTALL)
-        if installedFiles == wantedFiles:
-            for i in range(len(installedFiles)):
-                f1 = os.path.join(installDir, installedFiles[i])
-                f2 = os.path.join(LIB_DIR, wantedFiles[i])
-                if not isSameFile(f1, f2):
-                    break
-            else:
-                # no break, all files equal
-                verbose('All wypp files already installed in ' + userDir)
-                return
-        for f in installedFiles:
-            p = os.path.join(installDir, f)
-            os.remove(p)
-        d = os.path.join(installDir, 'wypp')
-        for m in MODULES_TO_INSTALL:
-            src = os.path.join(LIB_DIR, m)
-            tgt = os.path.join(installDir, m)
-            shutil.copyfile(src, tgt)
-        printStderr('Die Python-Bibliothek wurde erfolgreich in ' + userDir + ' installiert.\n' +
-                    'Bitte starten Sie Visual Studio Code neu, um sicherzustellen, dass überall\n' +
-                    'die neueste Version verwendet wird.\n')
+        allEq1 = installFromDir(LIB_DIR, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
+        allEq2 = installFromDir(UNTYPY_DIR, UNTYPY_MODULE_NAME)
+        if allEq1 and allEq2:
+            return
+        else:
+            printStderr('Die Python-Bibliothek wurde erfolgreich in ' + userDir + ' installiert.\n' +
+                        'Bitte starten Sie Visual Studio Code neu, um sicherzustellen, dass überall\n' +
+                        'die neueste Version verwendet wird.\n')
     except Exception as e:
         printStderr('Die Installation der Python-Bibliothek ist fehlgeschlagen: ' + str(e))
         if ASSERT_INSTALL:
@@ -167,25 +180,9 @@ def loadLib(onlyCheckRunnable):
     libDefs = None
     mod = INSTALLED_MODULE_NAME
     verbose('Attempting to import ' + mod)
-    try:
-        if SIMULATE_LIB_FROM_FILE:
-            raise ImportError('deliberately failing when importing ' + mod)
-        # It's the prefered way to properly import wypp. With this setup, student's code
-        # may or may not import wypp. And if it does import wypp, there is no suffering from
-        # module schizophrenia.
-        wypp = importlib.import_module(mod)
-        libDefs = Lib(wypp, True)
-        verbose('Successfully imported module ' + mod)
-    except Exception as e:
-        verbose('Failed to import %s: %s' % (mod, e))
-        pass
-    if not libDefs:
-        # This code path is only here to support the case that installation fails.
-        libFile = os.path.join(LIB_DIR, 'writeYourProgram.py')
-        d = {}
-        runCode(libFile, d, [])
-        verbose('Successfully loaded library code from ' + libFile)
-        libDefs = Lib(d, False)
+    wypp = importlib.import_module(mod)
+    libDefs = Lib(wypp, True)
+    verbose('Successfully imported module ' + mod)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
                        quiet=onlyCheckRunnable)
     return libDefs
@@ -210,10 +207,18 @@ def findImportedModules(path, file):
         finder.run_script(file)
     except:
         return []
+    realdirs = [os.path.realpath(p) for p in path]
     res = []
     for name, mod in finder.modules.items():
-        if name != '__main__' and mod.__file__ and not os.path.isabs(mod.__file__):
-            res.append(name)
+        if name != '__main__' and mod.__file__:
+            realp = os.path.realpath(mod.__file__)
+            good = False
+            for d in realdirs:
+                if realp.startswith(d):
+                    good = True
+                    break
+            if good:
+                res.append(name)
     return res
 
 class sysPathPrepended:
@@ -356,18 +361,22 @@ def getHistoryFilePath():
 
 def main(globals):
     (args, restArgs) = parseCmdlineArgs()
-    global VERBOSE, SIMULATE_LIB_FROM_FILE, ASSERT_INSTALL
+    global VERBOSE, ASSERT_INSTALL
     if args.verbose:
         VERBOSE = True
     if args.installMode == 'regular' or args.installMode is None:
         pass
-    elif args.installMode == 'libFromFile':
-        SIMULATE_LIB_FROM_FILE = True
     elif args.installMode == 'assertInstall':
         ASSERT_INSTALL = True
     else:
         printStderr('Invalid value for --install-mode: %s' % args.installMode)
         sys.exit(1)
+
+    if not args.noInstall:
+        installLib()
+    global untypy
+    import untypy
+
     fileToRun = args.file
     if args.changeDir:
         os.chdir(os.path.dirname(fileToRun))
@@ -376,8 +385,6 @@ def main(globals):
     if isInteractive:
         prepareInteractive(reset=not args.noClear)
 
-    if not args.noInstall:
-        installLib()
     if fileToRun is None:
         return
     if not args.checkRunnable and not args.quiet:
