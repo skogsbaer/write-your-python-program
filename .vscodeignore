@@ -9,3 +9,9 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+**/__pycache__/**
+python/deps/untypy/test/**
+python/deps/untypy/examples/**
+python/tests/*
+python/file-tests/*
+python/integration-tests/*

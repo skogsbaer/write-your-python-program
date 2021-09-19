@@ -6,7 +6,7 @@ echo "Did you create a git tag?"
 echo "Hit ENTER to continue!"
 read
 
-vsce package
+vsce package || exit 1
 
 echo
 echo "Now upload the .vsix file to https://marketplace.visualstudio.com/manage/publishers/stefanwehr"
