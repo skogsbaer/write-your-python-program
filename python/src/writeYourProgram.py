@@ -2,8 +2,8 @@
 import time
 import os
 import typing
-import collections
 import dataclasses
+import sys
 
 # For the moment, we do not import anything from this very module here. Reason: for backwards
 # compat we load wypp either as a module (the new way) or via runpy (the old way). It seems
@@ -37,19 +37,18 @@ dataclass = dataclasses.dataclass
 
 # Reexports for Untypy
 try:
-    from untypy import unchecked, precondition, postcondition
+    import untypy
+    _debug("Successfully imported untypy")
 except ImportError:
-    def _dummy_decorator(fn):
-        return fn
+    untypyPath = os.path.join(os.path.dirname(__file__), "..", "deps", "untypy")
+    if untypyPath not in sys.path:
+        sys.path.insert(1, untypyPath)
+    _debug(f"Could not import untypy from unpatched path, trying to import untypy from {untypyPath}")
+    import untypy
+    _debug("Successfully imported untypy")
 
-    def _higher_order_dummy_decorator(*args):
-        # Match Pre/Post-Cond Arg
-        return _dummy_decorator
-
-    unchecked = _dummy_decorator
-    precondition = _higher_order_dummy_decorator
-    postcondition = _higher_order_dummy_decorator
-
+unchecked = untypy.unchecked
+nat = typing.Annotated[int, lambda i: i >= 0]
 
 def _isDataclassInstance(obj):
     return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
