@@ -5,6 +5,7 @@
 **** construction
 **** write access
 ** option for vscode plugin to turn-off type checking
+** installation of wwypp in runner.py
 ** installation under vscode
 
 * other
