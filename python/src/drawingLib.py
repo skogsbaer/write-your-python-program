@@ -1,6 +1,8 @@
 import time
 import threading
 import writeYourProgram as _w
+# Do not import tkinter at the top-level. Someone with no installation of tkinter should
+# be able to user WYPP without drawing support.
 
 @_w.record
 class Size:
@@ -22,8 +24,6 @@ class FixedShape:
     color: Color
     size: Size
     position: Point
-
-from tkinter import Tk, Canvas, Frame, BOTH
 
 # coordinate system: origin is in the upper left corner
 def _transformPoint(p, windowSize: Size):
@@ -58,22 +58,26 @@ def _drawCoordinateSystem(canvas, windowSize: Size):
     canvas.create_line(x, 0, x, windowSize.height, dash=(4,2))
     canvas.create_line(0, y, windowSize.width, y, dash=(4,2))
 
-class _WyppFrame(Frame):
-    def __init__(self, diags, windowSize, withCoordinateSystem):
-        super().__init__()
-        self.master.title("Write Your Python Program")
-        self.pack(fill=BOTH, expand=1)
-        canvas = Canvas(self)
-        if withCoordinateSystem:
-            _drawCoordinateSystem(canvas, windowSize)
-        for d in diags:
-            _renderFixedShape(d, windowSize, canvas)
-        canvas.pack(fill=BOTH, expand=1)
-
-def drawFixedShapes(
-    shapes: _w.Sequence[FixedShape],
-    withCoordinateSystem=False,
-    stopAfter=None) -> None:
+def drawFixedShapes(shapes: _w.Sequence[FixedShape],
+                    withCoordinateSystem=False,
+                    stopAfter=None) -> None:
+    try:
+        from tkinter import Tk, Frame, Canvas, BOTH
+    except ImportError:
+        import sys
+        sys.stderr.write("Could not import tkinter. Please install the tkinter library.")
+        raise
+    class _WyppFrame(Frame):
+        def __init__(self, diags, windowSize, withCoordinateSystem):
+            super().__init__()
+            self.master.title("Write Your Python Program")
+            self.pack(fill=BOTH, expand=1)
+            canvas = Canvas(self)
+            if withCoordinateSystem:
+                _drawCoordinateSystem(canvas, windowSize)
+            for d in diags:
+                _renderFixedShape(d, windowSize, canvas)
+            canvas.pack(fill=BOTH, expand=1)
     root = Tk()
     winWidth = 800
     winHeight = 800

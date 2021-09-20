@@ -5,4 +5,3 @@
 **** write access
 * other
 ** make installable via pip (for those we do not use the extension)
-** lazy errors if tkinter is not installed
