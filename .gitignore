@@ -142,4 +142,4 @@ node_modules
 out/
 *.vsix
 
-
+python/VERSION
