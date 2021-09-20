@@ -22,7 +22,6 @@ def die(ecode=1):
     else:
         sys.exit(ecode)
 
-ASSERT_INSTALL = False # if True, then a failing installation causes a total failure
 VERBOSE = False # set via commandline
 
 LIB_DIR = os.path.dirname(__file__)
@@ -39,8 +38,16 @@ def verbose(s):
 def printStderr(s=''):
     sys.stderr.write(s + '\n')
 
+class InstallMode:
+    dontInstall = 'dontInstall'
+    installOnly = 'installOnly'
+    install = 'install'
+    assertInstall = 'assertInstall'
+    allModes = [dontInstall, installOnly, install, assertInstall]
+
 def parseCmdlineArgs():
-    parser = argparse.ArgumentParser(description='Run Your Program!')
+    parser = argparse.ArgumentParser(description='Run Your Program!',
+                        formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('file', metavar='FILE',
                         help='The file to run', nargs='?')
     parser.add_argument('--check-runnable', dest='checkRunnable', action='store_const',
@@ -50,14 +57,18 @@ def parseCmdlineArgs():
                         const=True, default=False,
                         help='Abort with exit code 1 if there are test errors.')
     parser.add_argument('--install-mode', dest='installMode', type=str,
-                        help='One of "regular" or "assertInstall"')
+                        default=InstallMode.dontInstall,
+                        help="""The install mode can be one of the following:
+- dontInstall     do not install the wypp library (default)
+- installOnly     install the wypp library and quit
+- install         install the wypp library and continue even if installation fails
+- assertInstall   install the wypp library and continue, but fail if installation fails
+""")
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
     parser.add_argument('--quiet', dest='quiet', action='store_const',
                         const=True, default=False, help='Be extra quiet')
-    parser.add_argument('--no-install', dest='noInstall', action='store_const',
-                        const=True, default=False, help='Do not install the wypp files')
     parser.add_argument('--no-clear', dest='noClear', action='store_const',
                         const=True, default=False, help='Do not clear the terminal')
     parser.add_argument('--test-file', dest='testFile',
@@ -76,7 +87,10 @@ def parseCmdlineArgs():
     except SystemExit as ex:
         die(ex.code)
     if args.file and not args.file.endswith('.py'):
-        printStderr("FEHLER: die angegebene Datei ist keine Python Datei.")
+        printStderr(f'ERROR: file {args.file} is not a python file')
+        die()
+    if args.installMode not in InstallMode.allModes:
+        printStderr(f'ERROR: invalid install mode {args.installMode}.')
         die()
     return (args, restArgs)
 
@@ -145,21 +159,29 @@ def installFromDir(srcDir, mod, files=None):
         shutil.copyfile(src, tgt)
     return False
 
-def installLib():
+def installLib(mode):
+    verbose("installMode=" + mode)
+    if mode == InstallMode.dontInstall:
+        verbose("No installation of WYPP should be performed")
+        return
     userDir = site.USER_SITE
     try:
         allEq1 = installFromDir(LIB_DIR, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
         allEq2 = installFromDir(UNTYPY_DIR, UNTYPY_MODULE_NAME)
         if allEq1 and allEq2:
+            verbose(f'WYPP library in {userDir} already up to date')
+            if mode == InstallMode.installOnly:
+                printStderr(f'WYPP library in {userDir} already up to date')
             return
         else:
-            printStderr('Die Python-Bibliothek wurde erfolgreich in ' + userDir + ' installiert.\n' +
-                        'Bitte starten Sie Visual Studio Code neu, um sicherzustellen, dass überall\n' +
-                        'die neueste Version verwendet wird.\n')
+            printStderr(f'The WYPP library has been successfully installed in {userDir}.')
     except Exception as e:
-        printStderr('Die Installation der Python-Bibliothek ist fehlgeschlagen: ' + str(e))
-        if ASSERT_INSTALL:
+        printStderr('Installation of the WYPP library failed: ' + str(e))
+        if mode == InstallMode.assertInstall or mode == InstallMode.installOnly:
             raise e
+    if mode == InstallMode.installOnly:
+        printStderr('Exiting after installation of the WYPP library')
+        die(0)
 
 class Lib:
     def __init__(self, mod, properlyImported):
@@ -371,19 +393,12 @@ Python in version 3.9 or newer is required. You are still using version {vStr}, 
 """)
         sys.exit(1)
     (args, restArgs) = parseCmdlineArgs()
-    global VERBOSE, ASSERT_INSTALL
+    global VERBOSE
     if args.verbose:
         VERBOSE = True
-    if args.installMode == 'regular' or args.installMode is None:
-        pass
-    elif args.installMode == 'assertInstall':
-        ASSERT_INSTALL = True
-    else:
-        printStderr('Invalid value for --install-mode: %s' % args.installMode)
-        sys.exit(1)
 
-    if not args.noInstall:
-        installLib()
+    installLib(args.installMode)
+
     global untypy
     import untypy
 

@@ -1,9 +1,45 @@
 from . import writeYourProgram as w
 
-blacklist = ['writeYourProgram', 'drawingLib', 'untypy']
-__all__ = ['drawingLib']
+# Exported names that are available for star imports (in alphabetic order)
+Any = w.Any
+Callable = w.Callable
+ForwardRef = w.ForwardRef
+Generator = w.Generator
+Iterable = w.Iterable
+Iterator = w.Iterator
+Literal = w.Literal
+Mapping = w.Mapping
+Optional = w.Optional
+Sequence = w.Sequence
+Union = w.Union
+check = w.check
+dataclass = w.dataclass
+math = w.math
+nat = w.nat
+record = w.record
+unchecked = w.unchecked
 
-for k in dir(w):
-    if k not in blacklist and k and k[0] != '_':
-        globals()[k] = getattr(w, k)
-        __all__.append(k)
+__all__ = [
+    'Any',
+    'Callable',
+    'ForwardRef',
+    'Generator',
+    'Iterable',
+    'Iterator',
+    'Literal',
+    'Mapping',
+    'Optional',
+    'Sequence',
+    'Union',
+    'check',
+    'dataclass',
+    'math',
+    'nat',
+    'record',
+    'unchecked'
+]
+
+# Exported names not available for star imports (in alphabetic order)
+initModule = w.initModule
+printTestResults = w.printTestResults
+resetTestCount = w.resetTestCount

@@ -265,7 +265,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
             vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd();
-            const verboseOpt = beVerbose(context) ? " --verbose" : "";
+            const verboseOpt = beVerbose(context) ? " --verbose --no-clear" : "";
             const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
                 const pythonCmd = fileToCommandArgument(pyCmd.cmd);
@@ -274,6 +274,7 @@ export function activate(context: vscode.ExtensionContext) {
                     "WYPP - RUN",
                     pythonCmd +  " " + fileToCommandArgument(runProg) + verboseOpt +
                         disableOpt +
+                        " --install-mode install" +
                         " --interactive " +
                         " --change-directory " +
                         fileToCommandArgument(file)
