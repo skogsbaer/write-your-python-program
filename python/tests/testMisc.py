@@ -32,13 +32,13 @@ class TestMisc(unittest.TestCase):
     def test_types(self):
         # just check that the types are defined
         Mapping
-        Dict
-        Dict[str, int]
+        dict
+        dict[str, int]
         myName = Name("Stefan", "Wehr")
-        List[Name] # just use it
-        List[ty] # just use it
-        List[ForwardRef('foo')] # just use
-        List[PointOrFloat]
+        list[Name] # just use it
+        list[ty] # just use it
+        list[ForwardRef('foo')] # just use
+        list[PointOrFloat]
 
     def test_math(self):
         # just check that the functions are defined

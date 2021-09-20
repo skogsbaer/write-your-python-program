@@ -1,11 +1,9 @@
 * untypy
-** support for python 3.8
 ** add tests with type annotations
 *** for records
 **** construction
 **** write access
 * other
-** use lowercase types list, tuple, dict etc. (requires python 3.9)
 ** fix __init__.py file so that pylance does not complain about missing variables
 ** imports of modules in the same directory are marked as warnings in VSCode
 ** make installable via pip (for those we do not use the extension)

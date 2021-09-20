@@ -37,8 +37,8 @@ class TestRecords(unittest.TestCase):
         square = Square(p1, 5)
         self.assertEqual(square.center, p1)
         self.assertEqual(square.size, 5)
-        List[Point] # just use it
-        List[Literal['foo', 'bar']] # just use it
+        list[Point] # just use it
+        list[Literal['foo', 'bar']] # just use it
 
     def test_createErrorArity(self):
         pass # FIXME

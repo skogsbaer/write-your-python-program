@@ -363,6 +363,13 @@ def getHistoryFilePath():
         return None
 
 def main(globals):
+    v = sys.version_info
+    if v.major < 3 or v.minor < 9:
+        vStr = sys.version.split()[0]
+        print(f"""
+Python in version 3.9 or newer is required. You are still using version {vStr}, please upgrade!
+""")
+        sys.exit(1)
     (args, restArgs) = parseCmdlineArgs()
     global VERBOSE, ASSERT_INSTALL
     if args.verbose:

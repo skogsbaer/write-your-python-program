@@ -15,5 +15,4 @@ function run()
     echo
 }
 
-PYENV_VERSION=3.8.6 run
-PYENV_VERSION=3.9.0 run
+PYENV_VERSION=3.9.7 run

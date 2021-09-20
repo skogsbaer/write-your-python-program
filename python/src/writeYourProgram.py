@@ -14,18 +14,13 @@ Any = typing.Any
 Optional = typing.Optional
 Literal = typing.Literal
 Union = typing.Union
-
 Iterable = typing.Iterable
 Iterator = typing.Iterator
 Sequence = typing.Sequence
-List = typing.List
-Tuple = typing.Tuple
 Generator = typing.Generator
 ForwardRef = typing.ForwardRef
 
 Mapping = typing.Mapping
-Dict = typing.Dict
-Set = typing.Set
 
 Callable = typing.Callable
 

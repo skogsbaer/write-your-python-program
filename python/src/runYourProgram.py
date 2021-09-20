@@ -5,7 +5,7 @@
 import sys
 pythonVersion = sys.version.split()[0]
 if not pythonVersion.startswith('3.'):
-    sys.stderr.write("\nFEHLER: es wird Python 3 benoetigt, nicht " + pythonVersion + ".\n\n")
+    sys.stderr.write("\nERROR: Python 3 is required, not " + pythonVersion + ".\n\n")
     if sys.flags.interactive:
         import os
         os._exit(1)
