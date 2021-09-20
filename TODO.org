@@ -4,5 +4,8 @@
 **** construction
 **** write access
 * other
-** make installable via pip (for those we do not use the extension)
+** upload dist to pypi
 ** update README
+*** pip
+*** records
+*** import
