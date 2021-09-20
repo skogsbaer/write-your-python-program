@@ -4,7 +4,7 @@ import math
 
 setDieOnCheckFailures(True)
 
-Drink = Enum("Tea", "Coffee")
+Drink = Literal["Tea", "Coffee"]
 
 # berechnet wieviele Tassen ich von einem Getränk trinken darf
 def canDrink(d: Drink) -> int:
@@ -17,16 +17,16 @@ def canDrink(d: Drink) -> int:
 # - a circle (Circle)
 # - a square (Square)
 # - an overlay of two shapes (Overlay)
-Shape = Mixed(DefinedLater('Circle'), DefinedLater('Square'), DefinedLater('Overlay'))
-
-# Shape.isSome: Any -> boolean
+Shape = Union[ForwardRef('Circle'), ForwardRef('Square'), ForwardRef('Overlay')]
 
 # A point consists of
 # - x (float)
 # - y (float)
-Point = Record("Point", "x", float, "y", float)
+@record
+class Point:
+    x: float
+    y: float
 # Point: (float, float) ->  Point
-# Point.isSome: Any -> fool
 # For some Point p
 # p.x: float
 # p.y: float
@@ -43,10 +43,12 @@ p3 = Point(40, 30)
 # A circle consists of
 # - center (Point)
 # - radius (float)
-Circle = Record("Circle", "center", Point, "radius", float)
+@record
+class Circle:
+    center: Point
+    radius: float
 
 # Circle: (Point, float) -> Circle
-# Circle.isSome: Any -> bool
 # For some circle c
 # c.center: Point
 # c.radius: float
@@ -60,13 +62,15 @@ c2 = Circle(p3, 15)
 # A square (parallel to the coordinate system) consists of
 # - lower-left corner (Point)
 # - size (float)
-Square = Record("Square", "corner", Point, "size", float)
+@record
+class Square:
+    corner: Point
+    size: float
 
 # square at p1 with size=40
 s1 = Square(p1, 40)
 
 # Square: (Point, float) -> Square
-# Square.isSome: Any -> bool
 # For some square s
 # s.corner: Point
 # s.size: float
@@ -74,10 +78,12 @@ s1 = Square(p1, 40)
 # An overlay consists of
 # - top (Shape)
 # - bottom (Shape)
-Overlay = Record("Overlay", "top", Shape, "bottom", Shape)
+@record
+class Overlay:
+    top: Shape
+    bottom: Shape
 
 # Overlay: (Shape, Shape) -> Overlay
-# Overlay.isSome: any -> boolean
 # For some overlay:
 # o.top: Shape
 # o.bottom: Shape
@@ -98,9 +104,9 @@ def distance(p1: Point, p2: Point) -> float:
 def pointInShape(point: Point, shape: Shape) -> bool:
     px = point.x
     py = point.y
-    if Circle.isSome(shape):
+    if type(shape) == Circle:
         return distance(point, shape.center) <= shape.radius
-    elif Square.isSome(shape):
+    elif type(shape) == Square:
         corner = shape.corner
         size = shape.size
         return (
@@ -109,7 +115,7 @@ def pointInShape(point: Point, shape: Shape) -> bool:
             py >= corner.y and
             py <= corner.y + size
         )
-    elif Overlay.isSome(shape):
+    elif type(shape) == Overlay:
         return pointInShape(point, shape.top) or pointInShape(point, shape.bottom)
     else:
         uncoveredCase()

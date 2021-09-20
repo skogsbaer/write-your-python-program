@@ -2,16 +2,26 @@ import time
 import threading
 import writeYourProgram as _w
 
-Size = _w.Record('Size', 'width', float, 'height', float)
-Point = _w.Record('Point', 'x', float, 'y', float)
-ShapeKind = _w.Enum('ellipsis', 'rectangle')
-Color = _w.Enum('red', 'green', 'blue', 'yellow', 'black', 'white')
-FixedShape = _w.Record('FixedShape',
-    'shape', ShapeKind,
-    'color', Color,
-    'size', Size,
-    'position', Point
-)
+@_w.record
+class Size:
+    width: float
+    height: float
+
+@_w.record
+class Point:
+    x: float
+    y: float
+
+ShapeKind = _w.Literal['ellipsis', 'rectangle']
+
+Color = _w.Literal['red', 'green', 'blue', 'yellow', 'black', 'white']
+
+@_w.record
+class FixedShape:
+    shape: ShapeKind
+    color: Color
+    size: Size
+    position: Point
 
 from tkinter import Tk, Canvas, Frame, BOTH
 

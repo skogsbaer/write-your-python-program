@@ -9,7 +9,7 @@ integ_test_path=integration-tests
 
 function usage()
 {
-    echo "USAGE: $0 [--unit | --integration] [ MOD.TEST_NAME ]"
+    echo "USAGE: $0 [--unit | --integration] [ FILE ]"
     exit 1
 }
 

@@ -2,6 +2,7 @@
 import untypy
 import typing
 import dataclasses
+import inspect
 
 _DEBUG = False
 def _debug(s):
@@ -20,27 +21,21 @@ Sequence = typing.Sequence
 List = typing.List
 Tuple = typing.Tuple
 Generator = typing.Generator
+ForwardRef = typing.ForwardRef
 
 Mapping = typing.Mapping
 Dict = typing.Dict
 Set = typing.Set
 
 Callable = typing.Callable
+
 dataclass = dataclasses.dataclass
 
 # Reexports for Untypy
 unchecked = untypy.unchecked
 nat = typing.Annotated[int, lambda i: i >= 0]
 
-def _isDataclassInstance(obj):
-    return dataclasses.is_dataclass(obj) and not isinstance(obj, type)
-
 def _patchDataClass(cls, mutable):
-    def isSome(obj):
-        if not _isDataclassInstance(obj):
-            return False
-        return obj.__class__ == cls
-    setattr(cls, "isSome", isSome)
     fieldNames = [f.name for f in dataclasses.fields(cls)]
     setattr(cls, EQ_ATTRS_ATTR, fieldNames)
     if mutable:
@@ -67,218 +62,7 @@ def record(cls=None, mutable=False):
         # We're called as @dataclass without parens.
         return wrap(cls)
 
-# Records
-# The goal is the make everything as simple and consistent as possible, so that
-# records can be used to teach an introductory programming course inspired by
-# "How to Design Programs" and "Schreib Dein Programm!".
-class Record:
-    def __init__(self, *args):
-        if len(args) % 2 != 1:
-            raise TypeError("Record benötigte eine ungerade Anzahl an Argumenten.")
-        if len(args) <= 1:
-            raise TypeError("Record benötigt mindestens eine Eigenschaft")
-        recordName = args[0]
-        if type(recordName) != str:
-            raise TypeError(f"Das 1. Argument von Record ist kein String sondern {recordName}.")
-        fields = []
-        for i in range(1, len(args), 2):
-            fieldName = args[i]
-            fieldTy = args[i+1]
-            if type(fieldName) != str:
-                raise TypeError(f"Das {i+1}. Argument von Record ist kein String " \
-                    f"sondern {repr(fieldName)}. Es wird aber der Name einer Eigenschaft erwartet.")
-            if not isType(fieldTy):
-                raise TypeError(f"Das {i+2}. Argument von Record ist kein Typ sondern " \
-                    f"{repr(fieldTy)}. Es wird aber der Typ der Eigenschaft {fieldName} erwartet.")
-            fields.append((fieldName, fieldTy))
-        def isSome(x):
-            ty = type(x)
-            return ty is _RecordInstance and x.recordName == recordName
-        self.isSome = isSome
-        self.fields = fields
-        self.recordName = recordName
-    def isWyppType(self):
-        return True
-    def __call__(self, *args):
-        return _RecordInstance(self.recordName, self.fields, args)
-    def __repr__(self):
-        return f"Record({self.recordName})"
-    def __getattr__(self, name):
-        attrs = ", ".join([x[0] for x in self.fields])
-        raise AttributeError(f"{self.recordName}.{name} ist nicht definiert.")
-
-class _RecordInstance:
-    def __init__(self, recordName, fields, args):
-        self.__dict__['_frozen'] = False
-        self.recordName = recordName
-        self.values = {}
-        for ((name, ty), val) in zip(fields, args):
-            self.values[name] = val
-        self.__eqAttrs__ = [f[0] for f in fields]
-        _debug(f'__init__ for {self.recordName} finished, self.values={self.values}, '\
-            f'fields={fields}, args={args}')
-        self.__dict__['_frozen'] = True
-
-    def __getattr__(self, name):
-        if name in self.values:
-            return self.values[name]
-        else:
-            attrs = ", ".join([x[0] for x in self.values.items()])
-            raise AttributeError(f"Der Record {self.recordName} besitzt die Eigenschaft " \
-                f"{name} nicht. Es gibt folgende Eigenschaften: {attrs}")
-
-    def __setattr__(self, name, val):
-        if self._frozen:
-            raise AttributeError(
-                f'Das Attribut {name} des Records {self.recordName} kann nicht geändert werden.'
-            )
-        else:
-            self.__dict__[name] = val
-
-    def __repr__(self):
-        result = self.recordName + '('
-        result += ', '.join([f + '=' + repr(v) for (f, v) in self.values.items()])
-        result += ')'
-        return result
-
-    def __eq__(self, other):
-        return type(other) is _RecordInstance and self.recordName == other.recordName and \
-            deepEq(self.values, other.values)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        result = 17
-        for (f, v) in self.values.items():
-            result = 31 * result + hash(v)
-        return result
-
-# Mixed types
-
-class Mixed:
-    def __init__(self, *args):
-        resolvedArgs = []
-        for i, a in enumerate(args):
-            if a is None:
-                resolvedArgs.append(type(None))
-            else:
-                if not isType(a):
-                    raise TypeError(f"Das {i+1}. Argument von Mixed ist kein Typ sondern {repr(a)}.")
-                resolvedArgs.append(a)
-        self.alternatives = resolvedArgs
-    def isWyppType(self):
-        return True
-    def isSome(self, x):
-        for alt in self.alternatives:
-            if hasType(alt, x):
-                return True
-        return False
-    def __call__(self, *args, **kwArgs):
-        # make it callable so that it can be used as a type argument of a generic
-        raise 'Mixed is not callable'
-
-# Enums
-# FIXME: remove in favor of literal
-class Enum:
-    def __init__(self, *args):
-        for i, a in enumerate(args):
-            t = type(a)
-            if t not in [str, int, bool]:
-                raise TypeError(f"Das {i+1}. Argument von Enum ist kein String oder int sondern {repr(a)}.")
-        self.alternatives = args
-    def isWyppType(self):
-        return True
-    def isSome(self, x):
-        return x in self.alternatives
-    def __call__(self, *args, **kwArgs):
-        # make it callable so that it can be used as a type argument of a generic
-        raise 'Enum is not callable'
-
-# Deferred references
-
-import inspect
-
-def _resolveType(frameInfo, name):
-    frame = frameInfo.frame
-    scopes = [frame.f_locals, frame.f_globals]
-    for scope in scopes:
-        x = scope.get(name, False)
-        if x:
-            return x
-    file = frameInfo.filename
-    line = frameInfo.lineno
-    raise Exception(f"Der Typ {name} wird in {file}:{line} referenziert, ist aber nicht " \
-        f"in der Datei {file} definiert.")
-
-class DefinedLater:
-    def __init__(self, ref):
-        if type(ref) != str:
-            raise TypeError(f"Das 1. Argument von DefinedLater ist kein String sondern {repr(ref)}.")
-        self.ref = ref
-        self.resolved = None
-        stack = inspect.stack()
-        caller = stack[1] if len(stack) > 1 else None
-        self.caller = caller
-    def isWyppType(self):
-        return True
-    def resolve(self):
-        resolved = self.resolved
-        if not resolved:
-            resolved = _resolveType(self.caller, self.ref)
-            _debug(f"Resolved {self.ref} to {resolved}")
-            setattr(self, 'resolved', resolved)
-        return resolved
-    def __repr__(self):
-        if self.resolved:
-            return repr(self.resolved)
-        else:
-            return "DefinedLater(" + repr(self.ref) + ")"
-    def __getattr__(self, attr):
-        resolved = self.resolve()
-        return getattr(resolved, attr)
-    def __call__(self, *args, **kwArgs):
-        # make it callable so that it can be used as a type argument of a generic
-        raise TypeError('DefinedLater is not callable')
-
 # Tests
-
-def isType(ty, rec=True):
-    if isinstance(ty, type):
-        return True
-    elif ty in [None, Any, Optional, typing.Union]:
-        return True
-    pred = getattr(ty, "isWyppType", None)
-    if pred is not None:
-        return pred()
-    origin = getattr(ty, '__origin__', None)
-    if origin and rec:
-        return isType(origin, rec=False)
-
-def _safeIsInstance(x, ty):
-    try:
-        return isinstance(x, ty)
-    except TypeError:
-        return False
-
-def hasType(ty, x, rec=True):
-    if isinstance(ty, DefinedLater):
-        ty = ty.resolve()
-    if _safeIsInstance(x, ty):
-        return True
-    elif ty in [Any, Optional, typing.Union]:
-        return True
-    elif ty is None:
-        return x is None
-    origin = getattr(ty, '__origin__', None)
-    if origin and rec:
-        return hasType(origin, x, rec=False)
-    else:
-        pred = getattr(ty, "isSome", None)
-        if pred:
-            return pred(x)
-        else:
-            return False
 
 _die = False
 
@@ -377,6 +161,7 @@ def _objToDict(o):
             continue
         x = getattr(o, n)
         d[n] = x
+    #print(d)
     return d
 
 def _objEq(o1, o2, flags):
@@ -403,7 +188,7 @@ def deepEq(v1, v2, **flags):
     by __eq__. Otherwise, objects are compared attribute-wise, only those attributes
     returned by dir that do not start with an underscore are compared.
     """
-    # print(f'v1={v1}, v2={v2}, flags={flags}')
+    # print(f'deepEq: v1={v1}, v2={v2}, flags={flags}')
     if v1 == v2:
         return True
     if _isNumber(v1) and _isNumber(v2) and _useFloatEqWithDelta(flags):
@@ -413,12 +198,10 @@ def deepEq(v1, v2, **flags):
         else:
             return False
     ty1 = type(v1)
-    if ty1 != type(v2):
-        return False
     if ty1 == list or ty1 == tuple:
-        return _seqEq(v1, v2, flags)
+        return ty1 == type(v2) and _seqEq(v1, v2, flags)
     if ty1 == dict:
-        return _dictEq(v1, v2, flags)
+        return ty1 == type(v2) and _dictEq(v1, v2, flags)
     if ty1 == str:
         return False
     if hasattr(v1, '__class__'):
@@ -434,5 +217,4 @@ import math as moduleMath
 
 math = moduleMath
 
-ForwardRef = DefinedLater
 

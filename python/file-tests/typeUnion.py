@@ -17,7 +17,7 @@ myParrot = Parrot('Mike', "Let's go to the punkrock show")
 Animal = Union[Cat, Parrot]
 
 def formatAnimal(a: Animal) -> str:
-    if Cat.isSome(a):
+    if type(a) == Cat:
         return "Cat " + a.name
     else:
         return "Parrot " + a.name + " says: " + a.sentence

@@ -1,7 +1,8 @@
 import unittest
-import writeYourProgram as wypp
 import testSample
+from writeYourProgram import *
 from writeYourProgram import deepEq
+import writeYourProgram as wypp
 
 wypp.setDieOnCheckFailures(True)
 
@@ -19,7 +20,10 @@ class A:
     def __eq__(self, other):
         return self is other
 
-Point = wypp.Record("MyPoint", "x", float, "y", float)
+@record
+class Point:
+    x: float
+    y: float
 
 class TestDeepEq(unittest.TestCase):
     def test_eq(self):
@@ -58,8 +62,8 @@ class TestDeepEq(unittest.TestCase):
                                 structuralObjEq=False, floatEqWithDelta=True))
         self.assertTrue(deepEq(C(42.0), C(42.0000000000001),
                                structuralObjEq=True, floatEqWithDelta=True))
-        self.assertFalse(deepEq(C(42.0), D(42.0000000000001),
-                                structuralObjEq=True, floatEqWithDelta=True))
+        self.assertTrue(deepEq(C(42.0), D(42.0000000000001),
+                               structuralObjEq=True, floatEqWithDelta=True))
         self.assertFalse(deepEq(C(42.0), D(42.0000000000001),
                                 structuralObjEq=False, floatEqWithDelta=True))
         self.assertTrue(deepEq(

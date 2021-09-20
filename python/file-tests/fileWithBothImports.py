@@ -8,7 +8,7 @@ def use(x):
 
 use(wypp)
 use(drawingLib)
-use(wypp.Record)
+use(wypp.record)
 use(drawingLib.Point)
 use(Point)
 use(wypp.List[int])

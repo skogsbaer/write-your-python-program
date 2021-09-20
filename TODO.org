@@ -5,9 +5,9 @@
 **** construction
 **** write access
 * other
-** rename Mixed to Union and DefinedLater to ForwardRef
-** write records in the style of dataclasses, drop support for old-style records
 ** use lowercase types list, tuple, dict etc. (requires python 3.9)
 ** fix __init__.py file so that pylance does not complain about missing variables
 ** imports of modules in the same directory are marked as warnings in VSCode
 ** make installable via pip (for those we do not use the extension)
+** only install by default when running under vscode
+** lazy errors if tkinter is not installed
