@@ -51,7 +51,7 @@ if opts.verbose:
 
 libDir = os.path.dirname(__file__)
 libFile = os.path.join(libDir, 'writeYourProgram.py')
-defs = {}
+defs = globals()
 importUntypy()
 # runCode(libFile, defs, [])
 
