@@ -50,7 +50,6 @@ class TypeTests(unittest.TestCase):
         out2 = runInteractive(rec, 'incAge(Person("stefan", 42))')
         self.assertEqual(["Person(name='stefan', age=43)"], out2)
 
-    @unittest.skip
     def test_recordFail1(self):
         rec = 'file-tests/typeRecords.py'
         out = runInteractive(rec, 'Person("stefan", 42.3)')[0]
@@ -68,7 +67,6 @@ class TypeTests(unittest.TestCase):
         out2 = runInteractive(rec, 'p = MutablePerson("stefan", 42)\nmutableIncAge(p)\np')
         self.assertEqual(['', '', "MutablePerson(name='stefan', age=43)"], out2)
 
-    @unittest.skip
     def test_mutableRecordFail1(self):
         rec = 'file-tests/typeRecords.py'
         out = runInteractive(rec, 'MutablePerson("stefan", 42.3)')[0]
@@ -100,7 +98,6 @@ class StudentSubmissionTests(unittest.TestCase):
         if not tycheck:
             flags.append('--no-typechecking')
         cmd = f"python3 src/runYourProgram.py {' '.join(flags)} --test-file {testFile} {file} {LOG_REDIR}"
-        print(cmd)
         res = shell.run(cmd, onError='ignore')
         self.assertEqual(ecode, res.exitcode)
 
