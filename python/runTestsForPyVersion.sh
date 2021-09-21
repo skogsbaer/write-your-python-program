@@ -44,7 +44,7 @@ else
     fi
     shift
     echo "Running $what tests $@ with PYTHONPATH=$p"
-    if [ -z "$1" ]; then
+    if [ -z "${1:-}" ]; then
         PYTHONPATH=$p python3 -m unittest $dir/test*.py
         ecode=$?
     else

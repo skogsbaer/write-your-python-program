@@ -200,7 +200,7 @@ class Lib:
                 if name and name[0] != '_':
                   d[name] = getattr(mod, name)
 
-def loadLib(onlyCheckRunnable):
+def prepareLib(onlyCheckRunnable):
     libDefs = None
     mod = INSTALLED_MODULE_NAME
     verbose('Attempting to import ' + mod)
@@ -258,7 +258,7 @@ class sysPathPrepended:
             sys.path.remove(self.dir)
             self.inserted = False
 
-def runCode(fileToRun, globals, args, *, useUntypy=True):
+def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
     with sysPathPrepended(localDir):
         with open(fileToRun) as f:
@@ -285,11 +285,7 @@ def runCode(fileToRun, globals, args, *, useUntypy=True):
             finally:
                 sys.argv = oldArgs
 
-def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useUntypy=True):
-    importsWypp = findWyppImport(fileToRun)
-    if importsWypp:
-        if not libDefs.properlyImported:
-            globals[INSTALLED_MODULE_NAME] = libDefs.dict
+def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True):
     doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy)
     if onlyCheckRunnable:
         try:
@@ -414,13 +410,13 @@ Python in version 3.9 or newer is required. You are still using version {vStr}, 
     if not args.checkRunnable and not args.quiet:
         printWelcomeString(fileToRun, version, useUntypy=args.checkTypes)
 
-    libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
+    libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable)
 
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
         verbose(f'running code in {fileToRun}')
-        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs,
+        runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
                        useUntypy=args.checkTypes)
     except:
         handleCurrentException()
