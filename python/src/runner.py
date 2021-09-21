@@ -24,6 +24,10 @@ def die(ecode=1):
 
 VERBOSE = False # set via commandline
 
+def enableVerbose():
+    global VERBOSE
+    VERBOSE = True
+
 LIB_DIR = os.path.dirname(__file__)
 INSTALLED_MODULE_NAME = 'wypp'
 FILES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
@@ -379,6 +383,11 @@ def getHistoryFilePath():
     else:
         return None
 
+# We cannot import untypy at the top of the file because we might have to install it first.
+def importUntypy():
+    global untypy
+    import untypy
+
 def main(globals):
     v = sys.version_info
     if v.major < 3 or v.minor < 9:
@@ -393,9 +402,7 @@ Python in version 3.9 or newer is required. You are still using version {vStr}, 
         VERBOSE = True
 
     installLib(args.installMode)
-
-    global untypy
-    import untypy
+    importUntypy()
 
     fileToRun = args.file
     if args.changeDir:

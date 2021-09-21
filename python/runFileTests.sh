@@ -23,10 +23,10 @@ function check()
     python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
     popd > /dev/null
 }
-check file-tests/fileWithImport.py
-check file-tests/fileWithoutImport.py
-check file-tests/fileWithBothImports.py
-check file-tests/fileWithRecursiveTypes.py
+check test-data/fileWithImport.py
+check test-data/fileWithoutImport.py
+check test-data/fileWithBothImports.py
+check test-data/fileWithRecursiveTypes.py
 
 # First argument: whether to do type checking or not
 # Second argument: expected exit code. If given as X:Y, then X is the exit code with active
@@ -101,11 +101,11 @@ function checkWithOutput()
     checkWithOutputAux no "$@"
 }
 
-checkWithOutput 1 file-tests/testTraceback.py
-checkWithOutput 1 file-tests/testTraceback2.py
-checkWithOutput 1 file-tests/testTraceback3.py
-checkWithOutput 0 file-tests/testArgs.py ARG_1 ARG_2
-checkWithOutput 0 file-tests/printModuleName.py
-checkWithOutput 0 file-tests/printModuleNameImport.py
-checkWithOutput 1 file-tests/testTypes1.py
-checkWithOutput 1:0 file-tests/testTypes2.py
+checkWithOutput 1 test-data/testTraceback.py
+checkWithOutput 1 test-data/testTraceback2.py
+checkWithOutput 1 test-data/testTraceback3.py
+checkWithOutput 0 test-data/testArgs.py ARG_1 ARG_2
+checkWithOutput 0 test-data/printModuleName.py
+checkWithOutput 0 test-data/printModuleNameImport.py
+checkWithOutput 1 test-data/testTypes1.py
+checkWithOutput 1:0 test-data/testTypes2.py

@@ -6,12 +6,12 @@ expected: int
 inside of inc(x: int) -> int
                  ^^^        
 declared at: 
-file-tests/testTypes2.py:1
+test-data/testTypes2.py:1
   1 | def inc(x: int) -> int:
   2 |     return x
 
 
 caused by: 
-file-tests/testTypes2.py:4
+test-data/testTypes2.py:4
   4 | inc("1")
 
