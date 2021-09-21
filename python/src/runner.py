@@ -125,13 +125,12 @@ def isSameFile(f1, f2):
     y = readFile(f2)
     return x == y
 
-def installFromDir(srcDir, mod, files=None):
+def installFromDir(srcDir, targetDir, mod, files=None):
     if files is None:
         files = [p.relative_to(srcDir) for p in Path(srcDir).rglob('*.py')]
     else:
         files = [Path(f) for f in files]
-    userDir = site.USER_SITE
-    installDir = os.path.join(userDir, mod)
+    installDir = os.path.join(targetDir, mod)
     os.makedirs(installDir, exist_ok=True)
     installedFiles = sorted([p.relative_to(installDir) for p in Path(installDir).rglob('*.py')])
     wantedFiles = sorted(files)
@@ -144,7 +143,7 @@ def installFromDir(srcDir, mod, files=None):
                 break
         else:
             # no break, all files equal
-            verbose(f'All files from {srcDir} already installed in {userDir}/{mod}')
+            verbose(f'All files from {srcDir} already installed in {targetDir}/{mod}')
             return True
     else:
         verbose(f'Installed files {installedFiles} and wanted files {wantedFiles} are different')
@@ -164,17 +163,17 @@ def installLib(mode):
     if mode == InstallMode.dontInstall:
         verbose("No installation of WYPP should be performed")
         return
-    userDir = site.USER_SITE
+    targetDir = os.getenv('WYPP_INSTALL_DIR', site.USER_SITE)
     try:
-        allEq1 = installFromDir(LIB_DIR, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
-        allEq2 = installFromDir(UNTYPY_DIR, UNTYPY_MODULE_NAME)
+        allEq1 = installFromDir(LIB_DIR, targetDir, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
+        allEq2 = installFromDir(UNTYPY_DIR, targetDir, UNTYPY_MODULE_NAME)
         if allEq1 and allEq2:
-            verbose(f'WYPP library in {userDir} already up to date')
+            verbose(f'WYPP library in {targetDir} already up to date')
             if mode == InstallMode.installOnly:
-                printStderr(f'WYPP library in {userDir} already up to date')
+                printStderr(f'WYPP library in {targetDir} already up to date')
             return
         else:
-            printStderr(f'The WYPP library has been successfully installed in {userDir}.')
+            printStderr(f'The WYPP library has been successfully installed in {targetDir}.')
     except Exception as e:
         printStderr('Installation of the WYPP library failed: ' + str(e))
         if mode == InstallMode.assertInstall or mode == InstallMode.installOnly:
