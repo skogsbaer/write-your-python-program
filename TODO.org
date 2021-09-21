@@ -1,11 +1,11 @@
 * untypy
 ** add tests with type annotations
 *** for records
-**** construction
 **** write access
 * other
 ** upload dist to pypi
 ** update README
+*** python version
 *** pip
 *** records
 *** import
