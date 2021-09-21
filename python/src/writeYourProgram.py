@@ -33,6 +33,13 @@ nat = typing.Annotated[int, lambda i: i >= 0]
 def _patchDataClass(cls, mutable):
     fieldNames = [f.name for f in dataclasses.fields(cls)]
     setattr(cls, EQ_ATTRS_ATTR, fieldNames)
+    
+    if hasattr(cls, '__annotations__'):
+        # add annotions for type checked constructor.
+        cls.__init__.__annotations__ =  cls.__annotations__
+        cls.__init__.__original = cls # mark class as source of annotation
+        cls.__init__ = untypy.typechecked(cls.__init__)
+
     if mutable:
         # prevent new fields being added
         fields = set(fieldNames)
