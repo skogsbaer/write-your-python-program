@@ -166,3 +166,11 @@ declared at:"""
     def test_typesInImportedModule2(self):
         out = run('test-data/testTypes3.py', tycheck=False)
         self.assertEqual('END', out)
+
+class ReplTesterTests(unittest.TestCase):
+
+    def test_replTester(self):
+        d = shell.pwd()
+        cmd = f'python3 {d}/src/replTester.py {d}/test-data/repl-test-lib.py --repl {d}/test-data/repl-test-checks.py'
+        res = shell.run(cmd, captureStdout=True, onError='die', cwd='/tmp')
+        self.assertIn('All 1 tests succeded. Great!', res.stdout)
