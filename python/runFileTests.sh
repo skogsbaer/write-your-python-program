@@ -111,13 +111,13 @@ checkWithOutput 1 test-data/testTypes1.py
 checkWithOutput 1:0 test-data/testTypes2.py
 checkWithOutputAux yes 1 test-data/testTypesCollections1.py
 checkWithOutputAux yes 1 test-data/testTypesCollections2.py
-# checkWithOutputAux yes 1 test-data/testTypesCollections3.py
-# checkWithOutputAux yes 1 test-data/testTypesCollections4.py
+# checkWithOutputAux yes 1 test-data/testTypesCollections3.py  See #5
+# checkWithOutputAux yes 1 test-data/testTypesCollections4.py  See #6
 checkWithOutputAux yes 1 test-data/testTypesProtos1.py
-# checkWithOutputAux yes 1 test-data/testTypesProtos2.py
+# checkWithOutputAux yes 1 test-data/testTypesProtos2.py  See #8
 checkWithOutputAux yes 1 test-data/testTypesProtos3.py
-# checkWithOutputAux yes 1 test-data/testTypesProtos4.py
-# checkWithOutputAux yes 1 test-data/testTypesSubclassing1.py
-# checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py
-# checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py
+# checkWithOutputAux yes 1 test-data/testTypesProtos4.py  See #9
+# checkWithOutputAux yes 1 test-data/testTypesSubclassing1.py  See #10
+# checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py See #7
+# checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py  See #11
 
