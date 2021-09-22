@@ -138,8 +138,8 @@ class InteractiveTests(unittest.TestCase):
 given:    '3'
 expected: value of type int
 
-by function inc(x: int) -> int
-                   ^^^
+context: inc(x: int) -> int
+                ^^^
 declared at: /Users/swehr/devel/write-your-python-program/python/test-data/testTypesInteractive.py:1
   1 | def inc(x: int) -> int:
   2 |     return x + 1

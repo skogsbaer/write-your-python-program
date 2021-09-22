@@ -2,8 +2,8 @@ untypy.error.UntypyTypeError
 given:    '1'
 expected: value of type int
 
-by function inc(x: int) -> int
-                   ^^^
+context: inc(x: int) -> int
+                ^^^
 declared at: test-data/testTypes2.py:1
   1 | def inc(x: int) -> int:
   2 |     return x
