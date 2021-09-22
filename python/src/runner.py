@@ -360,6 +360,7 @@ def limitTraceback(fullTb):
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
     if isinstance(val, untypy.error.UntypyTypeError) or isinstance(val, untypy.error.UntypyAttributeError):
+        file.write(etype.__module__ + "." + etype.__qualname__ + '\n')
         file.write(str(val))
         file.write('\n')
     else:

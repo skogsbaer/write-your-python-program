@@ -10,7 +10,6 @@ d=$(pwd)
 siteDir=$(python3 -c 'import site; print(site.USER_SITE)')
 t=$(mktemp)
 
-echo
 echo "Running file tests, siteDir=$siteDir ..."
 echo "Writing logs to $t"
 function check()
@@ -37,6 +36,7 @@ function checkWithOutputAux()
     local tycheck="$1"
     local expectedEcode=$2
     local file="$3"
+    echo "Checking $file"
     shift 3
     tycheckOpt=""
     suffixes="${PYENV_VERSION}"

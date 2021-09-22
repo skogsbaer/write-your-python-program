@@ -17,6 +17,7 @@ LIB_j if i > j.
 @dataclass
 class Options:
     verbose: bool
+    diffOutput: bool
     libs: list[str]
     repls: list[str]
 
@@ -26,6 +27,9 @@ def parseCmdlineArgs():
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
+    parser.add_argument('--diffOutput', dest='diffOutput',
+                        action='store_const', const=True, default=False,
+                        help='print diff of expected/given output')
     args, restArgs = parser.parse_known_args()
     libs = []
     repls = []
@@ -42,7 +46,7 @@ def parseCmdlineArgs():
     if len(repls) == 0:
         print('No SAMPLE arguments given')
         sys.exit(1)
-    return Options(args.verbose, libs, repls)
+    return Options(verbose=args.verbose, diffOutput=args.diffOutput, libs=libs, repls=repls)
 
 opts = parseCmdlineArgs()
 
@@ -67,8 +71,15 @@ for lib in opts.libs:
 totalFailures = 0
 totalTests = 0
 
+doctestOptions = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+
+if opts.diffOutput:
+    doctestOptions = doctestOptions | doctest.REPORT_NDIFF
+
 for repl in opts.repls:
-    (failures, tests) = doctest.testfile(repl, globs=defs, module_relative=False)
+    (failures, tests) = doctest.testfile(repl, globs=defs, module_relative=False,
+                                         optionflags=doctestOptions)
+
     totalFailures += failures
     totalTests += tests
     if failures == 0:

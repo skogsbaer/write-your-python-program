@@ -25,10 +25,12 @@ function usage()
 if [ -z "${1:-}" ]; then
     echo "Running all unit tests, PYTHONPATH=$unit_test_path"
     PYTHONPATH=$unit_test_path python3 -m unittest tests/test*.py
+    echo "Done with unit tests"
     echo
     prepare_integration_tests
     echo "Running all integration tests, PYTHONPATH=$integ_test_path"
     PYTHONPATH=$integ_test_path python3 -m unittest integration-tests/test*.py
+    echo "Done with integration tests"
 else
     if [ "$1" == "--unit" ]; then
         what="unit"

@@ -6,4 +6,3 @@ def use(x):
 
 use(wypp)
 use(wypp.record)
-use(wypp.list[int])

@@ -1,17 +1,12 @@
+untypy.error.UntypyTypeError
+given:    '1'
+expected: value of type int
 
-given: '1'
-expected: int
-          ^^^
-
-inside of inc(x: int) -> int
-                 ^^^        
-declared at: 
-test-data/testTypes1.py:1
+by function inc(x: int) -> int
+                   ^^^
+declared at: test-data/testTypes1.py:1
   1 | def inc(x: int) -> int:
   2 |     return x + 1
 
-
-caused by: 
-test-data/testTypes1.py:4
+caused by: test-data/testTypes1.py:4
   4 | inc("1")
-

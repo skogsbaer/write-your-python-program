@@ -32,7 +32,7 @@ def stripTrailingWs(s):
 
 LOG_FILE = shell.mkTempFile(prefix="wypp-tests", suffix=".log", deleteAtExit='ifSuccess')
 print(f'Output of integration tests goes to {LOG_FILE}')
-LOG_REDIR = f'> {LOG_FILE} 2>&1'
+LOG_REDIR = f'>> {LOG_FILE} 2>&1'
 
 class TypeTests(unittest.TestCase):
     def test_enumOk(self):
@@ -41,7 +41,7 @@ class TypeTests(unittest.TestCase):
 
     def test_enumTypeError(self):
         out = runInteractive('test-data/typeEnums.py', 'colorToNumber(1)')[0]
-        self.assertIn("expected: Literal['red', 'yellow', 'green']", out)
+        self.assertIn("expected: value of type Literal['red', 'yellow', 'green']", out)
 
     def test_recordOk(self):
         rec = 'test-data/typeRecords.py'
@@ -53,12 +53,12 @@ class TypeTests(unittest.TestCase):
     def test_recordFail1(self):
         rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'Person("stefan", 42.3)')[0]
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_recordFail2(self):
         rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'mutableIncAge(Person("stefan", 42))')[0]
-        self.assertIn('expected: MutablePerson', out)
+        self.assertIn('expected: value of type MutablePerson', out)
 
     def test_recordMutableOk(self):
         rec = 'test-data/typeRecords.py'
@@ -70,18 +70,18 @@ class TypeTests(unittest.TestCase):
     def test_mutableRecordFail1(self):
         rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'MutablePerson("stefan", 42.3)')[0]
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_mutableRecordFail2(self):
         rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'incAge(MutablePerson("stefan", 42))')[0]
-        self.assertIn('expected: Person', out)
+        self.assertIn('expected: value of type Person', out)
 
     @unittest.skip
     def test_mutableRecordFail3(self):
         rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'p = MutablePerson("stefan", 42)\np.age = 42.4')
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_union(self):
         out = runInteractive('test-data/typeUnion.py', """formatAnimal(myCat)
@@ -90,7 +90,7 @@ formatAnimal(None)
         """)
         self.assertEqual("'Cat Pumpernickel'", out[0])
         self.assertEqual("\"Parrot Mike says: Let's go to the punkrock show\"", out[1])
-        self.assertIn('given: None\nexpected: Union[Cat, Parrot]', out[2])
+        self.assertIn('given:    None\nexpected: value of type Union[Cat, Parrot]', out[2])
 
 class StudentSubmissionTests(unittest.TestCase):
     def check(self, file, testFile, ecode, tycheck=True):
@@ -134,19 +134,23 @@ class InteractiveTests(unittest.TestCase):
 
     def test_types2(self):
         out = runInteractive('test-data/testTypesInteractive.py', 'inc("3")')[0]
-        expected = """given: '3'
-expected: int
-          ^^^
+        expected = """untypy.error.UntypyTypeError
+given:    '3'
+expected: value of type int
 
-inside of inc(x: int) -> int
-                 ^^^
-declared at:"""
-        self.assertIn(expected, stripTrailingWs(out))
+by function inc(x: int) -> int
+                   ^^^
+declared at: /Users/swehr/devel/write-your-python-program/python/test-data/testTypesInteractive.py:1
+  1 | def inc(x: int) -> int:
+  2 |     return x + 1
+
+caused by: <console>:1"""
+        self.assertEqual(expected, out)
 
     def test_types3(self):
         out = runInteractive('test-data/testTypesInteractive.py',
                              'def f(x: int) -> int: return x\n\nf("x")')[1]
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_types4(self):
         out = runInteractive('test-data/testTypesInteractive.py',
@@ -161,7 +165,7 @@ declared at:"""
 
     def test_typesInImportedModule1(self):
         out = run('test-data/testTypes3.py', ecode=1)
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_typesInImportedModule2(self):
         out = run('test-data/testTypes3.py', tycheck=False)
