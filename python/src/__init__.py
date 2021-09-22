@@ -17,7 +17,10 @@ dataclass = w.dataclass
 math = w.math
 nat = w.nat
 record = w.record
+T = w.T
+U = w.U
 unchecked = w.unchecked
+V = w.V
 
 __all__ = [
     'Any',
@@ -36,7 +39,10 @@ __all__ = [
     'math',
     'nat',
     'record',
-    'unchecked'
+    'T',
+    'U',
+    'unchecked',
+    'V'
 ]
 
 # Exported names not available for star imports (in alphabetic order)
