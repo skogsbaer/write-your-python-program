@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PYTHONPATH=site-lib/ python3 src/runYourProgram.py "$@"
