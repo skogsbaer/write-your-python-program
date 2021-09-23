@@ -119,6 +119,7 @@ checkWithOutputAux yes 1 test-data/testTypesProtos3.py
 # checkWithOutputAux yes 1 test-data/testTypesProtos4.py  See #9
 # checkWithOutputAux yes 1 test-data/testTypesSubclassing1.py  See #10
 # checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py See #7
+# checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns2.py See #6
 # checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py  See #11
 checkWithOutputAux yes 0 test-data/testForwardRef1.py
 # checkWithOutputAux yes 1 test-data/testForwardRef2.py See #14

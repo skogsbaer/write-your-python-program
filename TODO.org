@@ -5,6 +5,7 @@
 **** test for correct location
 ** understand why commit 150c7a5b209ddb264fd104feae42eba4905c2be7 is necessary to fix the replTester test
 * other
+** filter traceback (for higher-order functions)
 ** mode where all functions or methods without type signatures are reported as errors
 ** upload dist to pypi
 ** update README
