@@ -361,7 +361,10 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
     if isinstance(val, untypy.error.UntypyTypeError) or isinstance(val, untypy.error.UntypyAttributeError):
         file.write(etype.__module__ + "." + etype.__qualname__)
-        file.write(str(val))
+        s = str(val)
+        if s and s[0] != '\n':
+            file.write(': ')
+        file.write(s)
         file.write('\n')
     else:
         if tb and removeFirstTb:
