@@ -128,5 +128,6 @@ checkWithOutputAux yes 0 test-data/testForwardRef3.py
 checkWithOutputAux yes 1 test-data/testTypesSequence1.py
 checkWithOutputAux yes 1 test-data/testTypesSequence2.py
 checkWithOutputAux yes 1 test-data/testTypesTuple1.py
+# checkWithOutputAux yes 1 test-data/wrong-caused-by.py  See #17
 
 
