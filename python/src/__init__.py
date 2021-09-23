@@ -3,7 +3,6 @@ from . import writeYourProgram as w
 # Exported names that are available for star imports (in alphabetic order)
 Any = w.Any
 Callable = w.Callable
-ForwardRef = w.ForwardRef
 Generator = w.Generator
 Iterable = w.Iterable
 Iterator = w.Iterator
@@ -25,7 +24,6 @@ V = w.V
 __all__ = [
     'Any',
     'Callable',
-    'ForwardRef',
     'Generator',
     'Iterable',
     'Iterator',
