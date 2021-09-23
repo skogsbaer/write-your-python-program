@@ -1,3 +1,5 @@
 #!/bin/bash
 
-PYTHONPATH=site-lib/ python3 src/runYourProgram.py "$@"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+PYTHONPATH="$SCRIPT_DIR"/site-lib/ python3 "$SCRIPT_DIR"/src/runYourProgram.py "$@"
