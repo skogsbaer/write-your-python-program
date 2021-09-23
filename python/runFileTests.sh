@@ -121,7 +121,7 @@ checkWithOutputAux yes 1 test-data/testTypesProtos3.py
 # checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py See #7
 # checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py  See #11
 checkWithOutputAux yes 0 test-data/testForwardRef1.py
-# checkWithOutputAux yes 1 test-data/testForwardRef2.py
+# checkWithOutputAux yes 1 test-data/testForwardRef2.py See #14
 checkWithOutputAux yes 0 test-data/testForwardRef3.py
-# checkWithOutputAux yes 1 test-data/testForwardRef4.py
+# checkWithOutputAux yes 1 test-data/testForwardRef4.py  See #14
 
