@@ -1,0 +1,13 @@
+untypy.error.UntypyTypeError
+given:    'Hello!'
+expected: value of type Sequence[int]
+
+context: foo(seq: Sequence[int]) -> None
+                  ^^^^^^^^^^^^^
+declared at: test-data/testTypesSequence2.py:3
+  3 | def foo(seq: Sequence[int]) -> None:
+  4 |     print(seq)
+  5 |     pass
+
+caused by: test-data/testTypesSequence2.py:9
+  9 | foo("Hello!") # should fail

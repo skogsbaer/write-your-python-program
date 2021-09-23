@@ -1,6 +1,7 @@
 from wypp import *
 
-def foo(seq: Sequence):
+def foo(seq: Sequence) -> None:
+    print(seq)
     pass
 
 foo([1,2,3])
