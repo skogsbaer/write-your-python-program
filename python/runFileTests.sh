@@ -125,5 +125,6 @@ checkWithOutputAux yes 0 test-data/testForwardRef1.py
 checkWithOutputAux yes 0 test-data/testForwardRef3.py
 # checkWithOutputAux yes 1 test-data/testForwardRef4.py  See #14
 # checkWithOutputAux yes 1 test-data/testTypesReturn.py  See #15
+# checkWithOutputAux yes 1 test-data/testTypesSequence.py  See #16
 
 
