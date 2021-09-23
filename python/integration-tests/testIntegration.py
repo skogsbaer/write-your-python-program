@@ -1,6 +1,7 @@
 import shell
 import unittest
 import os
+import re
 
 def run(path, input='', tycheck=True, ecode=0):
     flags = ['--quiet', '--no-clear']
@@ -29,6 +30,11 @@ def runInteractive(path, input='', tycheck=True):
 def stripTrailingWs(s):
     s = s.strip()
     return '\n'.join([l.rstrip() for l in s.split('\n')])
+
+def removeFilePaths(s):
+    s = re.sub(r"declared at: .*", '<omitted>', s)
+    s = re.sub(r"caused by: .*", '<omitted>', s)
+    return s
 
 LOG_FILE = shell.mkTempFile(prefix="wypp-tests", suffix=".log", deleteAtExit='ifSuccess')
 print(f'Output of integration tests goes to {LOG_FILE}')
@@ -145,7 +151,7 @@ declared at: /Users/swehr/devel/write-your-python-program/python/test-data/testT
   2 |     return x + 1
 
 caused by: <console>:1"""
-        self.assertEqual(expected, out)
+        self.assertEqual(removeFilePaths(expected), removeFilePaths(out))
 
     def test_types3(self):
         out = runInteractive('test-data/testTypesInteractive.py',
