@@ -32,67 +32,65 @@ def stripTrailingWs(s):
 
 LOG_FILE = shell.mkTempFile(prefix="wypp-tests", suffix=".log", deleteAtExit='ifSuccess')
 print(f'Output of integration tests goes to {LOG_FILE}')
-LOG_REDIR = f'> {LOG_FILE} 2>&1'
+LOG_REDIR = f'>> {LOG_FILE} 2>&1'
 
 class TypeTests(unittest.TestCase):
     def test_enumOk(self):
-        out = runInteractive('file-tests/typeEnums.py', 'colorToNumber("red")')
+        out = runInteractive('test-data/typeEnums.py', 'colorToNumber("red")')
         self.assertEqual(['0'], out)
 
     def test_enumTypeError(self):
-        out = runInteractive('file-tests/typeEnums.py', 'colorToNumber(1)')[0]
-        self.assertIn("expected: Literal['red', 'yellow', 'green']", out)
+        out = runInteractive('test-data/typeEnums.py', 'colorToNumber(1)')[0]
+        self.assertIn("expected: value of type Literal['red', 'yellow', 'green']", out)
 
     def test_recordOk(self):
-        rec = 'file-tests/typeRecords.py'
+        rec = 'test-data/typeRecords.py'
         out1 = runInteractive(rec, 'Person("stefan", 42)')
         self.assertEqual(["Person(name='stefan', age=42)"], out1)
         out2 = runInteractive(rec, 'incAge(Person("stefan", 42))')
         self.assertEqual(["Person(name='stefan', age=43)"], out2)
 
-    @unittest.skip
     def test_recordFail1(self):
-        rec = 'file-tests/typeRecords.py'
+        rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'Person("stefan", 42.3)')[0]
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_recordFail2(self):
-        rec = 'file-tests/typeRecords.py'
+        rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'mutableIncAge(Person("stefan", 42))')[0]
-        self.assertIn('expected: MutablePerson', out)
+        self.assertIn('expected: value of type MutablePerson', out)
 
     def test_recordMutableOk(self):
-        rec = 'file-tests/typeRecords.py'
+        rec = 'test-data/typeRecords.py'
         out1 = runInteractive(rec, 'MutablePerson("stefan", 42)')
         self.assertEqual(["MutablePerson(name='stefan', age=42)"], out1)
         out2 = runInteractive(rec, 'p = MutablePerson("stefan", 42)\nmutableIncAge(p)\np')
         self.assertEqual(['', '', "MutablePerson(name='stefan', age=43)"], out2)
 
-    @unittest.skip
     def test_mutableRecordFail1(self):
-        rec = 'file-tests/typeRecords.py'
+        rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'MutablePerson("stefan", 42.3)')[0]
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_mutableRecordFail2(self):
-        rec = 'file-tests/typeRecords.py'
+        rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'incAge(MutablePerson("stefan", 42))')[0]
-        self.assertIn('expected: Person', out)
+        self.assertIn('expected: value of type Person', out)
 
     @unittest.skip
     def test_mutableRecordFail3(self):
-        rec = 'file-tests/typeRecords.py'
+        rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'p = MutablePerson("stefan", 42)\np.age = 42.4')
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_union(self):
-        out = runInteractive('file-tests/typeUnion.py', """formatAnimal(myCat)
+        out = runInteractive('test-data/typeUnion.py', """formatAnimal(myCat)
 formatAnimal(myParrot)
 formatAnimal(None)
         """)
         self.assertEqual("'Cat Pumpernickel'", out[0])
         self.assertEqual("\"Parrot Mike says: Let's go to the punkrock show\"", out[1])
-        self.assertIn('given: None\nexpected: Union[Cat, Parrot]', out[2])
+        self.assertIn('given:    None\nexpected: value of type Union[Cat, Parrot]', out[2])
 
 class StudentSubmissionTests(unittest.TestCase):
     def check(self, file, testFile, ecode, tycheck=True):
@@ -100,72 +98,83 @@ class StudentSubmissionTests(unittest.TestCase):
         if not tycheck:
             flags.append('--no-typechecking')
         cmd = f"python3 src/runYourProgram.py {' '.join(flags)} --test-file {testFile} {file} {LOG_REDIR}"
-        print(cmd)
         res = shell.run(cmd, onError='ignore')
         self.assertEqual(ecode, res.exitcode)
 
     def test_goodSubmission(self):
-        self.check("file-tests/student-submission.py", "file-tests/student-submission-tests.py", 0)
-        self.check("file-tests/student-submission.py", "file-tests/student-submission-tests.py", 0,
+        self.check("test-data/student-submission.py", "test-data/student-submission-tests.py", 0)
+        self.check("test-data/student-submission.py", "test-data/student-submission-tests.py", 0,
                    tycheck=False)
 
     def test_badSubmission(self):
-        self.check("file-tests/student-submission-bad.py",
-                   "file-tests/student-submission-tests.py", 1)
-        self.check("file-tests/student-submission-bad.py",
-                   "file-tests/student-submission-tests.py", 1, tycheck=False)
+        self.check("test-data/student-submission-bad.py",
+                   "test-data/student-submission-tests.py", 1)
+        self.check("test-data/student-submission-bad.py",
+                   "test-data/student-submission-tests.py", 1, tycheck=False)
 
     def test_submissionWithTypeErrors(self):
-        self.check("file-tests/student-submission-tyerror.py",
-                   "file-tests/student-submission-tests.py", 1)
-        self.check("file-tests/student-submission-tyerror.py",
-                   "file-tests/student-submission-tests.py", 0, tycheck=False)
-        self.check("file-tests/student-submission.py",
-                   "file-tests/student-submission-tests-tyerror.py", 1)
-        self.check("file-tests/student-submission.py",
-                   "file-tests/student-submission-tests-tyerror.py", 0, tycheck=False)
+        self.check("test-data/student-submission-tyerror.py",
+                   "test-data/student-submission-tests.py", 1)
+        self.check("test-data/student-submission-tyerror.py",
+                   "test-data/student-submission-tests.py", 0, tycheck=False)
+        self.check("test-data/student-submission.py",
+                   "test-data/student-submission-tests-tyerror.py", 1)
+        self.check("test-data/student-submission.py",
+                   "test-data/student-submission-tests-tyerror.py", 0, tycheck=False)
 
 class InteractiveTests(unittest.TestCase):
 
     def test_scopeBugPeter(self):
-        out = runInteractive('file-tests/scope-bug-peter.py', 'local_test()\nprint(spam)')
+        out = runInteractive('test-data/scope-bug-peter.py', 'local_test()\nprint(spam)')
         self.assertIn('IT WORKS', out)
 
     def test_types1(self):
-        out = runInteractive('file-tests/testTypesInteractive.py', 'inc(3)')
+        out = runInteractive('test-data/testTypesInteractive.py', 'inc(3)')
         self.assertEqual(['4'], out)
 
     def test_types2(self):
-        out = runInteractive('file-tests/testTypesInteractive.py', 'inc("3")')[0]
-        expected = """given: '3'
-expected: int
-          ^^^
+        out = runInteractive('test-data/testTypesInteractive.py', 'inc("3")')[0]
+        expected = """untypy.error.UntypyTypeError
+given:    '3'
+expected: value of type int
 
-inside of inc(x: int) -> int
-                 ^^^
-declared at:"""
-        self.assertIn(expected, stripTrailingWs(out))
+context: inc(x: int) -> int
+                ^^^
+declared at: /Users/swehr/devel/write-your-python-program/python/test-data/testTypesInteractive.py:1
+  1 | def inc(x: int) -> int:
+  2 |     return x + 1
+
+caused by: <console>:1"""
+        self.assertEqual(expected, out)
 
     def test_types3(self):
-        out = runInteractive('file-tests/testTypesInteractive.py',
+        out = runInteractive('test-data/testTypesInteractive.py',
                              'def f(x: int) -> int: return x\n\nf("x")')[1]
-        self.assertIn('expected: int', out)
+        self.assertIn('expected: value of type int', out)
 
     def test_types4(self):
-        out = runInteractive('file-tests/testTypesInteractive.py',
+        out = runInteractive('test-data/testTypesInteractive.py',
                              'def f(x: int) -> int: return x\n\nf(3)')
         self.assertEqual(['...', '3'], out)
 
     def test_types5(self):
-        out = runInteractive('file-tests/testTypesInteractive.py',
+        out = runInteractive('test-data/testTypesInteractive.py',
                              'def f(x: int) -> int: return x\n\nf("x")',
                               tycheck=False)
         self.assertEqual(['...', "'x'"], out)
 
     def test_typesInImportedModule1(self):
-        out = run('file-tests/testTypes3.py', ecode=1)
-        self.assertIn('expected: int', out)
+        out = run('test-data/testTypes3.py', ecode=1)
+        self.assertIn('expected: value of type int', out)
 
     def test_typesInImportedModule2(self):
-        out = run('file-tests/testTypes3.py', tycheck=False)
+        out = run('test-data/testTypes3.py', tycheck=False)
         self.assertEqual('END', out)
+
+class ReplTesterTests(unittest.TestCase):
+
+    def test_replTester(self):
+        d = shell.pwd()
+        cmd = f'python3 {d}/src/replTester.py {d}/test-data/repl-test-lib.py --repl {d}/test-data/repl-test-checks.py'
+        res = shell.run(cmd, captureStdout=True, onError='die', cwd='/tmp')
+        self.assertIn('All 1 tests succeded. Great!', res.stdout)

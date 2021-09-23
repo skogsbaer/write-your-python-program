@@ -322,10 +322,12 @@ class ExitHooks(object):
 
     def exit(self, code=0):
         if code is None:
-            code = 0
+            myCode = 0
         elif type(code) != int:
-            code = 1
-        self.exitCode = code
+            myCode = 1
+        else:
+            myCode = code
+        self.exitCode = myCode
         self._origExit(code)
 
     def exc_handler(self, exc_type, exc, *args):

@@ -10,7 +10,6 @@ d=$(pwd)
 siteDir=$(python3 -c 'import site; print(site.USER_SITE)')
 t=$(mktemp)
 
-echo
 echo "Running file tests, siteDir=$siteDir ..."
 echo "Writing logs to $t"
 function check()
@@ -23,10 +22,10 @@ function check()
     python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
     popd > /dev/null
 }
-check file-tests/fileWithImport.py
-check file-tests/fileWithoutImport.py
-check file-tests/fileWithBothImports.py
-check file-tests/fileWithRecursiveTypes.py
+check test-data/fileWithImport.py
+check test-data/fileWithoutImport.py
+check test-data/fileWithBothImports.py
+check test-data/fileWithRecursiveTypes.py
 
 # First argument: whether to do type checking or not
 # Second argument: expected exit code. If given as X:Y, then X is the exit code with active
@@ -37,6 +36,7 @@ function checkWithOutputAux()
     local tycheck="$1"
     local expectedEcode=$2
     local file="$3"
+    echo "Checking $file"
     shift 3
     tycheckOpt=""
     suffixes="${PYENV_VERSION}"
@@ -101,11 +101,34 @@ function checkWithOutput()
     checkWithOutputAux no "$@"
 }
 
-checkWithOutput 1 file-tests/testTraceback.py
-checkWithOutput 1 file-tests/testTraceback2.py
-checkWithOutput 1 file-tests/testTraceback3.py
-checkWithOutput 0 file-tests/testArgs.py ARG_1 ARG_2
-checkWithOutput 0 file-tests/printModuleName.py
-checkWithOutput 0 file-tests/printModuleNameImport.py
-checkWithOutput 1 file-tests/testTypes1.py
-checkWithOutput 1:0 file-tests/testTypes2.py
+checkWithOutput 1 test-data/testTraceback.py
+checkWithOutput 1 test-data/testTraceback2.py
+checkWithOutput 1 test-data/testTraceback3.py
+checkWithOutput 0 test-data/testArgs.py ARG_1 ARG_2
+checkWithOutput 0 test-data/printModuleName.py
+checkWithOutput 0 test-data/printModuleNameImport.py
+checkWithOutput 1 test-data/testTypes1.py
+checkWithOutput 1:0 test-data/testTypes2.py
+checkWithOutputAux yes 1 test-data/testTypesCollections1.py
+checkWithOutputAux yes 1 test-data/testTypesCollections2.py
+# checkWithOutputAux yes 1 test-data/testTypesCollections3.py  See #5
+# checkWithOutputAux yes 1 test-data/testTypesCollections4.py  See #6
+checkWithOutputAux yes 1 test-data/testTypesProtos1.py
+# checkWithOutputAux yes 1 test-data/testTypesProtos2.py  See #8
+checkWithOutputAux yes 1 test-data/testTypesProtos3.py
+# checkWithOutputAux yes 1 test-data/testTypesProtos4.py  See #9
+# checkWithOutputAux yes 1 test-data/testTypesSubclassing1.py  See #10
+# checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py See #7
+# checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py  See #11
+checkWithOutputAux yes 0 test-data/testForwardRef1.py
+# checkWithOutputAux yes 1 test-data/testForwardRef2.py See #14
+checkWithOutputAux yes 0 test-data/testForwardRef3.py
+# checkWithOutputAux yes 1 test-data/testForwardRef4.py  See #14
+# checkWithOutputAux yes 1 test-data/testTypesReturn.py  See #15
+checkWithOutputAux yes 1 test-data/testTypesSequence1.py
+checkWithOutputAux yes 1 test-data/testTypesSequence2.py
+checkWithOutputAux yes 1 test-data/testTypesTuple1.py
+# checkWithOutputAux yes 1 test-data/wrong-caused-by.py  See #17
+# checkWithOutputAux yes 1 test-data/declared-aty.py  See #18
+
+

@@ -1,0 +1,12 @@
+untypy.error.UntypyTypeError
+given:    'foo'
+expected: value of type int
+
+context: list[int]
+              ^^^
+declared at: test-data/testTypesCollections1.py:3
+  3 | def appendSomething(l: list[int]) -> None:
+  4 |     l.append("foo")
+
+caused by: test-data/testTypesCollections1.py:4
+  4 |     l.append("foo")

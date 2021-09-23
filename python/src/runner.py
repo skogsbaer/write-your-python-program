@@ -24,6 +24,10 @@ def die(ecode=1):
 
 VERBOSE = False # set via commandline
 
+def enableVerbose():
+    global VERBOSE
+    VERBOSE = True
+
 LIB_DIR = os.path.dirname(__file__)
 INSTALLED_MODULE_NAME = 'wypp'
 FILES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
@@ -125,13 +129,12 @@ def isSameFile(f1, f2):
     y = readFile(f2)
     return x == y
 
-def installFromDir(srcDir, mod, files=None):
+def installFromDir(srcDir, targetDir, mod, files=None):
     if files is None:
         files = [p.relative_to(srcDir) for p in Path(srcDir).rglob('*.py')]
     else:
         files = [Path(f) for f in files]
-    userDir = site.USER_SITE
-    installDir = os.path.join(userDir, mod)
+    installDir = os.path.join(targetDir, mod)
     os.makedirs(installDir, exist_ok=True)
     installedFiles = sorted([p.relative_to(installDir) for p in Path(installDir).rglob('*.py')])
     wantedFiles = sorted(files)
@@ -144,7 +147,7 @@ def installFromDir(srcDir, mod, files=None):
                 break
         else:
             # no break, all files equal
-            verbose(f'All files from {srcDir} already installed in {userDir}/{mod}')
+            verbose(f'All files from {srcDir} already installed in {targetDir}/{mod}')
             return True
     else:
         verbose(f'Installed files {installedFiles} and wanted files {wantedFiles} are different')
@@ -164,17 +167,17 @@ def installLib(mode):
     if mode == InstallMode.dontInstall:
         verbose("No installation of WYPP should be performed")
         return
-    userDir = site.USER_SITE
+    targetDir = os.getenv('WYPP_INSTALL_DIR', site.USER_SITE)
     try:
-        allEq1 = installFromDir(LIB_DIR, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
-        allEq2 = installFromDir(UNTYPY_DIR, UNTYPY_MODULE_NAME)
+        allEq1 = installFromDir(LIB_DIR, targetDir, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
+        allEq2 = installFromDir(UNTYPY_DIR, targetDir, UNTYPY_MODULE_NAME)
         if allEq1 and allEq2:
-            verbose(f'WYPP library in {userDir} already up to date')
+            verbose(f'WYPP library in {targetDir} already up to date')
             if mode == InstallMode.installOnly:
-                printStderr(f'WYPP library in {userDir} already up to date')
+                printStderr(f'WYPP library in {targetDir} already up to date')
             return
         else:
-            printStderr(f'The WYPP library has been successfully installed in {userDir}.')
+            printStderr(f'The WYPP library has been successfully installed in {targetDir}.')
     except Exception as e:
         printStderr('Installation of the WYPP library failed: ' + str(e))
         if mode == InstallMode.assertInstall or mode == InstallMode.installOnly:
@@ -201,7 +204,7 @@ class Lib:
                 if name and name[0] != '_':
                   d[name] = getattr(mod, name)
 
-def loadLib(onlyCheckRunnable):
+def prepareLib(onlyCheckRunnable):
     libDefs = None
     mod = INSTALLED_MODULE_NAME
     verbose('Attempting to import ' + mod)
@@ -259,7 +262,7 @@ class sysPathPrepended:
             sys.path.remove(self.dir)
             self.inserted = False
 
-def runCode(fileToRun, globals, args, *, useUntypy=True):
+def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
     fileToRun = os.path.realpath(fileToRun) # needed for setting __file__
     with sysPathPrepended(localDir):
@@ -289,11 +292,7 @@ def runCode(fileToRun, globals, args, *, useUntypy=True):
             finally:
                 sys.argv = oldArgs
 
-def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args, *, useUntypy=True):
-    importsWypp = findWyppImport(fileToRun)
-    if importsWypp:
-        if not libDefs.properlyImported:
-            globals[INSTALLED_MODULE_NAME] = libDefs.dict
+def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True):
     doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy)
     if onlyCheckRunnable:
         try:
@@ -364,7 +363,11 @@ def limitTraceback(fullTb):
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
     if isinstance(val, untypy.error.UntypyTypeError) or isinstance(val, untypy.error.UntypyAttributeError):
-        file.write(str(val))
+        file.write(etype.__module__ + "." + etype.__qualname__)
+        s = str(val)
+        if s and s[0] != '\n':
+            file.write(': ')
+        file.write(s)
         file.write('\n')
     else:
         if tb and removeFirstTb:
@@ -387,6 +390,11 @@ def getHistoryFilePath():
     else:
         return None
 
+# We cannot import untypy at the top of the file because we might have to install it first.
+def importUntypy():
+    global untypy
+    import untypy
+
 def main(globals):
     v = sys.version_info
     if v.major < 3 or v.minor < 9:
@@ -401,9 +409,7 @@ Python in version 3.9 or newer is required. You are still using version {vStr}, 
         VERBOSE = True
 
     installLib(args.installMode)
-
-    global untypy
-    import untypy
+    importUntypy()
 
     fileToRun = args.file
     if args.changeDir:
@@ -418,13 +424,13 @@ Python in version 3.9 or newer is required. You are still using version {vStr}, 
     if not args.checkRunnable and not args.quiet:
         printWelcomeString(fileToRun, version, useUntypy=args.checkTypes)
 
-    libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
+    libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable)
 
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
         verbose(f'running code in {fileToRun}')
-        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs,
+        runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
                        useUntypy=args.checkTypes)
     except:
         handleCurrentException()

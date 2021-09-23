@@ -1,0 +1,12 @@
+untypy.error.UntypyTypeError
+given:    1
+expected: value of type tuple[int, ...]
+
+context: foo(l: tuple[int, ...]) -> int
+                ^^^^^^^^^^^^^^^
+declared at: test-data/testTypesTuple1.py:1
+  1 | def foo(l: tuple[int, ...]) -> int:
+  2 |     return len(l)
+
+caused by: test-data/testTypesTuple1.py:5
+  5 | foo(1)

@@ -1,0 +1,34 @@
+untypy.error.UntypyTypeError
+Type 'Dog' does not implement protocol 'Animal' correctly.
+
+given:    <Dog object>
+expected: value of type Animal
+
+context: doSomething(a: Animal) -> None
+                        ^^^^^^
+declared at: test-data/testTypesProtos1.py:18
+ 18 | def doSomething(a: Animal) -> None:
+ 19 |     print(a.makeSound(3.14))
+
+caused by: test-data/testTypesProtos1.py:21
+ 21 | doSomething(Dog())
+
+The argument 'loadness' of method 'makeSound' violates the protocol 'Animal'.
+The annotation 'int' is incompatible with the protocol's annotation 'float'
+when checking against the following value:
+
+given:    3.14
+expected: value of type int
+
+context: makeSound(self: Self, loadness: int) -> str
+                                         ^^^
+declared at: test-data/testTypesProtos1.py:13
+ 13 |     def makeSound(self, loadness: int) -> str:
+ 14 |         return f"{loadness} wuffs"
+test-data/testTypesProtos1.py:8
+  8 |     def makeSound(self, loadness: float) -> str:
+  9 |         pass
+
+caused by: test-data/testTypesProtos1.py:13
+ 13 |     def makeSound(self, loadness: int) -> str:
+ 14 |         return f"{loadness} wuffs"

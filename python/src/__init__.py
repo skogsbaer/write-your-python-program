@@ -3,7 +3,6 @@ from . import writeYourProgram as w
 # Exported names that are available for star imports (in alphabetic order)
 Any = w.Any
 Callable = w.Callable
-ForwardRef = w.ForwardRef
 Generator = w.Generator
 Iterable = w.Iterable
 Iterator = w.Iterator
@@ -17,12 +16,14 @@ dataclass = w.dataclass
 math = w.math
 nat = w.nat
 record = w.record
+T = w.T
+U = w.U
 unchecked = w.unchecked
+V = w.V
 
 __all__ = [
     'Any',
     'Callable',
-    'ForwardRef',
     'Generator',
     'Iterable',
     'Iterator',
@@ -36,7 +37,10 @@ __all__ = [
     'math',
     'nat',
     'record',
-    'unchecked'
+    'T',
+    'U',
+    'unchecked',
+    'V'
 ]
 
 # Exported names not available for star imports (in alphabetic order)
