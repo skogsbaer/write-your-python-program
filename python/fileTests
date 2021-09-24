@@ -18,13 +18,18 @@ function check()
     dir=$(mktemp -d)
     echo "Installing into $dir ..."
     echo "Run 1"
-    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --check $d/"$1" >> "$t"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
     rm -rf "$dir"
     mkdir "$dir"
     echo "Run 2"
-    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --check $d/"$1" >> "$t"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
     echo "Run 3"
-    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --check --install-mode assertInstall --quiet $d/"$1" >> "$t"
+    rm -f "$dir/untypy/__init__.py"
+    echo "Run 4"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
+    echo "Run 5"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --check --install-mode assertInstall --quiet $d/"$1" >> "$t"
     popd > /dev/null
     rm -rf "$dir"
 }
