@@ -37,7 +37,7 @@ UNTYPY_MODULE_NAME = 'untypy'
 
 def verbose(s):
     if VERBOSE:
-        print('[V] ' + s)
+        printStderr('[V] ' + s)
 
 def printStderr(s=''):
     sys.stderr.write(s + '\n')
@@ -52,8 +52,6 @@ class InstallMode:
 def parseCmdlineArgs():
     parser = argparse.ArgumentParser(description='Run Your Program!',
                         formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('file', metavar='FILE',
-                        help='The file to run', nargs='?')
     parser.add_argument('--check-runnable', dest='checkRunnable', action='store_const',
                         const=True, default=False,
                         help='Abort with exit code 1 if loading the file raises errors')
@@ -66,7 +64,7 @@ def parseCmdlineArgs():
 - dontInstall     do not install the wypp library (default)
 - installOnly     install the wypp library and quit
 - install         install the wypp library and continue even if installation fails
-- assertInstall   install the wypp library and continue, but fail if installation fails
+- assertInstall   check whether wypp is installed
 """)
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
@@ -86,6 +84,8 @@ def parseCmdlineArgs():
     parser.add_argument('--no-typechecking', dest='checkTypes', action='store_const',
                         const=False, default=True,
                         help='Do not check type annotations')
+    parser.add_argument('file', metavar='FILE',
+                        help='The file to run', nargs='?')
     try:
         args, restArgs = parser.parse_known_args()
     except SystemExit as ex:
@@ -130,6 +130,7 @@ def isSameFile(f1, f2):
     return x == y
 
 def installFromDir(srcDir, targetDir, mod, files=None):
+    verbose(f'Installing from {srcDir} to {targetDir}/{mod}')
     if files is None:
         files = [p.relative_to(srcDir) for p in Path(srcDir).rglob('*.py')]
     else:
@@ -160,6 +161,7 @@ def installFromDir(srcDir, targetDir, mod, files=None):
         tgt = os.path.join(installDir, f)
         os.makedirs(os.path.dirname(tgt), exist_ok=True)
         shutil.copyfile(src, tgt)
+    verbose(f'Finished installation from {srcDir} to {targetDir}/{mod}')
     return False
 
 def installLib(mode):
@@ -177,10 +179,13 @@ def installLib(mode):
                 printStderr(f'WYPP library in {targetDir} already up to date')
             return
         else:
-            printStderr(f'The WYPP library has been successfully installed in {targetDir}.')
+            if mode == InstallMode.assertInstall:
+                printStderr("The WYPP library was not installed before running this command.")
+                die(1)
+            printStderr(f'The WYPP library has been successfully installed in {targetDir}')
     except Exception as e:
         printStderr('Installation of the WYPP library failed: ' + str(e))
-        if mode == InstallMode.assertInstall or mode == InstallMode.installOnly:
+        if mode == InstallMode.installOnly:
             raise e
     if mode == InstallMode.installOnly:
         printStderr('Exiting after installation of the WYPP library')
@@ -390,7 +395,11 @@ def getHistoryFilePath():
 # We cannot import untypy at the top of the file because we might have to install it first.
 def importUntypy():
     global untypy
-    import untypy
+    try:
+        import untypy
+    except ModuleNotFoundError as e:
+        printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
+        die(1)
 
 def main(globals):
     v = sys.version_info

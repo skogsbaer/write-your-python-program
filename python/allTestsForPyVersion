@@ -23,6 +23,11 @@ function usage()
 }
 
 if [ -z "${1:-}" ]; then
+    echo "Running untypy tests"
+    pushd deps/untypy > /dev/null
+    ./runtests.sh || exit 1
+    popd > /dev/null
+    echo "Done with untypy tests"
     echo "Running all unit tests, PYTHONPATH=$unit_test_path"
     PYTHONPATH=$unit_test_path python3 -m unittest tests/test*.py
     echo "Done with unit tests"
@@ -58,4 +63,4 @@ else
 fi
 
 echo "Running file tests ..."
-./runFileTests.sh
+./fileTests

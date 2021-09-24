@@ -9,10 +9,11 @@ function run()
     echo
     echo "Running tests for Python version $PYENV_VERSION"
     echo
-    ./runTestsForPyVersion.sh
+    ./allTestsForPyVersion
     echo
     echo "Finished tests for Python version $PYENV_VERSION"
     echo
 }
 
 PYENV_VERSION=3.9.7 run
+PYENV_VERSION=3.10.0rc1 run

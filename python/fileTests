@@ -7,7 +7,6 @@ set -e
 cd $(dirname $0)
 
 d=$(pwd)
-siteDir=$(python3 -c 'import site; print(site.USER_SITE)')
 t=$(mktemp)
 
 echo "Running file tests, siteDir=$siteDir ..."
@@ -16,11 +15,18 @@ function check()
 {
     echo "Checking with $1"
     pushd /tmp > /dev/null
-    python3 $d/src/runYourProgram.py --check $d/"$1" >> "$t"
-    rm -rf "$siteDir/wypp"
-    python3 $d/src/runYourProgram.py --check $d/"$1" >> "$t"
-    python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
+    dir=$(mktemp -d)
+    echo "Installing into $dir ..."
+    echo "Run 1"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --check $d/"$1" >> "$t"
+    rm -rf "$dir"
+    mkdir "$dir"
+    echo "Run 2"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --check $d/"$1" >> "$t"
+    echo "Run 3"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --check --install-mode assertInstall $d/"$1" >> "$t"
     popd > /dev/null
+    rm -rf "$dir"
 }
 check test-data/fileWithImport.py
 check test-data/fileWithoutImport.py
@@ -39,10 +45,11 @@ function checkWithOutputAux()
     echo "Checking $file"
     shift 3
     tycheckOpt=""
-    suffixes="${PYENV_VERSION}"
+    local version=$(echo "$PYENV_VERSION" | sed 's/\.[^.]*$//g')
+    suffixes="${version}"
     if [ "$tycheck" == "no" ]; then
         tycheckOpt="--no-typechecking"
-        suffixes="${PYENV_VERSION}-notypes ${PYENV_VERSION} notypes"
+        suffixes="${version}-notypes ${version} notypes"
     fi
     if echo "$expectedEcode" | grep ':' > /dev/null; then
         if [ "$tycheck" == "no" ]; then
@@ -74,7 +81,7 @@ function checkWithOutputAux()
     local err=$t.err
     set +e
     echo "Checking $file (typecheck: $tycheck)"
-    python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$err" > "$out"
+    PYTHONPATH=$d/site-lib python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$err" > "$out"
     ecode=$?
     set -e
     if [ $ecode != $expectedEcode ]; then
