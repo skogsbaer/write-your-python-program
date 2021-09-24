@@ -1,13 +1,22 @@
 jobs:
   include:
     - language: python
-      python:
-      - "3.9.7"
-      - "3.10.0rc1"
+      dist: xenial
+      matrix:
+        include:
+          - env: PYENV_VERSION='3.9.7'
+          - env: PYENV_VERSION='3.10.0.rc1'
+      cache:
+      - pip
+      - directories:
+        - $HOME/.pyenv_cache
+      before_install:
+        - source .travis-setup-pyenv.sh
       before_script:
         - cd python
       script:
         - ./allTestsForPyVersion
     - language: node_js
+      dist: xenial
       node_js:
       - 12
