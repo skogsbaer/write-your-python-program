@@ -2,14 +2,17 @@ import shell
 import unittest
 import os
 
+def runWithFlags(path, flags, onError, input=''):
+    cmd = f'python3 src/runYourProgram.py {" ".join(flags)} {path}'
+    res = shell.run(cmd, input=input, captureStdout=True, stderrToStdout=True, onError=onError,
+                    env={'PYTHONPATH': f'./site-lib'})
+    return res
+
 def run(path, input='', tycheck=True, ecode=0):
     flags = ['--quiet', '--no-clear']
     if not tycheck:
         flags.append('--no-typechecking')
-    d = shell.pwd()
-    path = os.path.join(d, path)
-    cmd = f'python3 {d}/src/runYourProgram.py {" ".join(flags)} {path}'
-    res = shell.run(cmd, captureStdout=True, stderrToStdout=True, onError='ignore', cwd='/tmp')
+    res = runWithFlags(path, flags, input=input, onError='ignore')
     if res.exitcode != ecode:
         raise Exception(f'Unexpected exit code: {res.exitcode} (expected {ecode})')
     return res.stdout.strip()
@@ -18,11 +21,7 @@ def runInteractive(path, input='', tycheck=True):
     flags = ['--interactive', '--quiet', '--no-clear']
     if not tycheck:
         flags.append('--no-typechecking')
-    d = shell.pwd()
-    path = os.path.join(d, path)
-    cmd = f'python3 {d}/src/runYourProgram.py {" ".join(flags)} {path}'
-    res = shell.run(cmd, input=input, captureStdout=True, stderrToStdout=True, onError='raise',
-                    cwd='/tmp')
+    res = runWithFlags(path, flags, input=input, onError='raise')
     lines = res.stdout.strip().split('>>>')[1:-1]
     return [l.strip() for l in lines]
 
@@ -52,8 +51,21 @@ class TypeTests(unittest.TestCase):
 
     def test_recordFail1(self):
         rec = 'test-data/typeRecords.py'
-        out = runInteractive(rec, 'Person("stefan", 42.3)')[0]
-        self.assertIn('expected: value of type int', out)
+        out = runInteractive(rec, 'Person("stefan", 42.3)')
+        expected = """untypy.error.UntypyTypeError
+given:    42.3
+expected: value of type int
+
+context: Person(name: str, age: int) -> Self
+                                ^^^
+declared at: test-data/typeRecords.py:3
+  3 | @record
+  4 | class Person:
+  5 |     name: str
+  6 |     age: int
+
+caused by: <console>:1"""
+        self.assertEqual(expected, '\n'.join(out))
 
     def test_recordFail2(self):
         rec = 'test-data/typeRecords.py'
@@ -140,7 +152,7 @@ expected: value of type int
 
 context: inc(x: int) -> int
                 ^^^
-declared at: /Users/swehr/devel/write-your-python-program/python/test-data/testTypesInteractive.py:1
+declared at: test-data/testTypesInteractive.py:1
   1 | def inc(x: int) -> int:
   2 |     return x + 1
 

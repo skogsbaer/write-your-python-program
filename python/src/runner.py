@@ -250,29 +250,21 @@ def findImportedModules(path, file):
     return res
 
 class RunSetup:
-    def __init__(self, sysPath, file, globals):
+    def __init__(self, sysPath):
         self.sysPath = sysPath
-        self.file = file
         self.sysPathInserted = False
-        self.globals = globals
     def __enter__(self):
         if self.sysPath not in sys.path:
             sys.path.insert(0, self.sysPath)
             self.sysPathInserted = True
-        self.oldFile = self.globals.get('__file__', None)
-        self.globals['__file__'] = self.file
     def __exit__(self, exc_type, value, traceback):
         if self.sysPathInserted:
             sys.path.remove(self.sysPath)
             self.sysPathInserted = False
-        if self.oldFile is None:
-            del self.globals['__file__']
-        else:
-            self.globals['__file__'] = self.oldFile
 
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
-    with RunSetup(localDir, fileToRun, globals):
+    with RunSetup(localDir):
         with open(fileToRun) as f:
             flags = 0 | anns.compiler_flag
             codeTxt = f.read()
@@ -435,6 +427,7 @@ Python in version 3.9 or newer is required. You are still using version {vStr}, 
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
         verbose(f'running code in {fileToRun}')
+        globals['__file__'] = fileToRun
         runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
                        useUntypy=args.checkTypes)
     except:
