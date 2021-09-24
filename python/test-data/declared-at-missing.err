@@ -1,0 +1,15 @@
+untypy.error.UntypyTypeError
+given:    Course(name='Programmierung 1', teacher='Wehr', students=())
+expected: value of type CourseM
+
+context: Semester(degreeProgram: str, semester: str, courses: tuple[CourseM, ...]) -> Self
+                                                                    ^^^^^^^
+declared at: test-data/declared-at-missing.py:15
+ 15 | @record
+ 16 | class Semester:
+ 17 |     degreeProgram: str
+ 18 |     semester: str
+ 19 |     courses: tuple[CourseM, ...]
+
+caused by: test-data/declared-at-missing.py:22
+ 22 | semester1_2020 = Semester('AKI', '1. Semester 2020/21', (prog1, ))

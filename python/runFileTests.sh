@@ -130,6 +130,6 @@ checkWithOutputAux yes 1 test-data/testTypesSequence1.py
 checkWithOutputAux yes 1 test-data/testTypesSequence2.py
 checkWithOutputAux yes 1 test-data/testTypesTuple1.py
 # checkWithOutputAux yes 1 test-data/wrong-caused-by.py  See #17
-# checkWithOutputAux yes 1 test-data/declared-aty.py  See #18
+checkWithOutputAux yes 1 test-data/declared-at-missing.py
 
 

@@ -249,23 +249,30 @@ def findImportedModules(path, file):
                 res.append(name)
     return res
 
-class sysPathPrepended:
-    def __init__(self, d):
-        self.dir = d
-        self.inserted = False
+class RunSetup:
+    def __init__(self, sysPath, file, globals):
+        self.sysPath = sysPath
+        self.file = file
+        self.sysPathInserted = False
+        self.globals = globals
     def __enter__(self):
-        if self.dir not in sys.path:
-            sys.path.insert(0, self.dir)
-            self.inserted = True
+        if self.sysPath not in sys.path:
+            sys.path.insert(0, self.sysPath)
+            self.sysPathInserted = True
+        self.oldFile = self.globals.get('__file__', None)
+        self.globals['__file__'] = self.file
     def __exit__(self, exc_type, value, traceback):
-        if self.inserted:
-            sys.path.remove(self.dir)
-            self.inserted = False
+        if self.sysPathInserted:
+            sys.path.remove(self.sysPath)
+            self.sysPathInserted = False
+        if self.oldFile is None:
+            del self.globals['__file__']
+        else:
+            self.globals['__file__'] = self.oldFile
 
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
-    fileToRun = os.path.realpath(fileToRun) # needed for setting __file__
-    with sysPathPrepended(localDir):
+    with RunSetup(localDir, fileToRun, globals):
         with open(fileToRun) as f:
             flags = 0 | anns.compiler_flag
             codeTxt = f.read()
@@ -286,8 +293,6 @@ def runCode(fileToRun, globals, args, useUntypy=True):
             oldArgs = sys.argv
             try:
                 sys.argv = [fileToRun] + args
-                # set modules globals
-                globals['__file__'] = fileToRun
                 exec(compiledCode, globals)
             finally:
                 sys.argv = oldArgs
