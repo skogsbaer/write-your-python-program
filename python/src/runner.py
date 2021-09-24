@@ -264,6 +264,7 @@ class sysPathPrepended:
 
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
+    fileToRun = os.path.realpath(fileToRun) # needed for setting __file__
     with sysPathPrepended(localDir):
         with open(fileToRun) as f:
             flags = 0 | anns.compiler_flag
@@ -285,6 +286,8 @@ def runCode(fileToRun, globals, args, useUntypy=True):
             oldArgs = sys.argv
             try:
                 sys.argv = [fileToRun] + args
+                # set modules globals
+                globals['__file__'] = fileToRun
                 exec(compiledCode, globals)
             finally:
                 sys.argv = oldArgs
