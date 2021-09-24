@@ -1,7 +1,8 @@
 import unittest
-import writeYourProgram as wypp
-import testSample
+import sample
+from writeYourProgram import *
 from writeYourProgram import deepEq
+import writeYourProgram as wypp
 
 wypp.setDieOnCheckFailures(True)
 
@@ -19,7 +20,10 @@ class A:
     def __eq__(self, other):
         return self is other
 
-Point = wypp.Record("MyPoint", "x", float, "y", float)
+@record
+class Point:
+    x: float
+    y: float
 
 class TestDeepEq(unittest.TestCase):
     def test_eq(self):
@@ -58,32 +62,32 @@ class TestDeepEq(unittest.TestCase):
                                 structuralObjEq=False, floatEqWithDelta=True))
         self.assertTrue(deepEq(C(42.0), C(42.0000000000001),
                                structuralObjEq=True, floatEqWithDelta=True))
-        self.assertFalse(deepEq(C(42.0), D(42.0000000000001),
-                                structuralObjEq=True, floatEqWithDelta=True))
+        self.assertTrue(deepEq(C(42.0), D(42.0000000000001),
+                               structuralObjEq=True, floatEqWithDelta=True))
         self.assertFalse(deepEq(C(42.0), D(42.0000000000001),
                                 structuralObjEq=False, floatEqWithDelta=True))
         self.assertTrue(deepEq(
-            testSample.Point(1.0, 2.0), testSample.Point(1.00000000001, 2),
+            sample.Point(1.0, 2.0), sample.Point(1.00000000001, 2),
             structuralObjEq=True, floatEqWithDelta=True
         ))
         self.assertFalse(deepEq(
-            testSample.Point(1.0, 2.0), testSample.Point(1.00000000001, 2),
+            sample.Point(1.0, 2.0), sample.Point(1.00000000001, 2),
             structuralObjEq=False, floatEqWithDelta=True
         ))
         self.assertTrue(deepEq(
-            Point(1.0, 2.0), testSample.Point(1.0, 2.0),
+            Point(1.0, 2.0), sample.Point(1.0, 2.0),
             structuralObjEq=True, floatEqWithDelta=True)
         )
         self.assertFalse(deepEq(
-            Point(1.0, 2.0), testSample.Point(1.0, 2.0),
+            Point(1.0, 2.0), sample.Point(1.0, 2.0),
             structuralObjEq=False, floatEqWithDelta=True)
         )
         self.assertFalse(deepEq(
-            testSample.Point(1.0, 3.0), testSample.Point(1.00000000001, 2),
+            sample.Point(1.0, 3.0), sample.Point(1.00000000001, 2),
             structuralObjEq=True, floatEqWithDelta=True
         ))
         self.assertFalse(deepEq(
-            testSample.Point(1.0, 3.0), testSample.Point(1.00000000001, 2),
+            sample.Point(1.0, 3.0), sample.Point(1.00000000001, 2),
             structuralObjEq=False, floatEqWithDelta=True
         ))
         self.assertTrue(deepEq(A(2), A(2), structuralObjEq=True, floatEqWithDelta=True))

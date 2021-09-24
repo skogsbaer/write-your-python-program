@@ -1,0 +1,7 @@
+
+Traceback (most recent call last):
+  File "test-data/testTypes1.py", line 4, in <module>
+    inc("1")
+  File "test-data/testTypes1.py", line 2, in inc
+    return x + 1
+TypeError: can only concatenate str (not "int") to str

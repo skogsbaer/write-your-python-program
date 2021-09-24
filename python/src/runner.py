@@ -9,6 +9,10 @@ import shutil
 import site
 import importlib
 import re
+import code
+import ast
+from modulefinder import ModuleFinder
+from pathlib import Path
 
 __wypp_runYourProgram = 1
 
@@ -18,27 +22,36 @@ def die(ecode=1):
     else:
         sys.exit(ecode)
 
-# Simulates that wypp cannot be imported so that we can test the code path where
-# wypp is directly loaded from the writeYourProgram.py file. The default is False.
-SIMULATE_LIB_FROM_FILE = False
-ASSERT_INSTALL = False # if True, then a failing installation causes a total failure
 VERBOSE = False # set via commandline
-LIB_DIR = os.path.dirname(__file__)
 
+def enableVerbose():
+    global VERBOSE
+    VERBOSE = True
+
+LIB_DIR = os.path.dirname(__file__)
 INSTALLED_MODULE_NAME = 'wypp'
-MODULES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
+FILES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
+
+UNTYPY_DIR = os.path.join(LIB_DIR, "..", "deps", "untypy", "untypy")
+UNTYPY_MODULE_NAME = 'untypy'
 
 def verbose(s):
     if VERBOSE:
-        print('[V] ' + s)
+        printStderr('[V] ' + s)
 
 def printStderr(s=''):
     sys.stderr.write(s + '\n')
 
+class InstallMode:
+    dontInstall = 'dontInstall'
+    installOnly = 'installOnly'
+    install = 'install'
+    assertInstall = 'assertInstall'
+    allModes = [dontInstall, installOnly, install, assertInstall]
+
 def parseCmdlineArgs():
-    parser = argparse.ArgumentParser(description='Run Your Program!')
-    parser.add_argument('file', metavar='FILE',
-                        help='The file to run', nargs='?')
+    parser = argparse.ArgumentParser(description='Run Your Program!',
+                        formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--check-runnable', dest='checkRunnable', action='store_const',
                         const=True, default=False,
                         help='Abort with exit code 1 if loading the file raises errors')
@@ -46,14 +59,18 @@ def parseCmdlineArgs():
                         const=True, default=False,
                         help='Abort with exit code 1 if there are test errors.')
     parser.add_argument('--install-mode', dest='installMode', type=str,
-                        help='One of "regular", "assertInstall", "libFromFile"')
+                        default=InstallMode.dontInstall,
+                        help="""The install mode can be one of the following:
+- dontInstall     do not install the wypp library (default)
+- installOnly     install the wypp library and quit
+- install         install the wypp library and continue even if installation fails
+- assertInstall   check whether wypp is installed
+""")
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
     parser.add_argument('--quiet', dest='quiet', action='store_const',
                         const=True, default=False, help='Be extra quiet')
-    parser.add_argument('--no-install', dest='noInstall', action='store_const',
-                        const=True, default=False, help='Do not install the wypp files')
     parser.add_argument('--no-clear', dest='noClear', action='store_const',
                         const=True, default=False, help='Do not clear the terminal')
     parser.add_argument('--test-file', dest='testFile',
@@ -61,12 +78,23 @@ def parseCmdlineArgs():
     parser.add_argument('--change-directory', dest='changeDir', action='store_const',
                         const=True, default=False,
                         help='Change to the directory of FILE before running')
+    parser.add_argument('--interactive', dest='interactive', action='store_const',
+                        const=True, default=False,
+                        help='Run REPL after the programm has finished')
+    parser.add_argument('--no-typechecking', dest='checkTypes', action='store_const',
+                        const=False, default=True,
+                        help='Do not check type annotations')
+    parser.add_argument('file', metavar='FILE',
+                        help='The file to run', nargs='?')
     try:
         args, restArgs = parser.parse_known_args()
     except SystemExit as ex:
         die(ex.code)
     if args.file and not args.file.endswith('.py'):
-        printStderr("FEHLER: die angegebene Datei ist keine Python Datei.")
+        printStderr(f'ERROR: file {args.file} is not a python file')
+        die()
+    if args.installMode not in InstallMode.allModes:
+        printStderr(f'ERROR: invalid install mode {args.installMode}.')
         die()
     return (args, restArgs)
 
@@ -84,53 +112,84 @@ def readVersion():
         pass
     return version
 
-def printWelcomeString(file, version):
+def printWelcomeString(file, version, useUntypy):
     cwd = os.getcwd() + "/"
     if file.startswith(cwd):
         file = file[len(cwd):]
     versionStr = '' if not version else 'Version %s, ' % version
     pythonVersion = sys.version.split()[0]
-    printStderr('=== WILLKOMMEN zu "Schreibe Dein Programm!" ' +
-                '(%sPython %s, %s) ===' % (versionStr, pythonVersion, file))
+    tycheck = ''
+    if not useUntypy:
+        tycheck = ', no typechecking'
+    printStderr('=== WELCOME to "Write Your Python Program" ' +
+                '(%sPython %s, %s%s) ===' % (versionStr, pythonVersion, file, tycheck))
 
 def isSameFile(f1, f2):
     x = readFile(f1)
     y = readFile(f2)
     return x == y
 
-def installLib():
-    userDir = site.USER_SITE
-    installDir = os.path.join(userDir, INSTALLED_MODULE_NAME)
+def installFromDir(srcDir, targetDir, mod, files=None):
+    verbose(f'Installing from {srcDir} to {targetDir}/{mod}')
+    if files is None:
+        files = [p.relative_to(srcDir) for p in Path(srcDir).rglob('*.py')]
+    else:
+        files = [Path(f) for f in files]
+    installDir = os.path.join(targetDir, mod)
+    os.makedirs(installDir, exist_ok=True)
+    installedFiles = sorted([p.relative_to(installDir) for p in Path(installDir).rglob('*.py')])
+    wantedFiles = sorted(files)
+    if installedFiles == wantedFiles:
+        for i in range(len(installedFiles)):
+            f1 = os.path.join(installDir, installedFiles[i])
+            f2 = os.path.join(srcDir, wantedFiles[i])
+            if not isSameFile(f1, f2):
+                verbose(f'{f1} and {f2} differ')
+                break
+        else:
+            # no break, all files equal
+            verbose(f'All files from {srcDir} already installed in {targetDir}/{mod}')
+            return True
+    else:
+        verbose(f'Installed files {installedFiles} and wanted files {wantedFiles} are different')
+    for f in installedFiles:
+        p = os.path.join(installDir, f)
+        os.remove(p)
+    d = os.path.join(installDir, mod)
+    for f in wantedFiles:
+        src = os.path.join(srcDir, f)
+        tgt = os.path.join(installDir, f)
+        os.makedirs(os.path.dirname(tgt), exist_ok=True)
+        shutil.copyfile(src, tgt)
+    verbose(f'Finished installation from {srcDir} to {targetDir}/{mod}')
+    return False
+
+def installLib(mode):
+    verbose("installMode=" + mode)
+    if mode == InstallMode.dontInstall:
+        verbose("No installation of WYPP should be performed")
+        return
+    targetDir = os.getenv('WYPP_INSTALL_DIR', site.USER_SITE)
     try:
-        os.makedirs(installDir, exist_ok=True)
-        installedFiles = sorted([f for f in os.listdir(installDir)
-                                   if os.path.isfile(os.path.join(installDir, f))])
-        wantedFiles = sorted(MODULES_TO_INSTALL)
-        if installedFiles == wantedFiles:
-            for i in range(len(installedFiles)):
-                f1 = os.path.join(installDir, installedFiles[i])
-                f2 = os.path.join(LIB_DIR, wantedFiles[i])
-                if not isSameFile(f1, f2):
-                    break
-            else:
-                # no break, all files equal
-                verbose('All wypp files already installed in ' + userDir)
-                return
-        for f in installedFiles:
-            p = os.path.join(installDir, f)
-            os.remove(p)
-        d = os.path.join(installDir, 'wypp')
-        for m in MODULES_TO_INSTALL:
-            src = os.path.join(LIB_DIR, m)
-            tgt = os.path.join(installDir, m)
-            shutil.copyfile(src, tgt)
-        printStderr('Die Python-Bibliothek wurde erfolgreich in ' + userDir + ' installiert.\n' +
-                    'Bitte starten Sie Visual Studio Code neu, um sicherzustellen, dass überall\n' +
-                    'die neueste Version verwendet wird.\n')
+        allEq1 = installFromDir(LIB_DIR, targetDir, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
+        allEq2 = installFromDir(UNTYPY_DIR, targetDir, UNTYPY_MODULE_NAME)
+        if allEq1 and allEq2:
+            verbose(f'WYPP library in {targetDir} already up to date')
+            if mode == InstallMode.installOnly:
+                printStderr(f'WYPP library in {targetDir} already up to date')
+            return
+        else:
+            if mode == InstallMode.assertInstall:
+                printStderr("The WYPP library was not installed before running this command.")
+                die(1)
+            printStderr(f'The WYPP library has been successfully installed in {targetDir}')
     except Exception as e:
-        printStderr('Die Installation der Python-Bibliothek ist fehlgeschlagen: ' + str(e))
-        if ASSERT_INSTALL:
+        printStderr('Installation of the WYPP library failed: ' + str(e))
+        if mode == InstallMode.installOnly:
             raise e
+    if mode == InstallMode.installOnly:
+        printStderr('Exiting after installation of the WYPP library')
+        die(0)
 
 class Lib:
     def __init__(self, mod, properlyImported):
@@ -150,29 +209,13 @@ class Lib:
                 if name and name[0] != '_':
                   d[name] = getattr(mod, name)
 
-def loadLib(onlyCheckRunnable):
+def prepareLib(onlyCheckRunnable):
     libDefs = None
     mod = INSTALLED_MODULE_NAME
     verbose('Attempting to import ' + mod)
-    try:
-        if SIMULATE_LIB_FROM_FILE:
-            raise ImportError('deliberately failing when importing ' + mod)
-        # It's the prefered way to properly import wypp. With this setup, student's code
-        # may or may not import wypp. And if it does import wypp, there is no suffering from
-        # module schizophrenia.
-        wypp = importlib.import_module(mod)
-        libDefs = Lib(wypp, True)
-        verbose('Successfully imported module ' + mod)
-    except Exception as e:
-        verbose('Failed to import %s: %s' % (mod, e))
-        pass
-    if not libDefs:
-        # This code path is only here to support the case that installation fails.
-        libFile = os.path.join(LIB_DIR, 'writeYourProgram.py')
-        d = {}
-        runCode(libFile, d, [])
-        verbose('Successfully loaded library code from ' + libFile)
-        libDefs = Lib(d, False)
+    wypp = importlib.import_module(mod)
+    libDefs = Lib(wypp, True)
+    verbose('Successfully imported module ' + mod)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
                        quiet=onlyCheckRunnable)
     return libDefs
@@ -191,56 +234,91 @@ def findWyppImport(fileName):
             return True
     return False
 
-def runCode(fileToRun, globals, args):
-    with open(fileToRun) as f:
-        flags = 0 | anns.compiler_flag
-        code = compile(f.read(), fileToRun, 'exec', flags=flags, dont_inherit=True)
-        oldArgs = sys.argv
-        try:
-            sys.argv = [fileToRun] + args
-            exec(code, globals)
-        finally:
-            sys.argv = oldArgs
+def findImportedModules(path, file):
+    finder = ModuleFinder(path=path)
+    try:
+        finder.run_script(file)
+    except:
+        return []
+    realdirs = [os.path.realpath(p) for p in path]
+    res = []
+    for name, mod in finder.modules.items():
+        if name != '__main__' and mod.__file__:
+            realp = os.path.realpath(mod.__file__)
+            good = False
+            for d in realdirs:
+                if realp.startswith(d):
+                    good = True
+                    break
+            if good:
+                res.append(name)
+    return res
 
-def runStudentCode(fileToRun, globals, libDefs, onlyCheckRunnable, args):
-    importsWypp = findWyppImport(fileToRun)
-    if importsWypp:
-        if not libDefs.properlyImported:
-            globals[INSTALLED_MODULE_NAME] = libDefs.dict
+class RunSetup:
+    def __init__(self, sysPath):
+        self.sysPath = sysPath
+        self.sysPathInserted = False
+    def __enter__(self):
+        if self.sysPath not in sys.path:
+            sys.path.insert(0, self.sysPath)
+            self.sysPathInserted = True
+    def __exit__(self, exc_type, value, traceback):
+        if self.sysPathInserted:
+            sys.path.remove(self.sysPath)
+            self.sysPathInserted = False
+
+def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
-    if localDir not in sys.path:
-        sys.path.insert(0, localDir)
-    doRun = lambda: runCode(fileToRun, globals, args)
+    with RunSetup(localDir):
+        with open(fileToRun) as f:
+            flags = 0 | anns.compiler_flag
+            codeTxt = f.read()
+            if useUntypy:
+                verbose(f'finding modules imported by {fileToRun}')
+                importedMods = findImportedModules([localDir], fileToRun)
+                verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
+                untypy.just_install_hook(importedMods)
+                verbose(f"transforming {fileToRun} for typechecking")
+                tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
+                               dont_inherit=True, optimize=-1)
+                untypy.transform_tree(tree)
+                verbose(f'done with transformation of {fileToRun}')
+                code = tree
+            else:
+                code = codeTxt
+            compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
+            oldArgs = sys.argv
+            try:
+                sys.argv = [fileToRun] + args
+                exec(compiledCode, globals)
+            finally:
+                sys.argv = oldArgs
+
+def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True):
+    doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy)
     if onlyCheckRunnable:
         try:
             doRun()
-        except Exception as e:
+        except:
             printStderr('Loading file %s crashed' % fileToRun)
-            traceback.print_exc()
-            die()
+            handleCurrentException()
         else:
             die(0)
     doRun()
 
 # globals already contain libDefs
-def runTestsInFile(testFile, globals, libDefs):
+def runTestsInFile(testFile, globals, libDefs, useUntypy=True):
     printStderr()
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
-    inserted = False
-    testDir = os.path.dirname(testFile)
     try:
-        if testDir not in sys.path:
-            inserted = True
-            sys.path.insert(0, testDir)
-        runCode(testFile, globals, [])
-    finally:
-        if inserted:
-            sys.path.remove(testDir)
+        runCode(testFile, globals, [], useUntypy=useUntypy)
+    except:
+        handleCurrentException()
     return libDefs.dict['printTestResults']('Tutor:  ')
 
 # globals already contain libDefs
-def performChecks(check, testFile, globals, libDefs):
+def performChecks(check, testFile, globals, libDefs, useUntypy=True):
     prefix = ''
     if check and testFile:
         prefix = 'Student: '
@@ -248,16 +326,19 @@ def performChecks(check, testFile, globals, libDefs):
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
-            testResultsInstr = runTestsInFile(testFile, globals, libDefs)
+            testResultsInstr = runTestsInFile(testFile, globals, libDefs, useUntypy=useUntypy)
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
         die(0 if failingSum < 1 else 1)
 
 def prepareInteractive(reset=True):
-    print('\n')
-    # clear the terminal, reset on Mac OSX and Linux. This prevents strange history bugs where
-    # the command just entered is echoed again (2020-10-14).
+    print()
     if reset:
-        os.system('cls' if os.name == 'nt' else 'reset')
+        if os.name == 'nt':
+            # clear the terminal
+            os.system('cls')
+        else:
+            # On linux & mac use ANSI Sequence for this
+            print('\033[2J\033[H')
 
 def enterInteractive(userDefs):
     for k, v in userDefs.items():
@@ -281,44 +362,129 @@ def limitTraceback(fullTb):
     verbose('I would ignore all frames, so I return None')
     return None
 
+def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
+    (etype, val, tb) = sys.exc_info()
+    if isinstance(val, untypy.error.UntypyTypeError) or isinstance(val, untypy.error.UntypyAttributeError):
+        file.write(etype.__module__ + "." + etype.__qualname__)
+        s = str(val)
+        if s and s[0] != '\n':
+            file.write(': ')
+        file.write(s)
+        file.write('\n')
+    else:
+        if tb and removeFirstTb:
+            tb = tb.tb_next
+        limitedTb = limitTraceback(tb)
+        file.write('\n')
+        traceback.print_exception(etype, val, limitedTb, file=file)
+    if exit:
+        die(1)
+
+HISTORY_SIZE = 1000
+
+def getHistoryFilePath():
+    envVar = 'HOME'
+    if os.name == 'nt':
+        envVar = 'USERPROFILE'
+    d = os.getenv(envVar, None)
+    if d:
+        return os.path.join(d, ".wypp_history")
+    else:
+        return None
+
+# We cannot import untypy at the top of the file because we might have to install it first.
+def importUntypy():
+    global untypy
+    try:
+        import untypy
+    except ModuleNotFoundError as e:
+        printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
+        die(1)
+
 def main(globals):
+    v = sys.version_info
+    if v.major < 3 or v.minor < 9:
+        vStr = sys.version.split()[0]
+        print(f"""
+Python in version 3.9 or newer is required. You are still using version {vStr}, please upgrade!
+""")
+        sys.exit(1)
     (args, restArgs) = parseCmdlineArgs()
-    global VERBOSE, SIMULATE_LIB_FROM_FILE, ASSERT_INSTALL
+    global VERBOSE
     if args.verbose:
         VERBOSE = True
-    if args.installMode == 'regular' or args.installMode is None:
-        pass
-    elif args.installMode == 'libFromFile':
-        SIMULATE_LIB_FROM_FILE = True
-    elif args.installMode == 'assertInstall':
-        ASSERT_INSTALL = True
-    else:
-        printStderr('Invalid value for --install-mode: %s' % args.installMode)
-        sys.exit(1)
+
+    installLib(args.installMode)
+    importUntypy()
+
     fileToRun = args.file
     if args.changeDir:
         os.chdir(os.path.dirname(fileToRun))
-    isInteractive = sys.flags.interactive
+    isInteractive = args.interactive
     version = readVersion()
     if isInteractive:
         prepareInteractive(reset=not args.noClear)
-    if not args.noInstall:
-        installLib()
+
     if fileToRun is None:
         return
     if not args.checkRunnable and not args.quiet:
-        printWelcomeString(fileToRun, version)
-    libDefs = loadLib(onlyCheckRunnable=args.checkRunnable)
+        printWelcomeString(fileToRun, version, useUntypy=args.checkTypes)
+
+    libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable)
+
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
     try:
-        runStudentCode(fileToRun, globals, libDefs, args.checkRunnable, restArgs)
+        verbose(f'running code in {fileToRun}')
+        globals['__file__'] = fileToRun
+        runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
+                       useUntypy=args.checkTypes)
     except:
-        (etype, val, tb) = sys.exc_info()
-        limitedTb = limitTraceback(tb)
-        sys.stderr.write('\n')
-        traceback.print_exception(etype, val, limitedTb, file=sys.stderr)
-        die(1)
-    performChecks(args.check, args.testFile, globals, libDefs)
+        handleCurrentException()
+
+    performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes)
+
     if isInteractive:
         enterInteractive(globals)
+        if args.checkTypes:
+            consoleClass = TypecheckedInteractiveConsole
+        else:
+            consoleClass = code.InteractiveConsole
+        historyFile = getHistoryFilePath()
+        try:
+            import readline
+            readline.parse_and_bind('tab: complete')
+            if historyFile and os.path.exists(historyFile):
+                readline.read_history_file(historyFile)
+        except:
+            pass
+        try:
+            consoleClass(locals=globals).interact(banner="", exitmsg='')
+        finally:
+            if readline and historyFile:
+                readline.set_history_length(HISTORY_SIZE)
+                readline.write_history_file(historyFile)
+
+class TypecheckedInteractiveConsole(code.InteractiveConsole):
+
+    def showtraceback(self) -> None:
+        handleCurrentException(exit=False, removeFirstTb=True, file=sys.stdout)
+
+    def runsource(self, source, filename="<input>", symbol="single"):
+        try:
+            code = self.compile(source, filename, symbol)
+        except (OverflowError, SyntaxError, ValueError):
+            self.showsyntaxerror(filename)
+            return False
+        if code is None:
+            return True
+        try:
+            ast = untypy.just_transform("\n".join(self.buffer), filename, symbol)
+            code = compile(ast, filename, symbol)
+        except Exception as e:
+            if e.text == "":
+                pass
+            else:
+                traceback.print_tb(e.__traceback__)
+        self.runcode(code)
+        return False

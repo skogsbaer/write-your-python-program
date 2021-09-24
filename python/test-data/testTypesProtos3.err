@@ -1,0 +1,14 @@
+untypy.error.UntypyTypeError
+Type Dog does not meet the requirements of protocol Animal. The signature of 'makeSound' does not match. Missing required parameter self
+
+given:    'Dog'
+expected: value of type Animal
+
+context: doSomething(a: Animal) -> None
+                        ^^^^^^
+declared at: test-data/testTypesProtos3.py:16
+ 16 | def doSomething(a: Animal) -> None:
+ 17 |     print(a.makeSound(3.14))
+
+caused by: test-data/testTypesProtos3.py:19
+ 19 | doSomething(Dog())

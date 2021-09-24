@@ -8,6 +8,7 @@ import * as path from 'path';
 const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
 const verboseConfigKey = 'verbose';
+const disableTypecheckingConfigKey = 'disableTypechecking';
 const isWindows = process.platform === "win32";
 const exeExt = isWindows ? ".exe" : "";
 
@@ -210,6 +211,11 @@ function beVerbose(context: vscode.ExtensionContext): boolean {
     return !!config[verboseConfigKey];
 }
 
+function disableTypechecking(context: vscode.ExtensionContext): boolean {
+    const config = vscode.workspace.getConfiguration(extensionId);
+    return !!config[disableTypecheckingConfigKey];
+}
+
 function fixPythonConfig(context: vscode.ExtensionContext) {
     const libDir = context.asAbsolutePath('python/src/');
     const pyComplConfig = vscode.workspace.getConfiguration("python.autoComplete");
@@ -259,13 +265,17 @@ export function activate(context: vscode.ExtensionContext) {
             }
             vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd();
-            const verboseOpt = beVerbose(context) ? " --verbose" : "";
+            const verboseOpt = beVerbose(context) ? " --verbose --no-clear" : "";
+            const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
                 const pythonCmd = fileToCommandArgument(pyCmd.cmd);
                 terminals[cmdId] = startTerminal(
                     terminals[cmdId],
                     "WYPP - RUN",
-                    pythonCmd + " -i " + fileToCommandArgument(runProg) + verboseOpt +
+                    pythonCmd +  " " + fileToCommandArgument(runProg) + verboseOpt +
+                        disableOpt +
+                        " --install-mode install" +
+                        " --interactive " +
                         " --change-directory " +
                         fileToCommandArgument(file)
                 );

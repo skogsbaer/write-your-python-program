@@ -1,9 +1,0 @@
-- Imports of modules in the same directory are marked as warnings in VSCode
-- make installable via pip (for those we do not use the extension)
-
-# Next iteration
-- Contracts checking
-- Rename Mixed to Union and DefinedLater to ForwardRef
-- Write records in the style of dataclasses, drop support for old-style records
-- Require explict import of wypp: better interaction with tools
-- use lowercase types list, tuple, dict etc. (requires python 3.9)

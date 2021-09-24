@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+# FIXME (sw, 2021-09-16): we should migrate this mess to tests/integrationTests.py!
+
+set -e
+
+cd $(dirname $0)
+
+d=$(pwd)
+t=$(mktemp)
+
+echo "Running file tests, siteDir=$siteDir ..."
+echo "Writing logs to $t"
+function check()
+{
+    echo "Checking with $1"
+    pushd /tmp > /dev/null
+    dir=$(mktemp -d)
+    echo "Installing into $dir ..."
+    echo "Run 1"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
+    rm -rf "$dir"
+    mkdir "$dir"
+    echo "Run 2"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
+    echo "Run 3"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --check --install-mode assertInstall --quiet $d/"$1" >> "$t"
+    rm -f "$dir/untypy/__init__.py"
+    echo "Run 4"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
+    echo "Run 5"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --check --install-mode assertInstall --quiet $d/"$1" >> "$t"
+    popd > /dev/null
+    rm -rf "$dir"
+}
+check test-data/fileWithImport.py
+check test-data/fileWithoutImport.py
+check test-data/fileWithBothImports.py
+check test-data/fileWithRecursiveTypes.py
+
+# First argument: whether to do type checking or not
+# Second argument: expected exit code. If given as X:Y, then X is the exit code with active
+#   type checking, and Y is the exit code without type checking.
+# Third argument: input file
+function checkWithOutputAux()
+{
+    local tycheck="$1"
+    local expectedEcode=$2
+    local file="$3"
+    echo "Checking $file"
+    shift 3
+    tycheckOpt=""
+    local version=$(python3 -V | sed 's/Python //g' | sed 's/\.[^.]*$//g')
+    suffixes="${version}"
+    if [ "$tycheck" == "no" ]; then
+        tycheckOpt="--no-typechecking"
+        suffixes="${version}-notypes ${version} notypes"
+    fi
+    if echo "$expectedEcode" | grep ':' > /dev/null; then
+        if [ "$tycheck" == "no" ]; then
+            expectedEcode=$(echo "$expectedEcode" | sed 's/^.*://g')
+        else
+            expectedEcode=$(echo "$expectedEcode" | sed 's/:.*$//g')
+        fi
+    fi
+    local expectedOut="${file%.py}.out"
+    if [ ! -f "$expectedOut" ]; then
+        echo "File $expectedOut does not exist"
+        exit 1
+    fi
+    local expectedErr="${file%.py}.err"
+    if [ ! -f "$expectedErr" ]; then
+        echo "File $expectedErr does not exist"
+        exit 1
+    fi
+    for suf in $suffixes; do
+        if [ -e "${expectedOut}-${suf}" ]; then
+            expectedOut="${expectedOut}-${suf}"
+        fi
+        if [ -e "${expectedErr}-${suf}" ]; then
+            expectedErr="${expectedErr}-${suf}"
+        fi
+    done
+    local t=$(mktemp)
+    local out=$t.out
+    local err=$t.err
+    set +e
+    echo "Checking $file (typecheck: $tycheck)"
+    PYTHONPATH=$d/site-lib python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$err" > "$out"
+    ecode=$?
+    set -e
+    if [ $ecode != $expectedEcode ]; then
+        echo "Expected exit code $expectedEcode got $ecode for test $file"
+        exit 1
+    fi
+    if ! diff -u $expectedOut $out; then
+        echo "Wrong output on stdout for $file ($expectedOut contains the expected output)"
+        echo "Full output: $out"
+        exit 1
+    fi
+    if ! diff -u $expectedErr $err; then
+        echo "Wrong output on stderr for $file ($expectedErr contains the expected output)"
+        echo "Full output: $err"
+        exit 1
+    fi
+    rm -f "$out"
+    rm -f "$err"
+}
+
+function checkWithOutput()
+{
+    checkWithOutputAux yes "$@"
+    checkWithOutputAux no "$@"
+}
+
+checkWithOutput 1 test-data/testTraceback.py
+checkWithOutput 1 test-data/testTraceback2.py
+checkWithOutput 1 test-data/testTraceback3.py
+checkWithOutput 0 test-data/testArgs.py ARG_1 ARG_2
+checkWithOutput 0 test-data/printModuleName.py
+checkWithOutput 0 test-data/printModuleNameImport.py
+checkWithOutput 1 test-data/testTypes1.py
+checkWithOutput 1:0 test-data/testTypes2.py
+checkWithOutputAux yes 1 test-data/testTypesCollections1.py
+checkWithOutputAux yes 1 test-data/testTypesCollections2.py
+# checkWithOutputAux yes 1 test-data/testTypesCollections3.py  See #5
+# checkWithOutputAux yes 1 test-data/testTypesCollections4.py  See #6
+checkWithOutputAux yes 1 test-data/testTypesProtos1.py
+# checkWithOutputAux yes 1 test-data/testTypesProtos2.py  See #8
+checkWithOutputAux yes 1 test-data/testTypesProtos3.py
+# checkWithOutputAux yes 1 test-data/testTypesProtos4.py  See #9
+# checkWithOutputAux yes 1 test-data/testTypesSubclassing1.py  See #10
+# checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py See #7
+# checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns2.py See #6
+# checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py  See #11
+checkWithOutputAux yes 0 test-data/testForwardRef1.py
+# checkWithOutputAux yes 1 test-data/testForwardRef2.py See #14
+checkWithOutputAux yes 0 test-data/testForwardRef3.py
+# checkWithOutputAux yes 1 test-data/testForwardRef4.py  See #14
+# checkWithOutputAux yes 1 test-data/testTypesReturn.py  See #15
+checkWithOutputAux yes 1 test-data/testTypesSequence1.py
+checkWithOutputAux yes 1 test-data/testTypesSequence2.py
+checkWithOutputAux yes 1 test-data/testTypesTuple1.py
+# checkWithOutputAux yes 1 test-data/wrong-caused-by.py  See #17
+checkWithOutputAux yes 1 test-data/declared-at-missing.py
+
+

@@ -1,5 +1,0 @@
-
-  File "file-tests/testTraceback2.py", line 3
-    lst = [1,2,3
-                ^
-SyntaxError: unexpected EOF while parsing
