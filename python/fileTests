@@ -50,7 +50,7 @@ function checkWithOutputAux()
     echo "Checking $file"
     shift 3
     tycheckOpt=""
-    local version=$(echo "$PYENV_VERSION" | sed 's/\.[^.]*$//g')
+    local version=$(python3 -V | sed 's/Python //g' | sed 's/\.[^.]*$//g')
     suffixes="${version}"
     if [ "$tycheck" == "no" ]; then
         tycheckOpt="--no-typechecking"
