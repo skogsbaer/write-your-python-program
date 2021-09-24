@@ -1,3 +1,6 @@
+[![Python CI](https://github.com/skogsbaer/write-your-python-program/actions/workflows/github-action-test-python.yml/badge.svg)](https://github.com/skogsbaer/write-your-python-program/actions/workflows/github-action-test-python.yml)
+[![Node.js CI](https://github.com/skogsbaer/write-your-python-program/actions/workflows/github-action-test-js.yml/badge.svg)](https://github.com/skogsbaer/write-your-python-program/actions/workflows/github-action-test-js.yml)
+
 # Write Your Python Program
 
 A user-friendly python programming environment for beginners.
