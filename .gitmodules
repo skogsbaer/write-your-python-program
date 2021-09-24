@@ -1,3 +1,0 @@
-[submodule "untypy"]
-	path = python/deps/untypy
-	url = https://github.com/skogsbaer/untypy.git
