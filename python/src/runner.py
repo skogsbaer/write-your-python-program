@@ -420,6 +420,8 @@ Python in version 3.9 or newer is required. You are still using version {vStr}, 
     fileToRun = args.file
     if args.changeDir:
         os.chdir(os.path.dirname(fileToRun))
+        fileToRun = os.path.basename(fileToRun)
+
     isInteractive = args.interactive
     version = readVersion()
     if isInteractive:
