@@ -55,7 +55,7 @@ def get_proto_members(proto: type, ctx: CreationContext) -> Dict[
             continue
 
         if inspect.isfunction(member):
-            #member = WrappedFunction.find_original(member)
+            member = WrappedFunction.find_original(member)
             signature = inspect.signature(member)
             annotations = typing.get_type_hints(member, include_extras=True)
             checkers = {}
