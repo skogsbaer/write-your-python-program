@@ -17,7 +17,8 @@ class SequenceFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
         t = type(annotation)
-        if t in [SequenceTypeA, SequenceTypeB] and annotation.__origin__ in [Sequence, ABCSequence]:
+        if (t in [SequenceTypeA, SequenceTypeB] and annotation.__origin__ in [Sequence, ABCSequence]) or \
+                annotation in [Sequence, ABCSequence]:  # no args version
             try:
                 args = annotation.__args__
             except AttributeError:
