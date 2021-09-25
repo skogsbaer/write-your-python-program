@@ -48,7 +48,6 @@ class WIterable(Generic[I]):
     def __iter__(self) -> Iterator[I]:
         pass
 
-
 InterfaceMapping = {
     dict: (WDict,),
     Dict: (WDict,),
@@ -78,17 +77,17 @@ class InterfaceFactory(TypeCheckerFactory):
             if len(inner_checkers) != len(bindings):
                 raise UntypyAttributeError(f"Expected {len(bindings)} type arguments inside of {annotation}")
 
-            if type(origin) == type:
-                name = f"{origin.__name__}[" + (', '.join(map(lambda t: t.describe(), inner_checkers))) + "]"
+            name = f"{origin.__name__}[" + (', '.join(map(lambda t: t.describe(), inner_checkers))) + "]"
 
-                bindings = dict(zip(bindings, annotation.__args__))
-                ctx.with_typevars(bindings)
+            bindings = dict(zip(bindings, annotation.__args__))
+            ctx = ctx.with_typevars(bindings)
+            if type(origin) == type:
                 template = WrappedType(protocol, ctx.with_typevars(bindings), name=name, implementation_template=origin,
                                        declared=ctx.declared_location())
                 return InterfaceChecker(origin, template, name)
             else:
                 # type(origin) == collection.abc.ABCMeta
-                return ProtocolChecker(protocol, ctx)
+                return ProtocolChecker(protocol, ctx, altname=name)
 
         else:
             return None
