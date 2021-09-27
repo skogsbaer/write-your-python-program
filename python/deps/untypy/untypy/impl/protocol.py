@@ -99,7 +99,7 @@ def get_proto_members(proto: type, ctx: CreationContext) -> Dict[
 
 
 class ProtocolChecker(TypeChecker):
-    def __init__(self, annotation: type, ctx: CreationContext):
+    def __init__(self, annotation: type, ctx: CreationContext, *, altname : Optional[str] = None):
         (proto, typevars) = _find_bound_typevars(annotation)
         ctx = ctx.with_typevars(typevars)
         members = get_proto_members(proto, ctx)
@@ -107,6 +107,7 @@ class ProtocolChecker(TypeChecker):
         self.members = members
         self.typevars = typevars
         self.wrapper_types = dict()
+        self.altname = altname
 
     def may_change_identity(self) -> bool:
         return True
@@ -128,6 +129,9 @@ class ProtocolChecker(TypeChecker):
         return [Protocol]
 
     def describe(self) -> str:
+        if self.altname is not None:
+            return self.altname
+
         desc = set([])
         for name in self.members:
             (sig, binds, cond) = self.members[name]
@@ -191,8 +195,12 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, original: type,
     def __setattr__(me, name, value):
         if name == '_ProtocolWrappedFunction__inner':
             super(type(me), me).__setattr__('_ProtocolWrappedFunction__inner', value)
-        else:
-            return setattr(me._ProtocolWrappedFunction__inner, name, value)
+            return
+        if name == '_ProtocolWrappedFunction__ctx':
+            super(type(me), me).__setattr__('_ProtocolWrappedFunction__ctx', value)
+            return
+
+        return setattr(me._ProtocolWrappedFunction__inner, name, value)
 
     list_of_attr['__init__'] = constructor
     list_of_attr['__getattr__'] = __getattr__  # allow access of attributes

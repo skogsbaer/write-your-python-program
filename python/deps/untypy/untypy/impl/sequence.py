@@ -1,4 +1,5 @@
 from typing import Any, Optional, Sequence
+from collections.abc import Sequence as ABCSequence
 
 from untypy.error import UntypyTypeError, UntypyAttributeError
 from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext
@@ -9,13 +10,15 @@ from untypy.impl.tuple import VariadicTupleChecker
 from untypy.impl.union import UnionChecker
 
 SequenceTypeA = type(Sequence[int])
-SequenceTypeB = type(Sequence)
+SequenceTypeB = type(ABCSequence[int])
+
 
 class SequenceFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
         t = type(annotation)
-        if t is SequenceTypeA or t is SequenceTypeB:
+        if (t in [SequenceTypeA, SequenceTypeB] and annotation.__origin__ in [Sequence, ABCSequence]) or \
+                annotation in [Sequence, ABCSequence]:  # no args version
             try:
                 args = annotation.__args__
             except AttributeError:
@@ -36,6 +39,7 @@ class SequenceFactory(TypeCheckerFactory):
             return SequenceChecker(inner, ctx, elemChecker)
         else:
             return None
+
 
 class SequenceChecker(UnionChecker):
 

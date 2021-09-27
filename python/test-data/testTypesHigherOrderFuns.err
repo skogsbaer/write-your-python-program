@@ -1,0 +1,15 @@
+untypy.error.UntypyTypeError
+given:    'hello'
+expected: value of type int
+
+context: map(container: Iterable[str], fun: Callable[[str], int]) -> list[int]
+                                                            ^^^
+declared at: test-data/testTypesHigherOrderFuns.py:3
+  3 | def map(container: Iterable[str], fun: Callable[[str], int]) -> list[int]:
+  4 |     res = []
+  5 |     for x in container:
+  6 |         res.append(fun(x))
+  7 |     return res
+
+caused by: test-data/testTypesHigherOrderFuns.py:10
+ 10 | map(["hello", "1"], lambda x: x)

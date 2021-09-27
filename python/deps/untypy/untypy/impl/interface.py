@@ -2,6 +2,7 @@ from collections.abc import Iterator, Iterable
 from typing import TypeVar, Optional, Any, Generic, Dict, List, Set
 
 from untypy.error import UntypyAttributeError, UntypyTypeError
+from untypy.impl.protocol import ProtocolChecker
 from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, ExecutionContext
 from untypy.util import ReplaceTypeExecutionContext
@@ -47,7 +48,6 @@ class WIterable(Generic[I]):
     def __iter__(self) -> Iterator[I]:
         pass
 
-
 InterfaceMapping = {
     dict: (WDict,),
     Dict: (WDict,),
@@ -55,7 +55,7 @@ InterfaceMapping = {
     List: (WList,),
     set: (WSet,),
     Set: (WSet,),
-    Iterable: (WIterable),
+    Iterable: (WIterable,),
 }
 
 
@@ -80,10 +80,15 @@ class InterfaceFactory(TypeCheckerFactory):
             name = f"{origin.__name__}[" + (', '.join(map(lambda t: t.describe(), inner_checkers))) + "]"
 
             bindings = dict(zip(bindings, annotation.__args__))
-            ctx.with_typevars(bindings)
-            template = WrappedType(protocol, ctx.with_typevars(bindings), name=name, implementation_template=origin,
-                                   declared=ctx.declared_location())
-            return InterfaceChecker(origin, template, name)
+            ctx = ctx.with_typevars(bindings)
+            if type(origin) == type:
+                template = WrappedType(protocol, ctx.with_typevars(bindings), name=name, implementation_template=origin,
+                                       declared=ctx.declared_location())
+                return InterfaceChecker(origin, template, name)
+            else:
+                # type(origin) == collection.abc.ABCMeta
+                return ProtocolChecker(protocol, ctx, altname=name)
+
         else:
             return None
 
