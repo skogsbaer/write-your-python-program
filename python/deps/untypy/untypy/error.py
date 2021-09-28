@@ -192,7 +192,7 @@ class UntypyTypeError(TypeError):
             if f.declared is not None and str(f.declared) not in declared_locs:
                 declared_locs.append(str(f.declared))
 
-        cause = join_lines(map(lambda s: "caused by:" + s, responsable_locs))
+        cause = join_lines(map(lambda s: "caused by: " + s, responsable_locs))
         declared = join_lines(map(lambda s: "declared at: " + s, declared_locs))
 
         (ty, ind) = self.next_type_and_indicator()
