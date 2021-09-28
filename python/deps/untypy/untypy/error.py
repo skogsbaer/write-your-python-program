@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from enum import Enum
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Iterable
 
 
 class Location:
@@ -119,7 +119,7 @@ class ResponsibilityType(Enum):
         else:
             return ResponsibilityType.IN
 
-def join_lines(l: list[str]) -> str:
+def join_lines(l: Iterable[str]) -> str:
     return '\n'.join([x.rstrip() for x in l])
 
 class UntypyTypeError(TypeError):
@@ -192,8 +192,8 @@ class UntypyTypeError(TypeError):
             if f.declared is not None and str(f.declared) not in declared_locs:
                 declared_locs.append(str(f.declared))
 
-        cause = join_lines(responsable_locs)
-        declared = join_lines(declared_locs)
+        cause = join_lines(map(lambda s: "caused by:" + s, responsable_locs))
+        declared = join_lines(map(lambda s: "declared at: " + s, declared_locs))
 
         (ty, ind) = self.next_type_and_indicator()
 
@@ -222,9 +222,9 @@ class UntypyTypeError(TypeError):
 expected: {expected}
 
 {ctx}
-declared at: {declared}
+{declared}
 
-caused by: {cause}""")
+{cause}""")
 
 
 class UntypyAttributeError(AttributeError):
