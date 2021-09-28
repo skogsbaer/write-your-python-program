@@ -25,7 +25,7 @@ context: makeSound(self: Self, loadness: int) -> str
 declared at: test-data/testTypesProtos1.py:13
  13 |     def makeSound(self, loadness: int) -> str:
  14 |         return f"{loadness} wuffs"
-test-data/testTypesProtos1.py:8
+declared at: test-data/testTypesProtos1.py:8
   8 |     def makeSound(self, loadness: float) -> str:
   9 |         pass
 
