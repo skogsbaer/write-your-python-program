@@ -3,7 +3,7 @@ import sys
 import typing
 from typing import Callable, Dict
 
-from untypy.error import UntypyAttributeError
+from untypy.error import UntypyAttributeError, UntypyNameError
 from untypy.impl.any import SelfChecker
 from untypy.interfaces import WrappedFunction, TypeChecker, CreationContext, WrappedFunctionContextProvider, \
     ExecutionContext
@@ -26,9 +26,17 @@ class TypedFunctionBuilder(WrappedFunction):
         try:
             annotations = typing.get_type_hints(inner, include_extras=True)
         except NameError as ne:
-            raise ctx.wrap(UntypyAttributeError(
-                "The " + str(ne) + f".\nType annotation of function {self.inner.__name__} is not resoveable.\nDid you forget importing this type?"
-            ))
+            org = WrappedFunction.find_original(self.inner)
+            if inspect.isclass(org):
+                raise ctx.wrap(UntypyNameError(
+                    "The " + str(ne) + f".\nType annotation of Class '{org.__qualname__}' "
+                                       f"is not resoveable.\nDid you forget importing this type?"
+                ))
+            else:
+                raise ctx.wrap(UntypyNameError(
+                    "The " + str(ne) + f".\nType annotation of function '{org.__qualname__}' "
+                                       f"is not resoveable.\nDid you forget importing this type?"
+                ))
 
         checkers = {}
         checked_keys = list(self.signature.parameters)
