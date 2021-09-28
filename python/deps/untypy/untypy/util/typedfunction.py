@@ -23,7 +23,12 @@ class TypedFunctionBuilder(WrappedFunction):
         self.signature = inspect.signature(inner)
 
         # SEE: https://www.python.org/dev/peps/pep-0563/#id7
-        annotations = typing.get_type_hints(inner, include_extras=True)
+        try:
+            annotations = typing.get_type_hints(inner, include_extras=True)
+        except NameError as ne:
+            raise ctx.wrap(UntypyAttributeError(
+                "The " + str(ne) + f".\nType annotation of function {self.inner.__name__} is not resoveable.\nDid you forget importing this type?"
+            ))
 
         checkers = {}
         checked_keys = list(self.signature.parameters)
