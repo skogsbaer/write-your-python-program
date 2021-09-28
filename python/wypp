@@ -2,5 +2,5 @@
 # coding=utf-8
 
 if __name__ == '__main__':
-    from wypp import runner
-    runner.main(globals())
+    import wypp.runner
+    wypp.runner.main(globals())
