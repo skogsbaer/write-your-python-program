@@ -153,6 +153,10 @@ class TestList(unittest.TestCase):
         self.assertEqual(x, 2)
         self.assertEqual(self.wrapped_list, [1, 3])
 
+        self.assertTrue(self.wrapped_list == [1,3])
+        self.assertTrue(self.wrapped_list == self.wrapped_list)
+        self.assertTrue([1,3] == self.wrapped_list)
+
         self.assertRaises(UntypyTypeError, lambda: self.wrapped_list.append("foo"))
         l = self.wrapped_list.copy()
         self.assertEqual(l, self.wrapped_list)
@@ -210,19 +214,36 @@ class TestList(unittest.TestCase):
         self.check(lambda l: list(reversed(l)))
         self.check(lambda l: l.reverse())
         self.check(lambda l: l.copy())
+        # ==
         self.check(lambda l: l == [1,4,2,1])
         self.check(lambda l:  [1,4,2,1] == l)
+        self.check2(lambda l1, l2: l1 == l2)
+        self.check2(lambda l1, l2: l2 == l1)
+        # !=
         self.check(lambda l: l != [1,4,2,1])
         self.check(lambda l:  [1,4,2,1] != l)
+        self.check2(lambda l1, l2: l1 != l2)
+        self.check2(lambda l1, l2: l2 != l1)
+        # <
         self.check(lambda l: l < [1,4,2])
         self.check(lambda l:  [1,4,1] < l)
+        self.check2(lambda l1, l2: l1 < l2)
+        self.check2(lambda l1, l2: l2 < l1)
+        # <=
         self.check(lambda l: l <= [1,4,2])
         self.check(lambda l:  [1,4,1] <= l)
+        self.check2(lambda l1, l2: l1 <= l2)
+        self.check2(lambda l1, l2: l2 <= l1)
+        # >
         self.check(lambda l: l > [1,4,2])
         self.check(lambda l:  [1,4,1] > l)
+        self.check2(lambda l1, l2: l1 > l2)
+        self.check2(lambda l1, l2: l2 > l1)
+        # >=
         self.check(lambda l: l >= [1,4,2])
         self.check(lambda l:  [1,4,1] >= l)
-
+        self.check2(lambda l1, l2: l1 >= l2)
+        self.check2(lambda l1, l2: l2 >= l1)
 
     def check(self, f):
         l = [1,4,2,1]
@@ -232,3 +253,28 @@ class TestList(unittest.TestCase):
         res = f(wrapped)
         self.assertEqual(l, wrapped)
         self.assertEqual(refRes, res)
+
+    def check2(self, f):
+        self.check21(f)
+        self.check22(f)
+
+    def check21(self, f):
+        l1 = [1,4,2,1]
+        refRes11 = f(l1.copy(), l1.copy())
+        checker = ListFactory().create_from(list[int], DummyDefaultCreationContext())
+        wrapped1 = checker.check_and_wrap(l1, DummyExecutionContext())
+        res11 = f(wrapped1, wrapped1)
+        self.assertEqual(l1, wrapped1)
+        self.assertEqual(refRes11, res11)
+
+    def check22(self, f):
+        l1 = [1,4,2,1]
+        l2 = [1,4,1]
+        refRes12 = f(l1.copy(), l2.copy())
+        checker = ListFactory().create_from(list[int], DummyDefaultCreationContext())
+        wrapped1 = checker.check_and_wrap(l1, DummyExecutionContext())
+        wrapped2 = checker.check_and_wrap(l2, DummyExecutionContext())
+        res12 = f(wrapped1, wrapped2)
+        self.assertEqual(l1, wrapped1)
+        self.assertEqual(l2, wrapped2)
+        self.assertEqual(refRes12, res12)

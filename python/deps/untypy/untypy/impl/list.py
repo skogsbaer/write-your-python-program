@@ -184,14 +184,29 @@ class TypedList(list):
     def __delitem__(self, *args, **kwargs):
         return self.inner.__delitem__(*args, **kwargs)
 
-    def __eq__(self, *args, **kwargs):
-        return self.inner.__eq__(*args, **kwargs)
+    # ==
+    def __eq__(self, other):
+        return self.inner == other
 
-    def __ge__(self, *args, **kwargs):
-        return self.inner.__ge__(*args, **kwargs)
+    # !=
+    def __ne__(self, other):
+        return self.inner != other
 
-    def __gt__(self, *args, **kwargs):
-        return self.inner.__gt__(*args, **kwargs)
+    # >=
+    def __ge__(self, other):
+        return self.inner >= other
+
+    # >
+    def __gt__(self, other):
+        return self.inner > other
+
+    # <=
+    def __le__(self, other):
+        return self.inner <= other
+
+    # <
+    def __lt__(self, other):
+        return self.inner < other
 
     def __imul__(self, *args, **kwargs):
         return self.inner.__imul__(*args, **kwargs)
@@ -199,17 +214,8 @@ class TypedList(list):
     def __len__(self, *args, **kwargs):
         return self.inner.__len__(*args, **kwargs)
 
-    def __le__(self, *args, **kwargs):
-        return self.inner.__le__(*args, **kwargs)
-
-    def __lt__(self, *args, **kwargs):
-        return self.inner.__lt__(*args, **kwargs)
-
     def __mul__(self, *args, **kwargs):
         return self.inner.__mul__(*args, **kwargs)
-
-    def __ne__(self, *args, **kwargs):
-        return self.inner.__ne__(*args, **kwargs)
 
     def __repr__(self, *args, **kwargs):
         return self.inner.__repr__(*args, **kwargs)
