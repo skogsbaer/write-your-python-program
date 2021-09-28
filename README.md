@@ -10,25 +10,44 @@ The ideas of this environment are based on the great ideas from
 
 ## Quick start
 
-* Step 1. Install Python 3.8.x or 3.9.x.
-* Step 2. Install the write-your-python-program extension. You need at least Visual Studio Code
+* Step 1. Install **Python 3.9.x.**
+* Step 2. Install the **write-your-python-program** extension. You need at least Visual Studio Code
   version 1.49.0.
 * Step 3. Open or create a Python file. The "RUN" button in the taskbar at the bottom will
   run your file with the teaching language provided by write-your-python-program.
 
 ### Troubleshooting
 
-- By default, the extension use the python interpreter of the regular python extension.
-  To use a different interpreter, configure it in the settings.
+- By default, the Visual Studio Code extension uses the Python interpreter of the regular
+  Python extension. If
+  this is not Python version 3.9.x, you have to configure it explicitly. Configuration
+  can be done either by selecting the desired Python version in the left corner of the status
+  bar (at the bottom of the window), or by setting the path the the python
+  executable in the settings of the plugin.
 - The extension disables linting of Python code when activated. This is well-suited for beginners
   but might cause unwanted effects when you rely on linting. In such cases, you have to
   deactivate the extension.
+
+### Usage without Visual Studio Code
+
+Write Your Python Program can be installed outside of Visual Studio Code via pip:
+
+```default
+pip3 install wypp
+```
+
+This needs Python 3.9.x. After installation, you can use the `wypp` command
+for running your python files, making all features explained below available.
+Run `wypp --help` for usage information.
 
 ## What's new?
 
 Here is the [Changelog](ChangeLog.md).
 
-**Breaking change** in version 0.11.0 (2021-03-11): wypp is no longer automatically imported.
+* **Breaking change** in version 0.12.0 (2021-09-28): type annotations are now checked
+  dynamically when the code is executed.
+  This behavior can be deactivated in the settings of the extension.
+* **Breaking change** in version 0.11.0 (2021-03-11): wypp is no longer automatically imported.
 You need an explicit import statement such as `from wypp import *`.
 
 ## Features
@@ -38,25 +57,32 @@ Here is a screen shot:
 ![Screenshot](screenshot.jpg)
 
 When hitting the RUN button, the vscode extension saves the current file, opens
-a terminal and executes
+a terminal and executes the file with Python, staying in interactive mode after
+all definitions have been executed.
 
-~~~
-python3 -i /path/to/extension/python/src/runYourProgram.py CURRENT_FILE.py
+The file being executed should contain the following import statement in the first line:
+
+~~~python
+from wypp import*
 ~~~
 
-This makes the following features available:
+Running the file with the RUN button makes the following features available:
 
 ### Type Definitions
 
-You can define enums, records and mixed data types and the use them with the type hints of
-Python 3. At the moment, such type hints serve only the purpose of documentation. A later iteration
-of the "write your python program" extension will use the type hints for dynamic
-type checks.
+You can define enums, records and union data types and the use them with the
+[type hints](https://www.python.org/dev/peps/pep-0484/) of
+Python 3. Type hints are checked for correctness dynamically, i.e. violations
+are detected only at the moment when a function is applied to an argument not matching
+its type hint or when a function returns a value not matching the return type hint.
+(This approach is similar to
+[contract checking in racket](https://users.cs.northwestern.edu/~robby/pubs/papers/ho-contracts-icfp2002.pdf))
+
 
 #### Enums
 
 ~~~python
-Color = Enum('red', 'green', 'blue')
+Color = Literal['red', 'green', 'blue']
 ~~~
 
 #### Records
@@ -85,32 +111,39 @@ Fields of records are immutable by default. You get mutable fields with `@record
 #### Mixed Data Types
 
 ~~~python
-PrimitiveShape = Mixed(Circle, Square)
+PrimitiveShape = Union[Circle, Square]
 ~~~
 
-To use recursive types, you need `DefinedLater`:
+To use recursive types, you need to write a forward reference to the yet undefined type
+as a string:
 
 ~~~python
-Shape = Mixed(Circle, Square, DefinedLater('Overlay'))
-Overlay = Record("Overlay", "top", Shape, "bottom", Shape)
+Shape = Union[Circle, Square, 'Overlay']
+@record
+class Overlay:
+    top: Shape
+    bottom: Shape
 ~~~
 
 Case distinction works like this:
 
 ~~~python
-def workOnShape(s: Shape):
-    if Square.isSome(s):
+def workOnShape(s: Shape) -> None:
+    if isinstance(s, Square):
         # s is a Square, do something with it
-    elif Circle.isSome(s):
+    elif isinstance(s, Circle)
         # s is a Circle, do something with it
-    elif Overlay.isSome(s):
+    elif isinstance(s, Overlay)
         # s is an Overlay, do something with it
-    else:
-        uncoveredCase()
 ~~~
 
-If your mixed type is made up of primitive types such as str or int, you can also use
-`hasType(ty, value)` for checking if `value` has some type `ty`.
+The body of `workOnShape` can safely assume that `s` is indeed one `Square`, `Circle`, or
+`Overlay` because the type hint `Shape` for argument `s` is checked dynamically. Here is
+what happens if you apply `workOnShape` to, say, a string:
+
+~~~default
+FIXME
+~~~
 
 ### Tests
 
@@ -121,27 +154,14 @@ then second argument the expected result.
 check(factorial(4), 24)
 ~~~
 
-### Import
-
-You don't have to import the features explicitly, but you can import them like this:
-
-~~~python
-from wypp import *
-~~~
-
-This allows integration with tools like to python debugger.
-
 ## Annotations
 
-Currently, type annotations serve only the purpose of documentation, they are **not** checked in any way. Also, the code is run with `from __future__ import annotations`
+The code is run with `from __future__ import annotations`
 (see [PEP 563](https://www.python.org/dev/peps/pep-0563/)), which will be
 the default from python 3.10 on. This means that you can use a type as an annotation
 before the type being defined, for example to define recursive types or as
 the type of `self` inside of classes. In fact, there is no check at all to make sure
 that anotations refer to existing types.
-
-For the future, it is planned to check anotations dynamically, along the lines
-of [contracts for racket](https://users.cs.northwestern.edu/~robby/pubs/papers/ho-contracts-icfp2002.pdf).
 
 ## Module name and current working directory
 
@@ -157,7 +177,6 @@ Please report them in the [issue tracker](https://github.com/skogsbaer/write-you
 
 You can debug the extension from Visual Studio Code:
 
-* Run `./setup`
 * Open the main folder of the plugin with vscode.
 * Open the file `extension.ts`.
 * Choose "Run" from the menu, then "Start Debugging".
