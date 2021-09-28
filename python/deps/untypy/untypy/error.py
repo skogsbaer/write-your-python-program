@@ -22,7 +22,7 @@ class Location:
                 if i < 5:
                     buf += f"\n{'{:3}'.format(self.line_no + i)} | {line}"
             if i >= 5:
-                buf += "    | ..."
+                buf += "\n    | ..."
         return buf
 
     def __repr__(self):
