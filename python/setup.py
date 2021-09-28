@@ -35,4 +35,5 @@ setup(name='wypp',
       package_dir={'wypp': 'src', 'untypy': 'deps/untypy/untypy'},
       packages=['wypp'] + setuptools.find_packages("deps/untypy", exclude=['test', 'test.*']),
       python_requires='>=3.9',
+      scripts=['wypp']
       )

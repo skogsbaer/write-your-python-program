@@ -1,4 +1,5 @@
 from . import writeYourProgram as w
+from . import runner as r
 
 # Exported names that are available for star imports (in alphabetic order)
 Any = w.Any
@@ -47,3 +48,4 @@ __all__ = [
 initModule = w.initModule
 printTestResults = w.printTestResults
 resetTestCount = w.resetTestCount
+runner = r
