@@ -214,6 +214,8 @@ class TestList(unittest.TestCase):
         self.check(lambda l: list(reversed(l)))
         self.check(lambda l: l.reverse())
         self.check(lambda l: l.copy())
+        self.check(lambda l: repr(l))
+        self.check(lambda l: str(l))
         # ==
         self.check(lambda l: l == [1,4,2,1])
         self.check(lambda l:  [1,4,2,1] == l)

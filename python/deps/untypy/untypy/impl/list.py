@@ -80,7 +80,9 @@ class ListCallerExecutionContext(ExecutionContext):
             responsable=Location.from_stack(self.stack)
         ))
 
-
+# ATTENTION: this is danger zone here. We had many bugs and these bugs are very ugly.
+# Most methods are implemented in the same way as in collections.UserList. Hence, the ordering
+# of methods is as in collections.UserList.
 class TypedList(list):
     inner: list
     checker: TypeChecker
@@ -94,6 +96,42 @@ class TypedList(list):
         self.ctx = ctx
         self.declared = declared
 
+    def __repr__(self):
+        return repr(self.inner)
+
+    def __str__(self):
+        return str(self.inner)
+
+    # <
+    def __lt__(self, other):
+        return self.inner < other
+
+    # <=
+    def __le__(self, other):
+        return self.inner <= other
+
+    # ==
+    def __eq__(self, other):
+        return self.inner == other
+
+    # !=
+    def __ne__(self, other):
+        return self.inner != other
+
+    # >
+    def __gt__(self, other):
+        return self.inner > other
+
+    # >=
+    def __ge__(self, other):
+        return self.inner >= other
+
+    def __contains__(self, item):
+        return self.inner.__contains__(item)
+
+    def __len__(self):
+        return len(self.inner)
+
     # Perform type check
     def __getitem__(self, index):
         if type(index) is int:
@@ -105,31 +143,6 @@ class TypedList(list):
             # e.g. list[1:3, ...]
             return list(map(lambda x: self.checker.check_and_wrap(x, self.ctx), self.inner.__getitem__(index)))
 
-    def __iter__(self):
-        return TypedListIterator(self)
-
-    def append(self, x) -> None:
-        caller = sys._getframe(1)
-        ctx = ListCallerExecutionContext(caller, self.declared)
-        self.inner.append(self.checker.check_and_wrap(x, ctx))
-
-    def extend(self, iterable) -> None:
-        caller = sys._getframe(1)
-        ctx = ListCallerExecutionContext(caller, self.declared)
-        return self.inner.extend(list(map(lambda x: self.checker.check_and_wrap(x, ctx), iterable)))
-
-    def insert(self, index, obj) -> None:
-        caller = sys._getframe(1)
-        ctx = ListCallerExecutionContext(caller, self.declared)
-        return self.inner.insert(index, self.checker.check_and_wrap(obj, ctx))
-
-    # l += [...]
-    def __iadd__(self, other):
-        caller = sys._getframe(1)
-        ctx = ListCallerExecutionContext(caller, self.declared)
-        self.inner.extend(list(map(lambda x: self.checker.check_and_wrap(x, ctx), other)))
-        return self
-
     # l[i] = x
     # l[i:j] = [...]
     def __setitem__(self, idx, value):
@@ -140,6 +153,9 @@ class TypedList(list):
         else:
             return self.inner.__setitem__(idx, self.checker.check_and_wrap(value, ctx))
 
+    def __delitem__(self, i):
+        del self.inner[i]
+
     # l + ...
     def __add__(self, other):
         # Caller Context
@@ -149,92 +165,71 @@ class TypedList(list):
     def __radd__(self, other):
         return other + self.inner
 
-    def pop(self, *args, **kwargs):
-        ret = self.inner.pop(*args, **kwargs)
-        return ret
+    # l += [...]
+    def __iadd__(self, other):
+        caller = sys._getframe(1)
+        ctx = ListCallerExecutionContext(caller, self.declared)
+        self.inner.extend(list(map(lambda x: self.checker.check_and_wrap(x, ctx), other)))
+        return self
 
-    # Delete, Copy, ...
-    def index(self, *args, **kwargs):
-        return self.inner.index(*args, **kwargs)
+    def __mul__(self, n):
+        return self.inner * n
 
-    def clear(self, *args, **kwargs):
-        return self.inner.clear(*args, **kwargs)
+    __rmul__ = __mul__
 
-    def copy(self, *args, **kwargs):
-        return self.inner.copy(*args, **kwargs)
-
-    def count(self, *args, **kwargs):
-        return self.inner.count(*args, **kwargs)
-
-    def remove(self, *args, **kwargs):
-        return self.inner.remove(*args, **kwargs)
-
-    def reverse(self, *args, **kwargs):
-        return self.inner.reverse(*args, **kwargs)
-
-    def sort(self, *args, **kwargs):
-        return self.inner.sort(*args, **kwargs)
-
-    def __class_getitem__(self, *args, **kwargs):
-        return self.inner.__class_getitem__(*args, **kwargs)
-
-    def __contains__(self, *args, **kwargs):
-        return self.inner.__contains__(*args, **kwargs)
-
-    def __delitem__(self, *args, **kwargs):
-        return self.inner.__delitem__(*args, **kwargs)
-
-    # ==
-    def __eq__(self, other):
-        return self.inner == other
-
-    # !=
-    def __ne__(self, other):
-        return self.inner != other
-
-    # >=
-    def __ge__(self, other):
-        return self.inner >= other
-
-    # >
-    def __gt__(self, other):
-        return self.inner > other
-
-    # <=
-    def __le__(self, other):
-        return self.inner <= other
-
-    # <
-    def __lt__(self, other):
-        return self.inner < other
-
-    def __imul__(self, *args, **kwargs):
-        return self.inner.__imul__(*args, **kwargs)
-
-    def __len__(self, *args, **kwargs):
-        return self.inner.__len__(*args, **kwargs)
-
-    def __mul__(self, *args, **kwargs):
-        return self.inner.__mul__(*args, **kwargs)
-
-    def __repr__(self, *args, **kwargs):
-        return self.inner.__repr__(*args, **kwargs)
-
-    def __reversed__(self, *args, **kwargs):
-        return self.inner.__reversed__(*args, **kwargs)
-
-    def __rmul__(self, *args, **kwargs):
-        return self.inner.__rmul__(*args, **kwargs)
-
-    def __sizeof__(self, *args, **kwargs):
-        return self.inner.__sizeof__(*args, **kwargs)
-
-    def __str__(self):
-        return self.inner.__str__()
+    def __imul__(self, n):
+        return self.inner * n
 
     def __copy__(self):
         return self.inner.copy()
 
+    def append(self, x) -> None:
+        caller = sys._getframe(1)
+        ctx = ListCallerExecutionContext(caller, self.declared)
+        self.inner.append(self.checker.check_and_wrap(x, ctx))
+
+    def insert(self, index, obj) -> None:
+        caller = sys._getframe(1)
+        ctx = ListCallerExecutionContext(caller, self.declared)
+        return self.inner.insert(index, self.checker.check_and_wrap(obj, ctx))
+
+    def pop(self, i=-1):
+        return self.inner.pop(i)
+
+    def remove(self, item):
+        return self.inner.remove(item)
+
+    def clear(self):
+        return self.inner.clear()
+
+    def copy(self):
+        return self.inner.copy()
+
+    def count(self, item):
+        return self.inner.count(item)
+
+    def index(self, *args):
+        return self.inner.index(*args)
+
+    def reverse(self):
+        return self.inner.reverse()
+
+    def sort(self, /, *args, **kwargs):
+        return self.inner.sort(*args, **kwargs)
+
+    def extend(self, iterable) -> None:
+        caller = sys._getframe(1)
+        ctx = ListCallerExecutionContext(caller, self.declared)
+        return self.inner.extend(list(map(lambda x: self.checker.check_and_wrap(x, ctx), iterable)))
+
+    def __iter__(self):
+        return TypedListIterator(self)
+
+    def __class_getitem__(self, item):
+        return self.inner.__class_getitem__(item)
+
+    def __reversed__(self, *args, **kwargs):
+        return self.inner.__reversed__(*args, **kwargs)
 
 class TypedListIterator:
     inner: TypedList
