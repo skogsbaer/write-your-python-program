@@ -3,10 +3,11 @@ from collections import namedtuple
 from types import FunctionType
 from typing import Callable, Protocol, Optional
 
-from untypy.error import Location
+from untypy.error import Location, UntypyNameError
 from untypy.impl import DefaultCreationContext
 from untypy.impl.bound_generic import WrappedGenericAlias
 from untypy.impl.wrappedclass import WrappedType
+from untypy.interfaces import WrappedFunction
 from untypy.util.typedfunction import TypedFunctionBuilder
 
 Config = namedtuple('PatchConfig', ['verbose', 'checkedprefixes'])
@@ -54,9 +55,9 @@ def wrap_function(fn: FunctionType, cfg: Config) -> Callable:
         try:
             return TypedFunctionBuilder(fn, DefaultCreationContext(
                 typevars=dict(),
-                declared_location=Location.from_code(fn),
+                declared_location=WrappedFunction.find_location(fn),
                 checkedpkgprefixes=cfg.checkedprefixes)).build()
-        except NameError:  # Argument Typ was not defined yet.
+        except UntypyNameError:  # Argument Typ was not defined yet.
             class CallableContainer:
                 inner: Optional[Callable]
 
@@ -67,7 +68,7 @@ def wrap_function(fn: FunctionType, cfg: Config) -> Callable:
                     if c.inner is None:
                         c.inner = TypedFunctionBuilder(fn, DefaultCreationContext(
                             typevars=dict(),
-                            declared_location=Location.from_code(fn),
+                            declared_location=WrappedFunction.find_location(fn),
                             checkedpkgprefixes=cfg.checkedprefixes)).build()
                     return c.inner(*args, **kwargs)
 
