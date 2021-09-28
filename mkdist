@@ -8,5 +8,9 @@ read
 
 vsce package || exit 1
 
+pushd python > /dev/null
+python3 -m build || exit 1
+popd > /dev/null
+
 echo
 echo "Now upload the .vsix file to https://marketplace.visualstudio.com/manage/publishers/stefanwehr"
