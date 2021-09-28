@@ -192,6 +192,9 @@ class UntypyTypeError(TypeError):
             if f.declared is not None and str(f.declared) not in declared_locs:
                 declared_locs.append(str(f.declared))
 
+        # Note: the visual studio code plugin uses the prefixes "caused by: " and "declared at: "
+        # for finding source locations. Do not change without changing the plugin code!!
+
         cause = join_lines(map(lambda s: "caused by: " + s, responsable_locs))
         declared = join_lines(map(lambda s: "declared at: " + s, declared_locs))
 
