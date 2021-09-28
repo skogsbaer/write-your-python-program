@@ -10,7 +10,8 @@ from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, 
 class SimpleFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
-        if type(annotation) is type or type(annotation) is abc.ABCMeta:
+        ta = type(annotation)
+        if ta is type or ta is abc.ABCMeta or annotation is Callable:
             return SimpleChecker(annotation, ctx)
         else:
             return None

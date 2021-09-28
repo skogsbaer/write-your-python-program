@@ -39,7 +39,7 @@ _FactoryList = [
     GeneratorFactory(),
     IteratorFactory(),
     InterfaceFactory(),
-    #
+    # must come last
     SimpleFactory()
 ]
 
