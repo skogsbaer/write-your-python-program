@@ -119,8 +119,16 @@ class ResponsibilityType(Enum):
         else:
             return ResponsibilityType.IN
 
-def join_lines(l: Iterable[str]) -> str:
+def joinLines(l: Iterable[str]) -> str:
     return '\n'.join([x.rstrip() for x in l])
+
+# Note: the visual studio code plugin uses the prefixes "caused by: " and "declared at: "
+# for finding source locations. Do not change without changing the plugin code!!
+CAUSED_BY_PREFIX = "caused by: "
+DECLARED_AT_PREFIX = "declared at: "
+
+def formatLocations(prefix: str, locs: list[Location]) -> str:
+    return joinLines(map(lambda s: prefix + str(s), locs))
 
 class UntypyTypeError(TypeError):
     given: Any
@@ -192,15 +200,12 @@ class UntypyTypeError(TypeError):
             if f.declared is not None and str(f.declared) not in declared_locs:
                 declared_locs.append(str(f.declared))
 
-        # Note: the visual studio code plugin uses the prefixes "caused by: " and "declared at: "
-        # for finding source locations. Do not change without changing the plugin code!!
-
-        cause = join_lines(map(lambda s: "caused by: " + s, responsable_locs))
-        declared = join_lines(map(lambda s: "declared at: " + s, declared_locs))
+        cause = formatLocations(CAUSED_BY_PREFIX, responsable_locs)
+        declared = formatLocations(DECLARED_AT_PREFIX, declared_locs)
 
         (ty, ind) = self.next_type_and_indicator()
 
-        notes = join_lines(self.notes)
+        notes = joinLines(self.notes)
         if notes:
             notes = notes + "\n\n"
 
@@ -235,15 +240,13 @@ class UntypyAttributeError(AttributeError):
     def __init__(self, message: str, locations: list[Location] = []):
         self.message = message
         self.locations = locations.copy()
-
         super().__init__(self.__str__())
 
     def with_location(self, loc: Location) -> UntypyAttributeError:
         return type(self)(self.message, self.locations + [loc]) # preserve type
 
     def __str__(self):
-        locations = '\n'.join(map(str, self.locations))
-        return f"{self.message}\n{locations}"
+        return f"{self.message}\n{formatLocations(DECLARED_AT_PREFIX, self.locations)}"
 
 
 class UntypyNameError(UntypyAttributeError):
