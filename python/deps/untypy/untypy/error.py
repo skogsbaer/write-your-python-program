@@ -239,8 +239,12 @@ class UntypyAttributeError(AttributeError):
         super().__init__(self.__str__())
 
     def with_location(self, loc: Location) -> UntypyAttributeError:
-        return UntypyAttributeError(self.message, self.locations + [loc])
+        return type(self)(self.message, self.locations + [loc]) # preserve type
 
     def __str__(self):
         locations = '\n'.join(map(str, self.locations))
         return f"{self.message}\n{locations}"
+
+
+class UntypyNameError(UntypyAttributeError):
+    pass
