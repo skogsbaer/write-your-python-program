@@ -1,0 +1,7 @@
+untypy.error.UntypyNameError: The name 'FooX' is not defined.
+Type annotation of Class 'Test' is not resoveable.
+Did you forget importing this type?
+test-data/testForwardRef4.py:3
+  3 | @record
+  4 | class Test:
+  5 |     foo: 'FooX'
