@@ -30,7 +30,6 @@ class CallableChecker(TypeChecker):
         arguments_ty = annotation.__args__[:-1]
         return_ty = annotation.__args__[-1]
 
-        # TODO:
         return_checker = ctx.find_checker(return_ty)
         if return_checker is None:
             raise ctx.wrap(UntypyAttributeError(f"Return Type Annotation not found. {return_ty}"))
@@ -85,13 +84,10 @@ class TypedCallable(Callable, WrappedFunction):
     def __call__(self, *args, **kwargs):
         caller = sys._getframe(1)
 
-        new_args = []
-        i = 0
-        for (arg, checker) in zip(args, self.argument_checker):
-            res = checker.check_and_wrap(arg, TypedCallableArgumentExecutionContext(self, caller, i, self.ctx))
-            new_args.append(res)
-            i += 1
+        (args, kwargs, bindings) = self.wrap_arguments(
+            lambda i: TypedCallableArgumentExecutionContext(self, caller, i, self.ctx), args, kwargs)
 
+        bind2 = None
         if isinstance(self.inner, WrappedFunction):
             (args, kwargs, bind2) = self.inner.wrap_arguments(lambda n:
                                                               TypedCallableIncompatibleSingature(self, n,
@@ -99,21 +95,35 @@ class TypedCallable(Callable, WrappedFunction):
                                                                                                  self.ctx),
                                                               args, kwargs)
 
-        ret = self.fn(*new_args, **kwargs)
+        ret = self.fn(*args, **kwargs)
         if isinstance(self.inner, WrappedFunction):
             ret = self.inner.wrap_return(ret, bind2, TypedCallableReturnExecutionContext(self.ctx, self, True))
 
-        ret = self.return_checker.check_and_wrap(ret, TypedCallableReturnExecutionContext(self.ctx, self, False))
+        ret = self.wrap_return(ret, bindings, TypedCallableReturnExecutionContext(self.ctx, self, False))
         return ret
 
     def get_original(self):
         return self.inner
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
-        raise NotImplementedError
+        new_args = []
+        i = 0
+        for (arg, checker) in zip(args, self.argument_checker):
+            res = checker.check_and_wrap(arg, ctxprv(i))
+            new_args.append(res)
+            i += 1
 
-    def wrap_return(self, ret, ctx: ExecutionContext):
-        raise NotImplementedError
+        if len(kwargs) > 0:
+            raise self.ctx.wrap(UntypyTypeError(
+                kwargs,
+                self.describe()
+            ).with_note("Keyword arguments are not supported in callable types."))
+
+        bindings = None
+        return new_args, kwargs, bindings
+
+    def wrap_return(self, ret, bindings, ctx: ExecutionContext):
+        return self.return_checker.check_and_wrap(ret, ctx)
 
     def describe(self) -> str:
         arguments = ", ".join(map(lambda e: e.describe(), self.argument_checker))
@@ -177,17 +187,22 @@ class TypedCallableReturnExecutionContext(ExecutionContext):
         self.invert = invert
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
-        if self.invert:
-            err = ReturnExecutionContext(self.fn.inner).wrap(err)
-            return err
-
-        (next_ty, indicator) = err.next_type_and_indicator()
-
         desc = lambda s: s.describe()
         front_str = f"Callable[[{', '.join(map(desc, self.fn.argument_checker))}], "
-
         responsable = WrappedFunction.find_location(self.fn.inner)
 
+        if self.invert:
+            (next_ty, indicator) = err.next_type_and_indicator()
+            err = ReturnExecutionContext(self.fn.inner).wrap(err)
+            err = err.with_frame(Frame(
+                f"{front_str}{next_ty}]",
+                (" " * len(front_str)) + indicator,
+                declared=None, # TODO: add callable annotation
+                responsable=responsable
+            ))
+            return self.upper.wrap(err)
+
+        (next_ty, indicator) = err.next_type_and_indicator()
         err = err.with_frame(Frame(
             f"{front_str}{next_ty}]",
             (" " * len(front_str)) + indicator,
