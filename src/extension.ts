@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as process from 'process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Uri } from 'vscode';
 
 const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
@@ -232,6 +233,74 @@ function fixPythonConfig(context: vscode.ExtensionContext) {
     pyLintConfig.update("enabled", false);
 }
 
+class Location implements vscode.TerminalLink {
+	constructor(
+        public startIndex: number,
+        public length: number,
+        public tooltip: string | undefined,
+        public filePath: string,
+        public line: number
+    ) { }
+}
+
+const linkPrefixes = ['declared at: ', 'caused by: '];
+
+function findLink(dir: string, ctxLine: string): Location | undefined {
+    for (const pref of linkPrefixes) {
+        if (ctxLine.startsWith(pref)) {
+            const link = ctxLine.substr(pref.length).trim();
+            const i = link.indexOf(':');
+            if (i < 0 || i >= link.length - 1) {
+                return undefined;
+            }
+            const file = link.substr(0, i);
+            const line = parseInt(link.substr(i + 1));
+            if (file && file.length > 1 && !isNaN(line)) {
+                const p = path.join(dir, file);
+                const loc = new Location(pref.length, link.length, undefined, p, line);
+                // console.debug("Find link " + p + ":" + line);
+                return loc;
+            } else {
+                return undefined;
+            }
+        }
+    }
+    return undefined;
+}
+
+class TerminalLinkProvider implements vscode.TerminalLinkProvider {
+
+    directory: string | undefined;
+
+	constructor() {}
+	provideTerminalLinks(context: vscode.TerminalLinkContext, token: vscode.CancellationToken): vscode.ProviderResult<Location[]> {
+        if (this.directory === undefined) {
+            return [];
+        }
+        const loc = findLink(this.directory, context.line);
+        if (loc) {
+            return [loc];
+        } else {
+            return [];
+        }
+	}
+	handleTerminalLink(loc: Location): vscode.ProviderResult<void> {
+		console.log("Opening " + loc.filePath);
+
+		vscode.commands.executeCommand('vscode.open', Uri.file(loc.filePath)).then(() => {
+			const editor = vscode.window.activeTextEditor;
+			if (!editor) { return; }
+			let line = loc.line - 1;
+			if (line < 0) {
+				line = 0;
+			}
+			const col = 0;
+			editor.selection = new vscode.Selection(line, col, line, col);
+			editor.revealRange(new vscode.Range(line, 0, line, 10000));
+		});
+	}
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -244,6 +313,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     installButton("Write Your Python Program", undefined);
 
+    const linkProvider = new TerminalLinkProvider();
     // Run
     const runProg = context.asAbsolutePath('python/src/runYourProgram.py');
     installCmd(
@@ -263,6 +333,7 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showWarningMessage('Not a python file');
                 return;
             }
+            linkProvider.directory = path.dirname(file);
             vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd();
             const verboseOpt = beVerbose(context) ? " --verbose --no-clear" : "";
@@ -290,6 +361,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.window.onDidChangeActiveTextEditor(showHideButtons);
     showHideButtons(vscode.window.activeTextEditor);
+
+    context.subscriptions.push(
+        vscode.window.registerTerminalLinkProvider(linkProvider));
 }
 
 // this method is called when your extension is deactivated

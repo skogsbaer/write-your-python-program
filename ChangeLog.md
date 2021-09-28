@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.12.0 (2021-09-28)
+  * **Breaking change:** type annotations are now checked dynamically when the code is executed.
+  This behavior can be deactivated in the settings of the extension.
 * 0.11.0 (2021-03-11)
   * **Breaking change:** wypp is no longer automatically imported. You need an explicit
     import statement such as `from wypp import *`.

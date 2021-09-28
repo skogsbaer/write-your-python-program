@@ -19,5 +19,9 @@ In case you want the use the `wypp` package *without* Visual Studio Code, you ca
 the package via pip:
 
 ```
-pip install wypp
+pip3 install wypp
 ```
+
+This needs Python 3.9.x. After installation, you can use the `wypp` command
+for running your python files, making all features explained below available.
+Run `wypp --help` for usage information.

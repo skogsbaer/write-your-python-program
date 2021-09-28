@@ -1,5 +1,5 @@
 import unittest
-from typing import Union
+from typing import Union, Callable
 
 import untypy
 from test.util import DummyExecutionContext, DummyDefaultCreationContext
@@ -147,3 +147,13 @@ class TestSimple(unittest.TestCase):
             f("x")
         with self.assertRaises(UntypyTypeError):
             f(3.14)
+
+    def test_callable(self):
+        @untypy.patch
+        def f(g: Callable) -> int:
+            return g(1)
+        self.assertEqual(f(lambda x: x + 1), 2)
+        with self.assertRaises(TypeError):
+            f(lambda x: "x" + x)
+        with self.assertRaises(UntypyTypeError):
+            f(lambda x: "x" + str(x))

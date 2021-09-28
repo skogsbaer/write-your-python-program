@@ -8,8 +8,3 @@
 ** filter traceback (for higher-order functions)
 ** mode where all functions or methods without type signatures are reported as errors
 ** upload dist to pypi
-** update README
-*** python version
-*** pip
-*** records
-*** import

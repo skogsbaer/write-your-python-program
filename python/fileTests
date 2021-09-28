@@ -124,7 +124,7 @@ checkWithOutput 1:0 test-data/testTypes2.py
 checkWithOutputAux yes 1 test-data/testTypesCollections1.py
 checkWithOutputAux yes 1 test-data/testTypesCollections2.py
 # checkWithOutputAux yes 1 test-data/testTypesCollections3.py  See #5
-# checkWithOutputAux yes 1 test-data/testTypesCollections4.py  See #6
+checkWithOutputAux yes 1 test-data/testTypesCollections4.py
 checkWithOutputAux yes 1 test-data/testTypesProtos1.py
 # checkWithOutputAux yes 1 test-data/testTypesProtos2.py  See #8
 checkWithOutputAux yes 1 test-data/testTypesProtos3.py

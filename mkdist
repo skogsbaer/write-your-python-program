@@ -8,5 +8,12 @@ read
 
 vsce package || exit 1
 
+pushd python > /dev/null
+rm -rf dist/
+python3 -m build || exit 1
+popd > /dev/null
+
 echo
 echo "Now upload the .vsix file to https://marketplace.visualstudio.com/manage/publishers/stefanwehr"
+echo
+echo "To upload the package to PyPI, execute the following command: twine upload python/dist/*"
