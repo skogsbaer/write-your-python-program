@@ -197,7 +197,7 @@ class TypedCallableReturnExecutionContext(ExecutionContext):
             err = err.with_frame(Frame(
                 f"{front_str}{next_ty}]",
                 (" " * len(front_str)) + indicator,
-                declared=None, # TODO: add callable annotation
+                declared=None,
                 responsable=responsable
             ))
             return self.upper.wrap(err)
