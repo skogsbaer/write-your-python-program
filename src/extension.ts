@@ -268,16 +268,29 @@ function findLink(dir: string, ctxLine: string): Location | undefined {
     return undefined;
 }
 
+interface TerminalContext {
+    directory: string,
+    terminal: vscode.Terminal
+}
+
+type TerminalMap = { [name: string]: TerminalContext };
+
 class TerminalLinkProvider implements vscode.TerminalLinkProvider {
 
-    directory: string | undefined;
+	constructor(private terminals: TerminalMap) {}
 
-	constructor() {}
 	provideTerminalLinks(context: vscode.TerminalLinkContext, token: vscode.CancellationToken): vscode.ProviderResult<Location[]> {
-        if (this.directory === undefined) {
+        let directory: string | undefined;
+        for (const [_key, term] of Object.entries(this.terminals)) {
+            if (context.terminal === term.terminal) {
+                directory = term.directory;
+                break;
+            }
+        }
+        if (directory === undefined) {
             return [];
         }
-        const loc = findLink(this.directory, context.line);
+        const loc = findLink(directory, context.line);
         if (loc) {
             return [loc];
         } else {
@@ -309,11 +322,11 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('Activating extension ' + extensionId);
 
     fixPythonConfig(context);
-    const terminals: { [name: string]: vscode.Terminal } = {};
+    const terminals: { [name: string]: TerminalContext } = {};
 
     installButton("Write Your Python Program", undefined);
 
-    const linkProvider = new TerminalLinkProvider();
+    const linkProvider = new TerminalLinkProvider(terminals);
     // Run
     const runProg = context.asAbsolutePath('python/src/runYourProgram.py');
     installCmd(
@@ -333,15 +346,14 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showWarningMessage('Not a python file');
                 return;
             }
-            linkProvider.directory = path.dirname(file);
             vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd();
             const verboseOpt = beVerbose(context) ? " --verbose --no-clear" : "";
             const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
                 const pythonCmd = fileToCommandArgument(pyCmd.cmd);
-                terminals[cmdId] = startTerminal(
-                    terminals[cmdId],
+                const cmdTerm = startTerminal(
+                    terminals[cmdId]?.terminal,
                     "WYPP - RUN",
                     pythonCmd +  " " + fileToCommandArgument(runProg) + verboseOpt +
                         disableOpt +
@@ -350,6 +362,7 @@ export function activate(context: vscode.ExtensionContext) {
                         " --change-directory " +
                         fileToCommandArgument(file)
                 );
+                terminals[cmdId] = {terminal: cmdTerm, directory: path.dirname(file)};
                 if (pyCmd.kind === "warning") {
                     vscode.window.showInformationMessage(pyCmd.msg);
                 }
@@ -362,8 +375,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor(showHideButtons);
     showHideButtons(vscode.window.activeTextEditor);
 
-    context.subscriptions.push(
-        vscode.window.registerTerminalLinkProvider(linkProvider));
+    const linkDisposable = vscode.window.registerTerminalLinkProvider(linkProvider);
+    disposables.push(linkDisposable);
+    context.subscriptions.push(linkDisposable);
 }
 
 // this method is called when your extension is deactivated
