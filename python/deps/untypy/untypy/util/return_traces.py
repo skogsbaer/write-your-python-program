@@ -30,8 +30,9 @@ def get_last_return() -> (str, int):
 
 class ReturnTracesTransformer(ast.NodeTransformer):
 
-    def __init__(self, registry: Callable[[ast.Return], int]):
-        self.registry = registry
+    def __init__(self, file: str, manager = GlobalReturnTraceManager):
+        self.file = file
+        self.manager = manager
 
     def generic_visit(self, node) -> Any:
         # See https://docs.python.org/3/library/ast.html
@@ -57,7 +58,7 @@ class ReturnTracesTransformer(ast.NodeTransformer):
             for index, reti in inserts:
                 n = ast.Expr(value=ast.Call(
                     func=ast.Attribute(value=ast.Name(id='untypy', ctx=ast.Load()), attr='_before_return', ctx=ast.Load()),
-                    args=[ast.Constant(value=self.registry(reti))],
+                    args=[ast.Constant(value=self.manager.next_id(reti, self.file))],
                     keywords=[])
                 )
                 statements.insert(index, n)
