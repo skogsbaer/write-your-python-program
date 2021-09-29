@@ -281,7 +281,7 @@ def runCode(fileToRun, globals, args, useUntypy=True):
                 verbose(f"transforming {fileToRun} for typechecking")
                 tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
                                dont_inherit=True, optimize=-1)
-                untypy.transform_tree(tree)
+                untypy.transform_tree(tree, os.path.abspath(fileToRun))
                 verbose(f'done with transformation of {fileToRun}')
                 code = tree
             else:
