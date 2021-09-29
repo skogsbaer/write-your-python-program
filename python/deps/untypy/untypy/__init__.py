@@ -13,11 +13,17 @@ from .util.return_traces import ReturnTracesTransformer, before_return, GlobalRe
 from .util.tranformer_combinator import TransformerCombinator
 
 GlobalConfig = DefaultConfig
+
+"""
+This function is called before any return statement, to store which was the last return.
+For this the AST is transformed using ReturnTracesTransformer.
+Must be in untypy so it can be used in transformed module.
+Must also be in other module, so it can be used from inside (No circular imports).
+"""
 _before_return = before_return
 
 _importhook_transformer_builder = lambda path, file: TransformerCombinator(UntypyAstTransformer(),
                                                                            ReturnTracesTransformer(file))
-
 
 def just_install_hook(prefixes=[]):
     def predicate(module_name):

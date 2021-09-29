@@ -112,7 +112,12 @@ class Location:
                     line_span=1
                 )
 
-    def mark(self, reti_loc):
+    def narrow_in_span(self, reti_loc : Tuple[str, int]):
+        """
+        Use new Location if inside of span of this Location
+        :param reti_loc: filename and line_no
+        :return: a new Location, else self
+        """
         file, line = reti_loc
         if self.file == file and line in range(self.line_no, self.line_no + self.line_span):
             return Location(

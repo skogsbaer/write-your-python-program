@@ -3,6 +3,9 @@ from typing import *
 
 
 class ReturnTraceManager:
+    """
+    Stores file & line_no to every return idx
+    """
     def __init__(self):
         self.lst = []
 
@@ -17,20 +20,25 @@ class ReturnTraceManager:
 GlobalReturnTraceManager = ReturnTraceManager()
 reti_loc: int = -1
 
+
 def before_return(idx : int):
     global reti_loc
     reti_loc = idx
+
 
 def get_last_return() -> (str, int):
     global reti_loc
     if reti_loc < 0:
         return ("<nothing>", 0) # this will never match any real location
+
+    # Note: this location is only used if it is in the span of the located function.
+    # See ReturnExecutionContext
     return GlobalReturnTraceManager.get(reti_loc)
 
 
 class ReturnTracesTransformer(ast.NodeTransformer):
 
-    def __init__(self, file: str, manager = GlobalReturnTraceManager):
+    def __init__(self, file: str, manager=GlobalReturnTraceManager):
         self.file = file
         self.manager = manager
 

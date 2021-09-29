@@ -127,7 +127,7 @@ class ReturnExecutionContext(ExecutionContext):
         declared = WrappedFunction.find_location(self.fn)
         responsable = declared
         if responsable is not None:
-            responsable = responsable.mark(self.reti_loc)
+            responsable = responsable.narrow_in_span(self.reti_loc)
 
         return err.with_frame(Frame(
             return_id.ty,
