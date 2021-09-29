@@ -16,10 +16,10 @@ class Location:
         self.file = file
         self.line_no = line_no
         self.line_span = line_span
-        self.source_line = None
+        self.source_lines = None
 
-    def _source(self) -> Optional[str]:
-        if self.source_line is  None:
+    def source(self) -> Optional[str]:
+        if self.source_lines is None:
             try:
                 with open(self.file, "r") as f:
                     self.source_lines = f.read()
@@ -28,9 +28,24 @@ class Location:
 
         return self.source_lines
 
+    def source_lines_span(self) -> Optional[str]:
+        # This is still used for unit testing
+
+        source = self.source()
+        if source is None:
+            return None
+
+        buf = ""
+
+        for i, line in enumerate(source.splitlines()):
+            if (i + 1) in range(self.line_no, self.line_no + self.line_span):
+                buf += f"\n{line}"
+
+        return buf
+
     def __str__(self):
         buf = f"{relpath(self.file)}:{self.line_no}"
-        source = self._source()
+        source = self.source()
         if source is None:
             buf += f"\n{'{:3}'.format(self.line_no)} | <source code not found>"
             return buf

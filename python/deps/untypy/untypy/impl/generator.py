@@ -106,7 +106,7 @@ class TypedGeneratorYieldReturnContext(CompoundTypeExecutionContext):
                 return Location(
                     file=inspect.getfile(self.generator.gi_frame),
                     line_no=inspect.getsourcelines(self.generator.gi_frame)[1],
-                    source_line="\n".join(inspect.getsourcelines(self.generator.gi_frame)[0]),
+                    line_span=len(inspect.getsourcelines(self.generator.gi_frame)[0]),
                 )
         except OSError:  # this call does not work all the time
             pass
