@@ -78,6 +78,18 @@ class Location:
                     source_line=None
                 )
 
+    def mark(self, reti_loc):
+        file, line = reti_loc
+        lines = self.source_line.splitlines()
+        if self.file == file and line in range(self.line_no, self.line_no + len(lines)):
+            return Location(
+                file=file,
+                line_no=line,
+                source_line=lines[line - self.line_no]
+            )
+        else:
+            return self
+
 
 class Frame:
     type_declared: str

@@ -5,6 +5,7 @@ from typing import Optional, Union, List
 from untypy.display import IndicatorStr
 from untypy.error import UntypyTypeError, Frame, Location
 from untypy.interfaces import ExecutionContext, TypeChecker, WrappedFunction
+from untypy.util.return_traces import get_last_return
 
 
 class ReplaceTypeExecutionContext(ExecutionContext):
@@ -104,6 +105,7 @@ class ReturnExecutionContext(ExecutionContext):
     fn: WrappedFunction
 
     def __init__(self, fn: WrappedFunction):
+        self.reti_loc = get_last_return()
         self.fn = fn
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
@@ -123,11 +125,15 @@ class ReturnExecutionContext(ExecutionContext):
             return_id = IndicatorStr("???")
 
         declared = WrappedFunction.find_location(self.fn)
+        responsable = declared
+        if responsable is not None:
+            responsable = responsable.mark(self.reti_loc)
+
         return err.with_frame(Frame(
             return_id.ty,
             return_id.indicator,
             declared=declared,
-            responsable=declared,
+            responsable=responsable,
         ))
 
 
