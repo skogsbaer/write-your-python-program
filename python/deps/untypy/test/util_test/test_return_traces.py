@@ -27,7 +27,10 @@ def foo(flag: bool) -> int:
         """
 
         tree = ast.parse(src)
-        ReturnTracesTransformer("<dummyfile>", ReturnTraceManager()).visit(tree)
+        mgr = ReturnTraceManager()
+        ReturnTracesTransformer("<dummyfile>", mgr).visit(tree)
         ast.fix_missing_locations(tree)
         self.assertEqual(ast.unparse(tree).strip(), target.strip())
+        self.assertEqual(mgr.get(0), ("<dummyfile>", 5))
+        self.assertEqual(mgr.get(1), ("<dummyfile>", 7))
 
