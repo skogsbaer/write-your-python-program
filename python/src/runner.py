@@ -269,7 +269,7 @@ class RunSetup:
 
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
-    fileToRun = os.path.abspath(fileToRun)
+    
     with RunSetup(localDir):
         with open(fileToRun) as f:
             flags = 0 | anns.compiler_flag
