@@ -5,11 +5,13 @@ expected: value of type str
 context: foo(l: list[Callable[[], str]]) -> list[str]
                                   ^^^
 declared at: test-data/testTypesCollections2.py:3
-  3 | def foo(l: list[Callable[[], str]]) -> list[str]:
+  1 | from wypp import *
+  2 | 
+  3 > def foo(l: list[Callable[[], str]]) -> list[str]:
   4 |     res = []
   5 |     for f in l:
-  6 |         res.append(f())
-  7 |     return res
 
 caused by: test-data/testTypesCollections2.py:10
- 10 | foo([lambda: "1", lambda: 42]) # error because the 2nd functions returns an int
+  8 | 
+  9 | print(foo([lambda: "1", lambda: "2"]))
+ 10 > foo([lambda: "1", lambda: 42]) # error because the 2nd functions returns an int
