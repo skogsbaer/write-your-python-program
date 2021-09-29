@@ -166,7 +166,7 @@ type PythonCmdResult = {
     kind: "warning", msg: string, cmd: string
 };
 
-function getPythonCmd(): PythonCmdResult {
+function getPythonCmd(ext: PythonExtension): PythonCmdResult {
     const config = vscode.workspace.getConfiguration(extensionId);
     const hasConfig = config && config[python3ConfigKey];
     if (hasConfig) {
@@ -193,10 +193,20 @@ function getPythonCmd(): PythonCmdResult {
             return { kind: 'success', cmd: configCmd };
         }
     } else {
+        const cmd = ext.getPythonCommand();
+        if (cmd) {
+            console.log("Using the configured python command " + cmd);
+            return {
+                kind: 'success',
+                cmd
+            };
+        }
+        // The pythonPath configuration has been deprecated, see
+        // https://devblogs.microsoft.com/python/python-in-visual-studio-code-july-2021-release/
         const pyConfig = vscode.workspace.getConfiguration("python");
         const pyExtPyPath: string | undefined = pyConfig.get("pythonPath");
         if (pyExtPyPath) {
-            console.log("Using globally configure python command: " + pyExtPyPath);
+            console.log("Using python command from pythonPath setting (deprecated): " + pyExtPyPath);
             return {
                 kind: 'success',
                 cmd: pyExtPyPath
@@ -319,6 +329,19 @@ class TerminalLinkProvider implements vscode.TerminalLinkProvider {
 	}
 }
 
+class PythonExtension {
+    private pyApi: any;
+
+    constructor() {
+        const pyExt = vscode.extensions.getExtension('ms-python.python');
+        this.pyApi = pyExt?.exports;
+    }
+
+    getPythonCommand(): string | undefined {
+        return this.pyApi?.settings?.getExecutionDetails()?.execCommand;
+    }
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -332,6 +355,8 @@ export function activate(context: vscode.ExtensionContext) {
     installButton("Write Your Python Program", undefined);
 
     const linkProvider = new TerminalLinkProvider(terminals);
+    const pyExt = new PythonExtension();
+
     // Run
     const runProg = context.asAbsolutePath('python/src/runYourProgram.py');
     installCmd(
@@ -352,7 +377,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
             vscode.window.activeTextEditor?.document.save();
-            const pyCmd = getPythonCmd();
+            const pyCmd = getPythonCmd(pyExt);
             const verboseOpt = beVerbose(context) ? " --verbose --no-clear" : "";
             const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
