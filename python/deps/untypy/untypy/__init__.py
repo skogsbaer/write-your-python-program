@@ -99,7 +99,7 @@ def enable_on_imports(*prefixes):
 
     transformer = _importhook_transformer_builder
     install_import_hook(predicate, transformer)
-    _exec_module_patched(caller, True, transformer(caller.__name__.split(".")))
+    _exec_module_patched(caller, True, transformer(caller.__name__.split("."), caller.__file__))
 
 
 def _exec_module_patched(mod: ModuleType, exit_after: bool, transformer: ast.NodeTransformer):
