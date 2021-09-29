@@ -269,6 +269,7 @@ class RunSetup:
 
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
+    fileToRun = os.path.abspath(fileToRun)
     with RunSetup(localDir):
         with open(fileToRun) as f:
             flags = 0 | anns.compiler_flag
@@ -281,7 +282,7 @@ def runCode(fileToRun, globals, args, useUntypy=True):
                 verbose(f"transforming {fileToRun} for typechecking")
                 tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
                                dont_inherit=True, optimize=-1)
-                untypy.transform_tree(tree, os.path.abspath(fileToRun))
+                untypy.transform_tree(tree, fileToRun)
                 verbose(f'done with transformation of {fileToRun}')
                 code = tree
             else:
