@@ -96,7 +96,7 @@ class WrappedFunction:
             return Location(
                 file=inspect.getfile(fn),
                 line_no=inspect.getsourcelines(fn)[1],
-                source_line="".join(inspect.getsourcelines(fn)[0]),
+                line_span=len(inspect.getsourcelines(fn)[0]),
             )
         except:  # Failes on builtins
             return None
