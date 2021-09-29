@@ -76,9 +76,9 @@ function identifyShell(shellPath: string): ShellKind {
     return 'other';
 }
 
-function startTerminal(
+async function startTerminal(
     existing: vscode.Terminal | undefined, name: string, cmd: string
-): vscode.Terminal {
+): Promise<vscode.Terminal> {
     if (existing) {
         existing.dispose();
     }
@@ -102,6 +102,8 @@ function startTerminal(
         }
     }
     const terminal = vscode.window.createTerminal(terminalOptions);
+    // Sometimes the terminal takes some time to start up before it can start accepting input.
+    await new Promise((resolve) => setTimeout(resolve, 100));
     terminal.show(false); // focus the terminal
     terminal.sendText(cmdPrefix + cmd);
     return terminal;
@@ -174,6 +176,7 @@ function getPythonCmd(): PythonCmdResult {
         if (isWindows && !configCmd.endsWith(exeExt)) {
             configCmd = configCmd + exeExt;
         }
+        console.log("Found python command in wypp settings: " + configCmd);
         if (path.isAbsolute(configCmd)) {
             if (fs.existsSync(configCmd)) {
                 return {
@@ -193,12 +196,14 @@ function getPythonCmd(): PythonCmdResult {
         const pyConfig = vscode.workspace.getConfiguration("python");
         const pyExtPyPath: string | undefined = pyConfig.get("pythonPath");
         if (pyExtPyPath) {
+            console.log("Using globally configure python command: " + pyExtPyPath);
             return {
                 kind: 'success',
                 cmd: pyExtPyPath
             };
         } else {
             const pythonCmd = isWindows ? ('python' + exeExt) : 'python3';
+            console.log("Using the default python command: " + pythonCmd);
             return {
                 kind: 'success',
                 cmd: pythonCmd
@@ -333,7 +338,7 @@ export function activate(context: vscode.ExtensionContext) {
         context,
         "run",
         "▶ RUN",
-        (cmdId) => {
+        async (cmdId) => {
             const file =
                 (vscode.window.activeTextEditor) ?
                 vscode.window.activeTextEditor.document.fileName :
@@ -352,7 +357,7 @@ export function activate(context: vscode.ExtensionContext) {
             const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
                 const pythonCmd = fileToCommandArgument(pyCmd.cmd);
-                const cmdTerm = startTerminal(
+                const cmdTerm = await startTerminal(
                     terminals[cmdId]?.terminal,
                     "WYPP - RUN",
                     pythonCmd +  " " + fileToCommandArgument(runProg) + verboseOpt +
