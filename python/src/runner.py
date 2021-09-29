@@ -415,6 +415,12 @@ Python in version 3.9 or newer is required. You are still using version {vStr}, 
         VERBOSE = True
 
     installLib(args.installMode)
+    if site.USER_SITE not in sys.path:
+        if not site.ENABLE_USER_SITE:
+            printStderr(f"User site-packages disabled ({site.USER_SITE}. This might cause problems importing wypp or untypy.")
+        else:
+            verbose(f"Adding user site-package directory {site.USER_SITE} to sys.path")
+            sys.path.append(site.USER_SITE)
     importUntypy()
 
     fileToRun = args.file
