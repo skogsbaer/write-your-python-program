@@ -1,7 +1,8 @@
 untypy.error.UntypyNameError: name 'Foo' is not defined.
 Type annotation of function 'Test.__init__' could not be resolved.
 declared at: test-data/testForwardRef2.py:2
-  2 |     def __init__(self, foo: 'Foo'):
+  1 | class Test:
+  2 >     def __init__(self, foo: 'Foo'):
   3 |         pass
   4 |     def __repr__(self):
   5 |         return 'Test'

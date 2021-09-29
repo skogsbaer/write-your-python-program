@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-untypy.error.UntypyNameError: The name 'FooX' is not defined.
-Type annotation of Class 'Test' is not resoveable.
-Did you forget importing this type?
-test-data/testForwardRef4.py:3
-  1 | from wypp import *
-  2 | 
-  3 > @record
-=======
 untypy.error.UntypyNameError: name 'FooX' is not defined.
 Type annotation of class 'Test' could not be resolved.
 declared at: test-data/testForwardRef4.py:3
-  3 | @record
->>>>>>> master
+  1 | from wypp import *
+  2 | 
+  3 > @record
   4 | class Test:
   5 |     foo: 'FooX'
