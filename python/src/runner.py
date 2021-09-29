@@ -481,10 +481,12 @@ class TypecheckedInteractiveConsole(code.InteractiveConsole):
         if code is None:
             return True
         try:
-            ast = untypy.just_transform("\n".join(self.buffer), filename, symbol)
+            import ast
+            tree = compile("\n".join(self.buffer), filename, symbol, flags=ast.PyCF_ONLY_AST, dont_inherit=True, optimize=-1)
+            tree = untypy.transform_tree(tree, filename)
             code = compile(ast, filename, symbol)
         except Exception as e:
-            if e.text == "":
+            if hasattr(e, "text") and e.text == "":
                 pass
             else:
                 traceback.print_tb(e.__traceback__)
