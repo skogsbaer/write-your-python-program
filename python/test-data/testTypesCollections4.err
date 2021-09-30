@@ -5,16 +5,25 @@ expected: value of type str
 context: foo(l: list[Callable[[], str]]) -> list[str]
                                   ^^^
 declared at: test-data/testTypesCollections4.py:4
-  4 |     l.append(lambda: 42) # error
-declared at: test-data/testTypesCollections4.py:3
+  2 | 
   3 | def foo(l: list[Callable[[], str]]) -> list[str]:
-  4 |     l.append(lambda: 42) # error
+  4 >     l.append(lambda: 42) # error
   5 |     res = []
   6 |     for f in l:
-  7 |         res.append(f())
-    | ...
+declared at: test-data/testTypesCollections4.py:3
+  1 | from wypp import *
+  2 | 
+  3 > def foo(l: list[Callable[[], str]]) -> list[str]:
+  4 |     l.append(lambda: 42) # error
+  5 |     res = []
 
 caused by: test-data/testTypesCollections4.py:4
-  4 |     l.append(lambda: 42) # error
+  2 | 
+  3 | def foo(l: list[Callable[[], str]]) -> list[str]:
+  4 >     l.append(lambda: 42) # error
+  5 |     res = []
+  6 |     for f in l:
 caused by: test-data/testTypesCollections4.py:10
- 10 | foo([])
+  8 |     return res
+  9 | 
+ 10 > foo([])

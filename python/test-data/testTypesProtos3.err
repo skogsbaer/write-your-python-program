@@ -7,8 +7,13 @@ expected: value of type Animal
 context: doSomething(a: Animal) -> None
                         ^^^^^^
 declared at: test-data/testTypesProtos3.py:16
- 16 | def doSomething(a: Animal) -> None:
+ 14 |         return f"{loadness} wuffs"
+ 15 | 
+ 16 > def doSomething(a: Animal) -> None:
  17 |     print(a.makeSound(3.14))
+ 18 |
 
 caused by: test-data/testTypesProtos3.py:19
- 19 | doSomething(Dog())
+ 17 |     print(a.makeSound(3.14))
+ 18 | 
+ 19 > doSomething(Dog())

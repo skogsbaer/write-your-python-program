@@ -1,0 +1,19 @@
+untypy.error.UntypyTypeError
+given:    'you stupid'
+expected: value of type int
+
+context: foo(flag: bool) -> int
+                            ^^^
+declared at: test-data/testTypesReturn.py:1
+  1 > def foo(flag: bool) -> int:
+  2 |     print('Hello World')
+  3 |     if flag:
+  4 |         return 1
+  5 |     else:
+
+caused by: test-data/testTypesReturn.py:6
+  4 |         return 1
+  5 |     else:
+  6 >         return 'you stupid'
+  7 | 
+  8 | foo(False)

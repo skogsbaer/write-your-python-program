@@ -16,7 +16,7 @@ class DummyExecutionContext(ExecutionContext):
             responsable=Location(
                 file="dummy",
                 line_no=0,
-                source_line="dummy"
+                line_span=1
             )
         ))
 
@@ -27,7 +27,7 @@ class DummyDefaultCreationContext(DefaultCreationContext):
         super().__init__(typevars.copy(), Location(
             file="dummy",
             line_no=0,
-            source_line="dummy"
+            line_span=1
         ), checkedpkgprefixes=["test"])
 
 

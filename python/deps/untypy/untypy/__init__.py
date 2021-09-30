@@ -9,9 +9,21 @@ from .patching.ast_transformer import UntypyAstTransformer, did_no_code_run_befo
     UntypyAstImportTransformer
 from .patching.import_hook import install_import_hook
 from .util.condition import FunctionCondition
+from .util.return_traces import ReturnTracesTransformer, before_return, GlobalReturnTraceManager
+from .util.tranformer_combinator import TransformerCombinator
 
 GlobalConfig = DefaultConfig
 
+"""
+This function is called before any return statement, to store which was the last return.
+For this the AST is transformed using ReturnTracesTransformer.
+Must be in untypy so it can be used in transformed module.
+Must also be in other module, so it can be used from inside (No circular imports).
+"""
+_before_return = before_return
+
+_importhook_transformer_builder = lambda path, file: TransformerCombinator(UntypyAstTransformer(),
+                                                                           ReturnTracesTransformer(file))
 
 def just_install_hook(prefixes=[]):
     def predicate(module_name):
@@ -22,17 +34,14 @@ def just_install_hook(prefixes=[]):
                 return True
         return False
 
-    install_import_hook(predicate, lambda path: UntypyAstTransformer())
+    install_import_hook(predicate, _importhook_transformer_builder)
 
 
-def just_transform(source, modname, symbol='exec'):
-    tree = compile(source, modname, symbol, flags=ast.PyCF_ONLY_AST, dont_inherit=True, optimize=-1)
-    transform_tree(tree)
-    return tree
-
-def transform_tree(tree):
+def transform_tree(tree, file):
     UntypyAstTransformer().visit(tree)
+    ReturnTracesTransformer(file).visit(tree)
     ast.fix_missing_locations(tree)
+
 
 def enable(*, recursive: bool = True, root: Union[ModuleType, str, None] = None, prefixes: list[str] = []) -> None:
     global GlobalConfig
@@ -66,9 +75,9 @@ def enable(*, recursive: bool = True, root: Union[ModuleType, str, None] = None,
         else:
             raise AssertionError("You cannot run 'untypy.enable()' twice!")
 
-    transformer = lambda path: UntypyAstTransformer()
+    transformer = _importhook_transformer_builder
     install_import_hook(predicate, transformer)
-    _exec_module_patched(root, exit_after, transformer(caller.__name__.split(".")))
+    _exec_module_patched(root, exit_after, transformer(caller.__name__.split("."), caller.__file__))
 
 
 def enable_on_imports(*prefixes):
@@ -88,9 +97,9 @@ def enable_on_imports(*prefixes):
             else:
                 return False
 
-    transformer = lambda path: UntypyAstImportTransformer(predicate, path)
+    transformer = _importhook_transformer_builder
     install_import_hook(predicate, transformer)
-    _exec_module_patched(caller, True, transformer(caller.__name__.split(".")))
+    _exec_module_patched(caller, True, transformer(caller.__name__.split("."), caller.__file__))
 
 
 def _exec_module_patched(mod: ModuleType, exit_after: bool, transformer: ast.NodeTransformer):
@@ -104,6 +113,7 @@ def _exec_module_patched(mod: ModuleType, exit_after: bool, transformer: ast.Nod
                              "\tuntypy.enable()")
 
     transformer.visit(tree)
+    ReturnTracesTransformer(mod.__file__).visit(tree)
     ast.fix_missing_locations(tree)
     patched_mod = compile(tree, mod.__file__, 'exec', dont_inherit=True, optimize=-1)
     stack = list(map(lambda s: s.frame, inspect.stack()))

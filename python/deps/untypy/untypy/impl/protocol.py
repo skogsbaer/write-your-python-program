@@ -38,7 +38,7 @@ def _find_bound_typevars(clas: type) -> (type, Dict[TypeVar, Any]):
                                    [Location(
                                        file=inspect.getfile(clas),
                                        line_no=inspect.getsourcelines(clas)[1],
-                                       source_line="".join(inspect.getsourcelines(clas)[0]))])
+                                       line_span=len(inspect.getsourcelines(clas)[0]))])
     return (clas.__origin__, dict(zip(keys, values)))
 
 

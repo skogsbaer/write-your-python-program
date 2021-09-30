@@ -2,31 +2,66 @@ from __future__ import annotations
 
 import inspect
 from enum import Enum
+from os.path import relpath
 from typing import Any, Optional, Tuple, Iterable
 
 
 class Location:
     file: str
     line_no: int
-    source_line: str
+    line_span : int
+    source_lines: Optional[str]
 
-    def __init__(self, file: str, line_no: int, source_line: str):
+    def __init__(self, file: str, line_no: int, line_span : int):
         self.file = file
         self.line_no = line_no
-        self.source_line = source_line
+        self.line_span = line_span
+        self.source_lines = None
+
+    def source(self) -> Optional[str]:
+        if self.source_lines is None:
+            try:
+                with open(self.file, "r") as f:
+                    self.source_lines = f.read()
+            except OSError:
+                pass
+
+        return self.source_lines
+
+    def source_lines_span(self) -> Optional[str]:
+        # This is still used for unit testing
+
+        source = self.source()
+        if source is None:
+            return None
+
+        buf = ""
+
+        for i, line in enumerate(source.splitlines()):
+            if (i + 1) in range(self.line_no, self.line_no + self.line_span):
+                buf += f"\n{line}"
+
+        return buf
 
     def __str__(self):
-        buf = f"{self.file}:{self.line_no}"
-        if self.source_line:
-            for i, line in enumerate(self.source_line.splitlines()):
-                if i < 5:
-                    buf += f"\n{'{:3}'.format(self.line_no + i)} | {line}"
-            if i >= 5:
-                buf += "\n    | ..."
+        buf = f"{relpath(self.file)}:{self.line_no}"
+        source = self.source()
+        if source is None:
+            buf += f"\n{'{:3}'.format(self.line_no)} | <source code not found>"
+            return buf
+
+        start = max(self.line_no - 2, 1)
+        end = start + 5
+        for i, line in enumerate(source.splitlines()):
+            if (i + 1) == self.line_no:
+                buf += f"\n{'{:3}'.format(i + 1)} > {line}"
+            elif (i + 1) in range(start, end):
+                buf += f"\n{'{:3}'.format(i + 1)} | {line}"
+
         return buf
 
     def __repr__(self):
-        return f"Location(file={self.file.__repr__()}, line_no={self.line_no.__repr__()}, source_line={repr(self.source_line)})"
+        return f"Location(file={self.file.__repr__()}, line_no={self.line_no.__repr__()}, line_span={self.line_span})"
 
     def __eq__(self, other):
         if not isinstance(other, Location):
@@ -39,13 +74,13 @@ class Location:
             return Location(
                 file=inspect.getfile(obj),
                 line_no=inspect.getsourcelines(obj)[1],
-                source_line="".join(inspect.getsourcelines(obj)[0]),
+                line_span=len(inspect.getsourcelines(obj)[0]),
             )
         except Exception:
             return Location(
                 file=inspect.getfile(obj),
                 line_no=1,
-                source_line=repr(obj)
+                line_span=1,
             )
 
     @staticmethod
@@ -55,28 +90,43 @@ class Location:
                 return Location(
                     file=stack.filename,
                     line_no=stack.lineno,
-                    source_line=stack.code_context[0]
+                    line_span=1
                 )
             except Exception:
                 return Location(
                     file=stack.filename,
                     line_no=stack.lineno,
-                    source_line=None
+                    line_span=1
                 )
         else:  # assume sys._getframe(...)
             try:
-                source_line = inspect.findsource(stack.f_code)[0][stack.f_lineno - 1]
                 return Location(
                     file=stack.f_code.co_filename,
                     line_no=stack.f_lineno,
-                    source_line=source_line
+                    line_span=1
                 )
             except Exception:
                 return Location(
                     file=stack.f_code.co_filename,
                     line_no=stack.f_lineno,
-                    source_line=None
+                    line_span=1
                 )
+
+    def narrow_in_span(self, reti_loc : Tuple[str, int]):
+        """
+        Use new Location if inside of span of this Location
+        :param reti_loc: filename and line_no
+        :return: a new Location, else self
+        """
+        file, line = reti_loc
+        if self.file == file and line in range(self.line_no, self.line_no + self.line_span):
+            return Location(
+                file=file,
+                line_no=line,
+                line_span=1
+            )
+        else:
+            return self
 
 
 class Frame:
