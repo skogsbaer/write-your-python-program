@@ -267,33 +267,40 @@ class RunSetup:
             sys.path.remove(self.sysPath)
             self.sysPathInserted = False
 
+def readFile(path):
+    try:
+        with open(path, encoding='utf-8') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        with open(path) as f:
+            return f.read()
+
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
-    
+
     with RunSetup(localDir):
-        with open(fileToRun) as f:
-            flags = 0 | anns.compiler_flag
-            codeTxt = f.read()
-            if useUntypy:
-                verbose(f'finding modules imported by {fileToRun}')
-                importedMods = findImportedModules([localDir], fileToRun)
-                verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
-                untypy.just_install_hook(importedMods)
-                verbose(f"transforming {fileToRun} for typechecking")
-                tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
-                               dont_inherit=True, optimize=-1)
-                untypy.transform_tree(tree, fileToRun)
-                verbose(f'done with transformation of {fileToRun}')
-                code = tree
-            else:
-                code = codeTxt
-            compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
-            oldArgs = sys.argv
-            try:
-                sys.argv = [fileToRun] + args
-                exec(compiledCode, globals)
-            finally:
-                sys.argv = oldArgs
+        codeTxt = readFile(fileToRun)
+        flags = 0 | anns.compiler_flag
+        if useUntypy:
+            verbose(f'finding modules imported by {fileToRun}')
+            importedMods = findImportedModules([localDir], fileToRun)
+            verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
+            untypy.just_install_hook(importedMods)
+            verbose(f"transforming {fileToRun} for typechecking")
+            tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
+                            dont_inherit=True, optimize=-1)
+            untypy.transform_tree(tree, fileToRun)
+            verbose(f'done with transformation of {fileToRun}')
+            code = tree
+        else:
+            code = codeTxt
+        compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
+        oldArgs = sys.argv
+        try:
+            sys.argv = [fileToRun] + args
+            exec(compiledCode, globals)
+        finally:
+            sys.argv = oldArgs
 
 def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True):
     doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy)
