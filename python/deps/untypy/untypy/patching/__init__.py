@@ -28,7 +28,7 @@ def patch_class(clas: type, cfg: Config):
             declared_location=Location(
                 file=inspect.getfile(clas),
                 line_no=inspect.getsourcelines(clas)[1],
-                source_line="".join(inspect.getsourcelines(clas)[0]),
+                line_span=len(inspect.getsourcelines(clas)[0]),
             ), checkedpkgprefixes=cfg.checkedprefixes)
     except (TypeError, OSError) as e:  # Built in types
         ctx = DefaultCreationContext(
@@ -36,7 +36,7 @@ def patch_class(clas: type, cfg: Config):
             declared_location=Location(
                 file="<not found>",
                 line_no=0,
-                source_line="<not found>",
+                line_span=1
             ), checkedpkgprefixes=cfg.checkedprefixes)
 
     setattr(clas, '__patched', True)

@@ -59,12 +59,14 @@ expected: value of type int
 context: Person(name: str, age: int) -> Self
                                 ^^^
 declared at: test-data/typeRecords.py:3
-  3 | @record
+  1 | from wypp import *
+  2 | 
+  3 > @record
   4 | class Person:
   5 |     name: str
-  6 |     age: int
 
-caused by: <console>:1"""
+caused by: <console>:1
+  1 | <source code not found>"""
         self.assertEqual(expected, '\n'.join(out))
 
     def test_recordFail2(self):
@@ -153,10 +155,11 @@ expected: value of type int
 context: inc(x: int) -> int
                 ^^^
 declared at: test-data/testTypesInteractive.py:1
-  1 | def inc(x: int) -> int:
+  1 > def inc(x: int) -> int:
   2 |     return x + 1
 
-caused by: <console>:1"""
+caused by: <console>:1
+  1 | <source code not found>"""
         self.assertEqual(expected, out)
 
     def test_types3(self):

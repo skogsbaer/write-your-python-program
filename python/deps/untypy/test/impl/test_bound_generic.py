@@ -35,7 +35,7 @@ class TestBoundGeneric(unittest.TestCase):
         with self.assertRaises(UntypyTypeError) as cm:
             instance.insert("this should be an int")
 
-        self.assertTrue("instance.insert" in cm.exception.last_responsable().source_line)
+        self.assertTrue("instance.insert" in cm.exception.last_responsable().source_lines_span())
 
     def test_bound_generic_protocol_style_ok(self):
         instance = Aint()
@@ -99,4 +99,4 @@ class TestBoundGeneric(unittest.TestCase):
         with self.assertRaises(UntypyTypeError) as cm:
             instance.some_string()
 
-        self.assertTrue("def some_string(self) -> T:" in cm.exception.last_responsable().source_line)
+        self.assertTrue("def some_string(self) -> T:" in cm.exception.last_responsable().source_lines_span())

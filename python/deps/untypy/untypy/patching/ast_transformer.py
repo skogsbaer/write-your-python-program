@@ -1,5 +1,5 @@
 import ast
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Any
 
 
 class UntypyAstTransformer(ast.NodeTransformer):

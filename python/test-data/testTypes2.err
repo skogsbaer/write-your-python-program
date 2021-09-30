@@ -5,8 +5,12 @@ expected: value of type int
 context: inc(x: int) -> int
                 ^^^
 declared at: test-data/testTypes2.py:1
-  1 | def inc(x: int) -> int:
+  1 > def inc(x: int) -> int:
   2 |     return x
+  3 | 
+  4 | inc("1")
 
 caused by: test-data/testTypes2.py:4
-  4 | inc("1")
+  2 |     return x
+  3 | 
+  4 > inc("1")

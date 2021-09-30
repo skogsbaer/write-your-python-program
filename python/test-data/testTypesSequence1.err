@@ -5,9 +5,13 @@ expected: value of type Sequence
 context: foo(seq: Sequence) -> None
                   ^^^^^^^^
 declared at: test-data/testTypesSequence1.py:3
-  3 | def foo(seq: Sequence) -> None:
+  1 | from wypp import *
+  2 | 
+  3 > def foo(seq: Sequence) -> None:
   4 |     print(seq)
   5 |     pass
 
 caused by: test-data/testTypesSequence1.py:10
- 10 | foo(1) # should fail
+  8 | foo( ("bar", "baz") )
+  9 | foo("Hello!")
+ 10 > foo(1) # should fail

@@ -269,6 +269,7 @@ class RunSetup:
 
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
+    
     with RunSetup(localDir):
         with open(fileToRun) as f:
             flags = 0 | anns.compiler_flag
@@ -281,7 +282,7 @@ def runCode(fileToRun, globals, args, useUntypy=True):
                 verbose(f"transforming {fileToRun} for typechecking")
                 tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
                                dont_inherit=True, optimize=-1)
-                untypy.transform_tree(tree)
+                untypy.transform_tree(tree, fileToRun)
                 verbose(f'done with transformation of {fileToRun}')
                 code = tree
             else:
@@ -487,10 +488,12 @@ class TypecheckedInteractiveConsole(code.InteractiveConsole):
         if code is None:
             return True
         try:
-            ast = untypy.just_transform("\n".join(self.buffer), filename, symbol)
-            code = compile(ast, filename, symbol)
+            import ast
+            tree = compile("\n".join(self.buffer), filename, symbol, flags=ast.PyCF_ONLY_AST, dont_inherit=True, optimize=-1)
+            untypy.transform_tree(tree, filename)
+            code = compile(tree, filename, symbol)
         except Exception as e:
-            if e.text == "":
+            if hasattr(e, 'text') and e.text == "":
                 pass
             else:
                 traceback.print_tb(e.__traceback__)
