@@ -1,5 +1,9 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.12.4 (2021-09-30)
+  * Improve error message when return type hint is violated
+* 0.12.1 - 0.12.3 (2021-09-29)
+  * several bug fixes
 * 0.12.0 (2021-09-28)
   * **Breaking change:** type annotations are now checked dynamically when the code is executed.
   This behavior can be deactivated in the settings of the extension.

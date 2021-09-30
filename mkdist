@@ -1,6 +1,10 @@
 #!/bin/sh
 
-echo "Did you increase the version number?"
+echo "Version to build:"
+grep version package.json | sed 's/version//g; s/[":,]//g;'
+echo
+
+echo "Is this the right version number?"
 echo "Did you commit all your changes?"
 echo "Did you create a git tag?"
 echo "Hit ENTER to continue!"
