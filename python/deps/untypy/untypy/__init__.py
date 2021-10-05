@@ -26,6 +26,8 @@ _importhook_transformer_builder = lambda path, file: TransformerCombinator(Untyp
                                                                            ReturnTracesTransformer(file))
 
 def just_install_hook(prefixes=[]):
+    global GlobalConfig
+
     def predicate(module_name):
         for p in prefixes:
             if module_name == p:
@@ -34,6 +36,7 @@ def just_install_hook(prefixes=[]):
                 return True
         return False
 
+    GlobalConfig = DefaultConfig._replace(checkedprefixes=[*prefixes])
     install_import_hook(predicate, _importhook_transformer_builder)
 
 
