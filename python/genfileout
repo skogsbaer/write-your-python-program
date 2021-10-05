@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-file=$1
-out="${file%.py}.out"
-err="${file%.py}.err"
-python3 ./src/runYourProgram.py --quiet "$file" 2> "$err" > "$out"
-
-cat "$out"
-cat "$err"
