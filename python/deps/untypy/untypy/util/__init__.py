@@ -2,7 +2,7 @@ import inspect
 import types
 from typing import Optional, Union, List
 
-from untypy.display import IndicatorStr
+from untypy.util.display import IndicatorStr
 from untypy.error import UntypyTypeError, Frame, Location
 from untypy.interfaces import ExecutionContext, TypeChecker, WrappedFunction
 from untypy.util.return_traces import get_last_return

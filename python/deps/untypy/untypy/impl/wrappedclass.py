@@ -3,7 +3,8 @@ import sys
 from types import ModuleType
 from typing import Any, Callable, Union, Optional
 
-from untypy.error import Location, UntypyAttributeError
+from untypy.util.display import format_argument_values
+from untypy.error import Location, UntypyAttributeError, UntypyTypeError
 from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeChecker, CreationContext, ExecutionContext, WrappedFunction, \
     WrappedFunctionContextProvider
@@ -169,7 +170,15 @@ class WrappedClassFunction(WrappedFunction):
         return self.inner
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
-        bindings = self.signature.bind(*args, **kwargs)
+        try:
+            bindings = self.signature.bind(*args, **kwargs)
+        except TypeError:
+            err = UntypyTypeError(
+                given=format_argument_values(args, kwargs),
+                expected=self.describe(),
+            ).with_note("Arguments do not match.")
+            raise ctxprv("").wrap(err)
+
         bindings.apply_defaults()
         if self.fc is not None:
             self.fc.prehook(bindings, ctxprv)
