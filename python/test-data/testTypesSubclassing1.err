@@ -1,0 +1,48 @@
+untypy.error.UntypyTypeError
+Type 'Dog' does not implement Parent 'Animal' correctly.
+
+given:    <__wypp__.Dog object at 0x7f09164bfdf0>
+expected: value of type Animal
+
+context: feedAnimal(a: Animal) -> None
+                       ^^^^^^
+declared at: test-data/testTypesSubclassing1.py:21
+ 19 |         print(f'Tasty dog food: {food.name} ({food.weight}g)')
+ 20 | 
+ 21 > def feedAnimal(a: Animal) -> None:
+ 22 |     a.feed(AnimalFood('some cat food'))
+ 23 |
+
+caused by: test-data/testTypesSubclassing1.py:25
+ 23 | 
+ 24 | dog = Dog()
+ 25 > feedAnimal(dog)
+
+The argument 'food' of method 'feed' violates the Parent 'Animal'.
+The annotation 'DogFood' is incompatible with the Parent's annotation 'AnimalFood'
+when checking against the following value:
+
+given:    <__wypp__.AnimalFood object at 0x7f091646b250>
+expected: value of type DogFood
+
+context: feed(self: Self, food: DogFood) -> None
+                                ^^^^^^^
+declared at: test-data/testTypesSubclassing1.py:18
+ 16 | class Dog(Animal):
+ 17 |     # Dog provides an invalid override for feed
+ 18 >     def feed(self, food: DogFood) -> None:
+ 19 |         print(f'Tasty dog food: {food.name} ({food.weight}g)')
+ 20 |
+declared at: test-data/testTypesSubclassing1.py:8
+  6 | 
+  7 | class Animal:
+  8 >     def feed(self, food: AnimalFood) -> None:
+  9 |         print(f'Tasty animal food: {food.name}')
+ 10 |
+
+caused by: test-data/testTypesSubclassing1.py:18
+ 16 | class Dog(Animal):
+ 17 |     # Dog provides an invalid override for feed
+ 18 >     def feed(self, food: DogFood) -> None:
+ 19 |         print(f'Tasty dog food: {food.name} ({food.weight}g)')
+ 20 |
