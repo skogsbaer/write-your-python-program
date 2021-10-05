@@ -2,7 +2,7 @@ untypy.error.UntypyTypeError
 Arguments do not match.
 Hint: 'self'-parameter was omitted in declaration.
 
-given:    '(<__wypp__.Dog object at 0x7fca96d507c0>, 3.14)'
+given:    '(<Dog>, 3.14)'
 expected: value of type makeSound(loadness: 'float') -> 'str'
 
 context: makeSound(loadness: float) -> str
@@ -14,9 +14,9 @@ declared at: test-data/testTypesProtos2.py:8
   9 |         pass
  10 |
 
-caused by: test-data/testTypesProtos2.py:17
- 15 | 
- 16 | def doSomething(a: Animal) -> None:
- 17 >     print(a.makeSound(3.14))
- 18 | 
- 19 | doSomething(Dog())
+caused by: test-data/testTypesProtos2.py:19
+ 17 | 
+ 18 | def doSomething(a: Animal) -> None:
+ 19 >     print(a.makeSound(3.14))
+ 20 | 
+ 21 | doSomething(Dog())
