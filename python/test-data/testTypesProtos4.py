@@ -4,7 +4,7 @@ from typing import Protocol
 import abc
 
 class Interface(Protocol):
-    abc.abstractmethod
+    @abc.abstractmethod
     def meth(self) -> Callable[[int], int]:
         pass
 
