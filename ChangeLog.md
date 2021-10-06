@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.12.5 (2021-10-06)
+  * Fix encoding bug under Windows
+  * Fix for #9
 * 0.12.4 (2021-09-30)
   * Improve error message when return type hint is violated
 * 0.12.1 - 0.12.3 (2021-09-29)
