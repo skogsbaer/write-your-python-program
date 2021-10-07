@@ -16,4 +16,4 @@ function run()
 }
 
 PYENV_VERSION=3.9.7 run
-PYENV_VERSION=3.10.0rc1 run
+PYENV_VERSION=3.10.0 run
