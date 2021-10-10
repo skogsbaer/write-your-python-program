@@ -50,10 +50,14 @@ def _patchDataClass(cls, mutable):
         checker = {}
         # Note: Partial annotations are disallowed by untypy.typechecked(cls.__init__)
         #       So no handling in this code is required.
-        annotations = typing.get_type_hints(cls, include_extras=True)
         for name in fields:
-            if name in annotations:
-                checker[name] = untypy.checker(annotations[name],cls)
+            if name in cls.__annotations__:
+                # This the type is wrapped in an lambda expression to allow for Forward Ref.
+                # Would the lambda expression be called at this moment, it may cause an name error
+                # untypy.checker fetches the annotation lazily.
+                checker[name] = untypy.checker(\
+                    lambda cls=cls,name=name: typing.get_type_hints(cls, include_extras=True)[name], 
+                    cls)
 
         oldSetattr = cls.__setattr__
         def _setattr(obj, k, v):

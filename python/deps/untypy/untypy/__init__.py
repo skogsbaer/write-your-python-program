@@ -197,5 +197,10 @@ def wrap_import(a: Any) -> Any:
         return a
 
 
-def checker(annotation : Any, location : Any) -> Callable[[Any], Any]:
+def checker(annotation :  Callable[[], Any], location : Any) -> Callable[[Any], Any]:
+    """
+    :param annotation: A functions that returns the annotation lazily. (Needed for FowardRefs)
+    :param location: Where was it declared?
+    :return: A type checker function
+    """
     return StandaloneChecker(annotation, location, DefaultConfig)
