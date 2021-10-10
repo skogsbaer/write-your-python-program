@@ -1,0 +1,18 @@
+untypy.error.UntypyTypeError
+given:    'hello'
+expected: value of type int
+
+
+declared at: test-data/testRecordSetTypes.py:3
+  1 | from wypp import * 
+  2 | 
+  3 > @record(mutable=True)
+  4 | class Record:
+  5 |     x : int
+
+caused by: test-data/testRecordSetTypes.py:10
+  8 | def m():
+  9 |     r = Record(x=42, y=[])
+ 10 >     r.x = "hello"
+ 11 | 
+ 12 | m()
