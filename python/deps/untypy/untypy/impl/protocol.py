@@ -4,7 +4,7 @@ import typing
 from typing import Protocol, Any, Optional, Callable, Union, TypeVar, Dict, Tuple
 
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, ResponsibilityType
-from untypy.impl.any import SelfChecker
+from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, ExecutionContext, \
     WrappedFunctionContextProvider
 from untypy.util import WrappedFunction, ArgumentExecutionContext, ReturnExecutionContext
@@ -42,7 +42,7 @@ def _find_bound_typevars(clas: type) -> (type, Dict[TypeVar, Any]):
     return (clas.__origin__, dict(zip(keys, values)))
 
 
-def get_proto_members(proto: type, ctx: CreationContext) -> Dict[
+def get_proto_members(proto: type, ctx: CreationContext) -> dict[
     str, Tuple[inspect.Signature, dict[str, TypeChecker], FunctionCondition]]:
     blacklist = ['__init__', '__class__', '__delattr__', '__dict__', '__dir__',
                  '__doc__', '__getattribute__', '__getattr__', '__init_subclass__',
@@ -57,43 +57,56 @@ def get_proto_members(proto: type, ctx: CreationContext) -> Dict[
         if inspect.isfunction(member):
             member = WrappedFunction.find_original(member)
             signature = inspect.signature(member)
-            annotations = typing.get_type_hints(member, include_extras=True)
+
+            is_typed = len(inspect.getfullargspec(member).annotations) != 0
+
             checkers = {}
-            for key in signature.parameters:
-                if key == 'self':
-                    checkers[key] = SelfChecker()
-                else:
-                    param = signature.parameters[key]
-                    if param.annotation is inspect.Parameter.empty:
-                        raise ctx.wrap(UntypyAttributeError(
-                            f"Missing annotation for argument '{key}' of function {member.__name__} "
-                            f"in protocol {proto.__name__}\n"))
-
-                    checker = ctx.find_checker(annotations[key])
-                    if checker is None:
-                        raise ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {param.annotation}\n"
-                                                            f"for argument '{key}' of function {member.__name__} "
-                                                            f"in protocol {proto.__name__}.\n"))
-                    checkers[key] = checker
-
-            if signature.return_annotation is inspect.Parameter.empty:
-                raise ctx.wrap(UntypyAttributeError(
-                    f"Missing annotation for return value of function {member.__name__} "
-                    f"in protocol {proto.__name__}. Use 'None' if there is no return value.\n"))
-            return_annotation = annotations['return']
-            if return_annotation is proto:  # Self as Return Type would led to endless recursion
-                return_checker = SimpleInstanceOfChecker(proto, None)
+            if not is_typed:
+                # Use Any for any type
+                for key in signature.parameters:
+                    if key == 'self':
+                        checkers[key] = SelfChecker()
+                    else:
+                        checkers[key] = AnyChecker()
+                checkers['return'] = AnyChecker()
             else:
-                return_checker = ctx.find_checker(return_annotation)
+                annotations = typing.get_type_hints(member, include_extras=True)
+                for key in signature.parameters:
+                    if key == 'self':
+                        checkers[key] = SelfChecker()
+                    else:
+                        param = signature.parameters[key]
+                        if param.annotation is inspect.Parameter.empty:
+                            raise ctx.wrap(UntypyAttributeError(
+                                f"Missing annotation for argument '{key}' of function {member.__name__} "
+                                f"in protocol {proto.__name__}\n"))
 
-            if return_checker is None:
-                raise ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {signature.return_annotation}\n"
-                                                    f"for return value of function {member.__name__} "
-                                                    f"in protocol-like {proto.__name__}.\n"))
+                        checker = ctx.find_checker(annotations[key])
+                        if checker is None:
+                            raise ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {param.annotation}\n"
+                                                                f"for argument '{key}' of function {member.__name__} "
+                                                                f"in protocol {proto.__name__}.\n"))
+                        checkers[key] = checker
+
+                if signature.return_annotation is inspect.Parameter.empty:
+                    raise ctx.wrap(UntypyAttributeError(
+                        f"Missing annotation for return value of function {member.__name__} "
+                        f"in protocol {proto.__name__}. Use 'None' if there is no return value.\n"))
+                return_annotation = annotations['return']
+                if return_annotation is proto:  # Self as Return Type would led to endless recursion
+                    return_checker = SimpleInstanceOfChecker(proto, None)
+                else:
+                    return_checker = ctx.find_checker(return_annotation)
+
+                if return_checker is None:
+                    raise ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {signature.return_annotation}\n"
+                                                        f"for return value of function {member.__name__} "
+                                                        f"in protocol-like {proto.__name__}.\n"))
+                checkers['return'] = return_checker
+
             fc = None
             if hasattr(member, '__fc'):
                 fc = getattr(member, '__fc')
-            checkers['return'] = return_checker
             member_dict[name] = (signature, checkers, fc)
     return member_dict
 
@@ -153,7 +166,7 @@ class ProtocolChecker(TypeChecker):
 
 
 def ProtocolWrapper(protocolchecker: ProtocolChecker, original: type,
-                    members: Dict[str, Tuple[inspect.Signature, dict[str, TypeChecker], FunctionCondition]],
+                    members: dict[str, Tuple[inspect.Signature, dict[str, TypeChecker], FunctionCondition]],
                     ctx: ExecutionContext):
     list_of_attr = dict()
     for fnname in members:
@@ -162,7 +175,7 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, original: type,
                 expected=protocolchecker.describe(),
                 given=original.__name__
             )).with_note(
-                f"Type {original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}. It is missing the function '{fnname}'")
+                f"Type {original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}. It is missing the function '{fnname}'.")
 
         original_fn = getattr(original, fnname)
         try:

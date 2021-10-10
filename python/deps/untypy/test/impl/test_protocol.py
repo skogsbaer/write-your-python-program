@@ -31,6 +31,10 @@ class ProtoReceiveB(Protocol):
     def meth(self, b: B) -> None:
         raise NotImplementedError
 
+class UntypedProtocol(Protocol):
+    @untypy.patch
+    def meth(self, a, b):
+        raise NotImplementedError
 
 class TestProtocolTestCommon(unittest.TestCase):
 
@@ -228,3 +232,49 @@ class TestProtocolSpecific(unittest.TestCase):
             .create_from(Union[U2, U1], DummyDefaultCreationContext()) \
             .check_and_wrap(U2(), DummyExecutionContext()) \
             .meth()
+
+    def test_untyped_no_match(self):
+        checker = ProtocolFactory().create_from(UntypedProtocol, DummyDefaultCreationContext())
+        class U0:
+            @untypy.patch
+            def notmeth(self, a, b):
+                return 42
+
+        with self.assertRaises(UntypyTypeError) as cm:
+            checker.check_and_wrap(U0(), DummyExecutionContext())
+        self.assertEqual(cm.exception.expected, "UntypedProtocol")
+
+    def test_untyped_match(self):
+        checker = ProtocolFactory().create_from(UntypedProtocol, DummyDefaultCreationContext())
+        class U1:
+            @untypy.patch
+            def meth(self, a, b): # matches
+                return 42
+
+        self.assertEqual(checker.check_and_wrap(U1(), DummyExecutionContext()).meth("a", "b"), 42)
+
+    def test_untyped_nomatch_signature(self):
+        checker = ProtocolFactory().create_from(UntypedProtocol, DummyDefaultCreationContext())
+        class U2:
+            @untypy.patch
+            def meth(self, a): # does not match
+                pass
+
+        with self.assertRaises(UntypyTypeError) as cm:
+            checker.check_and_wrap(U2(), DummyExecutionContext()).meth("a", 42)
+        self.assertEqual(cm.exception.expected, "UntypedProtocol")
+
+    def test_untyped_narrow_signature(self):
+        checker = ProtocolFactory().create_from(UntypedProtocol, DummyDefaultCreationContext())
+        class U3:
+            @untypy.patch
+            def meth(self, a : int, b : int) -> int: # matches, but to specific
+                return a + b
+
+        wrapped = checker.check_and_wrap(U3(), DummyExecutionContext())
+
+        self.assertEqual(wrapped.meth(10, 20), 30)
+        with self.assertRaises(UntypyTypeError) as cm:
+            wrapped.meth("a", 20)
+
+        self.assertEqual(cm.exception.previous_chain.expected, "UntypedProtocol")
