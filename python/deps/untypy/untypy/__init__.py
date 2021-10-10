@@ -2,12 +2,13 @@ import ast
 import inspect
 import sys
 from types import ModuleType
-from typing import Optional, Any, Union
+from typing import Optional, Any, Union, Callable
 
 from .patching import wrap_function, patch_class, wrap_class, DefaultConfig
 from .patching.ast_transformer import UntypyAstTransformer, did_no_code_run_before_untypy_enable, \
     UntypyAstImportTransformer
 from .patching.import_hook import install_import_hook
+from .patching.standalone_checker import StandaloneChecker
 from .util.condition import FunctionCondition
 from .util.return_traces import ReturnTracesTransformer, before_return, GlobalReturnTraceManager
 from .util.tranformer_combinator import TransformerCombinator
@@ -194,3 +195,7 @@ def wrap_import(a: Any) -> Any:
         return wrap_class(a, GlobalConfig)
     else:
         return a
+
+
+def checker(annotation : Any, location : Any) -> Callable[[Any], Any]:
+    return StandaloneChecker(annotation, location, DefaultConfig)
