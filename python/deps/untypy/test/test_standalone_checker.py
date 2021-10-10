@@ -6,7 +6,7 @@ from untypy.error import UntypyTypeError, Location
 class TestStandaloneChecker(unittest.TestCase):
 
     def test_standalone(self):
-        ch = untypy.checker(int, TestStandaloneChecker.test_standalone)
+        ch = untypy.checker(lambda: int, TestStandaloneChecker.test_standalone)
 
         self.assertEqual(ch(42), 42)
 
