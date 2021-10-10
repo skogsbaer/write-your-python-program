@@ -46,9 +46,21 @@ def _patchDataClass(cls, mutable):
     if mutable:
         # prevent new fields being added
         fields = set(fieldNames)
+
+        checker = {}
+        # Note: Partial annotations are disallowed by untypy.typechecked(cls.__init__)
+        #       So no handling in this code is required.
+        annotations = typing.get_type_hints(cls, include_extras=True)
+        for name in fields:
+            if name in annotations:
+                checker[name] = untypy.checker(annotations[name],cls)
+
         oldSetattr = cls.__setattr__
         def _setattr(obj, k, v):
-            if k in fields:
+            # Note __setattr__ also gets called in the constructor.
+            if k in checker:
+                oldSetattr(obj, k, checker[k](v))
+            elif k in fields:
                 oldSetattr(obj, k, v)
             else:
                 raise AttributeError(f'Unknown attribute {k} for record {cls.__name__}')
