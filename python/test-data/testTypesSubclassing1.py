@@ -3,10 +3,14 @@ from wypp import *
 class AnimalFood:
     def __init__(self, name: str):
         self.name = name
+    def __repr__(self) -> str:
+        return f"<{type(self).__qualname__}>"
 
 class Animal:
     def feed(self, food: AnimalFood) -> None:
         print(f'Tasty animal food: {food.name}')
+    def __repr__(self) -> str:
+        return f"<{type(self).__qualname__}>"
 
 class DogFood(AnimalFood):
     def __init__(self, name: str, weight: float):
