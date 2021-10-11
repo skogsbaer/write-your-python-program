@@ -3,7 +3,8 @@ import sys
 import typing
 from typing import Callable, Dict
 
-from untypy.error import UntypyAttributeError, UntypyNameError
+from untypy.util.display import format_argument_values
+from untypy.error import UntypyAttributeError, UntypyNameError, UntypyTypeError
 from untypy.impl.any import SelfChecker
 from untypy.interfaces import WrappedFunction, TypeChecker, CreationContext, WrappedFunctionContextProvider, \
     ExecutionContext
@@ -97,7 +98,15 @@ class TypedFunctionBuilder(WrappedFunction):
         return w
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
-        bindings = self.signature.bind(*args, **kwargs)
+        try:
+            bindings = self.signature.bind(*args, **kwargs)
+        except TypeError:
+            err = UntypyTypeError(
+                given=format_argument_values(args, kwargs),
+                expected=self.describe(),
+            ).with_note("Arguments do not match.")
+            raise ctxprv("").wrap(err)
+
         bindings.apply_defaults()
         if self.fc is not None:
             self.fc.prehook(bindings, ctxprv)

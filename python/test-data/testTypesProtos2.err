@@ -1,0 +1,22 @@
+untypy.error.UntypyTypeError
+Arguments do not match.
+Hint: 'self'-parameter was omitted in declaration.
+
+given:    '(<Dog>, 3.14)'
+expected: value of type makeSound(loadness: 'float') -> 'str'
+
+context: makeSound(loadness: float) -> str
+         
+declared at: test-data/testTypesProtos2.py:8
+  6 | class Animal(Protocol):
+  7 |     @abc.abstractmethod
+  8 >     def makeSound(loadness: float) -> str: # self parameter omitted!
+  9 |         pass
+ 10 |
+
+caused by: test-data/testTypesProtos2.py:19
+ 17 | 
+ 18 | def doSomething(a: Animal) -> None:
+ 19 >     print(a.makeSound(3.14))
+ 20 | 
+ 21 | doSomething(Dog())

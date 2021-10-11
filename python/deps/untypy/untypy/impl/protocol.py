@@ -3,6 +3,7 @@ import sys
 import typing
 from typing import Protocol, Any, Optional, Callable, Union, TypeVar, Dict, Tuple
 
+from untypy.util.display import format_argument_values
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, ResponsibilityType
 from untypy.impl.any import SelfChecker
 from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, ExecutionContext, \
@@ -269,7 +270,19 @@ class ProtocolWrappedFunction(WrappedFunction):
         return self.inner
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
-        bindings = self.signature.bind(*args, **kwargs)
+        try:
+            bindings = self.signature.bind(*args, **kwargs)
+        except TypeError:
+            err = UntypyTypeError(
+                given=format_argument_values(args, kwargs),
+                expected=self.describe(),
+            ).with_note("Arguments do not match.")
+
+            if "self" not in self.signature.parameters:
+                err = err.with_note("Hint: 'self'-parameter was omitted in declaration.")
+
+            raise ctxprv("").wrap(err)
+
         bindings.apply_defaults()
         if self.fc is not None:
             self.fc.prehook(bindings, ctxprv)

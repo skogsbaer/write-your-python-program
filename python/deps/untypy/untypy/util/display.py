@@ -1,3 +1,6 @@
+import inspect
+
+
 class IndicatorStr:
     ty: str
     indicator: str
@@ -17,3 +20,13 @@ class IndicatorStr:
             self.ty.join(map(lambda s: s.ty, lst)),
             self.indicator.join(map(lambda s: s.indicator, lst)),
         )
+
+
+def format_argument_values(args, kwargs):
+    allargs = []
+    for a in args:
+        allargs.append(a.__repr__())
+    for k,v in kwargs.items():
+        allargs.append(k + "=" + v.__repr__())
+
+    return "(" + ", ".join(allargs) + ")"
