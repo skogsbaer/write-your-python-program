@@ -1,9 +1,9 @@
 import inspect
 from collections import namedtuple
 from types import FunctionType
-from typing import Callable, Protocol, Optional
+from typing import Callable, Protocol, Optional, Any
 
-from untypy.error import Location, UntypyNameError
+from untypy.error import Location, UntypyNameError, UntypyAttributeError
 from untypy.impl import DefaultCreationContext
 from untypy.impl.bound_generic import WrappedGenericAlias
 from untypy.impl.wrappedclass import WrappedType
