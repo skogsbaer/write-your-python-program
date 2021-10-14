@@ -1,17 +1,12 @@
-untypy.error.UntypyTypeError
+Traceback (most recent call last):
+  File "test-data/testTypesSequence1.py", line 10, in <module>
+    foo(1) # should fail
+WyppTypeError: got value of wrong type
 given:    1
 expected: value of type Sequence
 
 context: foo(seq: Sequence) -> None
                   ^^^^^^^^
 declared at: test-data/testTypesSequence1.py:3
-  1 | from wypp import *
-  2 | 
-  3 > def foo(seq: Sequence) -> None:
-  4 |     print(seq)
-  5 |     pass
-
 caused by: test-data/testTypesSequence1.py:10
-  8 | foo( ("bar", "baz") )
-  9 | foo("Hello!")
- 10 > foo(1) # should fail
+  | foo(1) # should fail

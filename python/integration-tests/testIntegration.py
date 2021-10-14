@@ -52,22 +52,18 @@ class TypeTests(unittest.TestCase):
     def test_recordFail1(self):
         rec = 'test-data/typeRecords.py'
         out = runInteractive(rec, 'Person("stefan", 42.3)')
-        expected = """untypy.error.UntypyTypeError
+        expected = """Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+WyppTypeError: got value of wrong type
 given:    42.3
 expected: value of type int
 
 context: Person(name: str, age: int) -> Self
                                 ^^^
 declared at: test-data/typeRecords.py:3
-  1 | from wypp import *
-  2 | 
-  3 > @record
-  4 | class Person:
-  5 |     name: str
-
-caused by: <console>:1
-  1 | <source code not found>"""
-        self.assertEqual(expected, '\n'.join(out))
+caused by: <console>:1"""
+        real = '\n'.join(out)
+        self.assertEqual(expected, real)
 
     def test_recordFail2(self):
         rec = 'test-data/typeRecords.py'
@@ -148,18 +144,16 @@ class InteractiveTests(unittest.TestCase):
 
     def test_types2(self):
         out = runInteractive('test-data/testTypesInteractive.py', 'inc("3")')[0]
-        expected = """untypy.error.UntypyTypeError
+        expected = """Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+WyppTypeError: got value of wrong type
 given:    '3'
 expected: value of type int
 
 context: inc(x: int) -> int
                 ^^^
 declared at: test-data/testTypesInteractive.py:1
-  1 > def inc(x: int) -> int:
-  2 |     return x + 1
-
-caused by: <console>:1
-  1 | <source code not found>"""
+caused by: <console>:1"""
         self.assertEqual(expected, out)
 
     def test_types3(self):

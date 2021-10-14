@@ -1,19 +1,16 @@
-untypy.error.UntypyTypeError
+Traceback (most recent call last):
+  File "test-data/testTypesProtos4.py", line 27, in <module>
+    print(foo(ConcreteWrong()))
+  File "test-data/testTypesProtos4.py", line 24, in foo
+    return fn(2)
+  File "test-data/testTypesProtos4.py", line 20, in <lambda>
+    return lambda x: bar(x) # invalid call of bar with argument of type int
+WyppTypeError: got value of wrong type
 given:    2
 expected: value of type str
 
 context: bar(s: str) -> int
                 ^^^
 declared at: test-data/testTypesProtos4.py:15
- 13 |         return lambda x: x + 1
- 14 | 
- 15 > def bar(s: str) -> int:
- 16 |     return len(s)
- 17 |
-
 caused by: test-data/testTypesProtos4.py:20
- 18 | class ConcreteWrong:
- 19 |     def meth(self) -> Callable[[int], int]:
- 20 >         return lambda x: bar(x) # invalid call of bar with argument of type int
- 21 | 
- 22 | def foo(obj: Interface) -> int:
+  |         return lambda x: bar(x) # invalid call of bar with argument of type int

@@ -1,25 +1,20 @@
-untypy.error.UntypyTypeError
-Type 'Dog' does not implement protocol 'Animal' correctly.
-
+Traceback (most recent call last):
+  File "test-data/testTypesProtos1.py", line 21, in <module>
+    doSomething(Dog())
+  File "test-data/testTypesProtos1.py", line 19, in doSomething
+    print(a.makeSound(3.14))
+WyppTypeError: Dog does not implement protocol Animal correctly.
 given:    <Dog object>
 expected: value of type Animal
 
 context: doSomething(a: Animal) -> None
                         ^^^^^^
 declared at: test-data/testTypesProtos1.py:18
- 16 |         return "<Dog object>"
- 17 | 
- 18 > def doSomething(a: Animal) -> None:
- 19 |     print(a.makeSound(3.14))
- 20 |
-
 caused by: test-data/testTypesProtos1.py:21
- 19 |     print(a.makeSound(3.14))
- 20 | 
- 21 > doSomething(Dog())
+  | doSomething(Dog())
 
-The argument 'loadness' of method 'makeSound' violates the protocol 'Animal'.
-The annotation 'int' is incompatible with the protocol's annotation 'float'
+Argument 'loadness' of method 'makeSound' violates the protocol 'Animal'.
+Annotation 'int' is incompatible with the protocol's annotation 'float'
 when checking against the following value:
 
 given:    3.14
@@ -28,21 +23,6 @@ expected: value of type int
 context: makeSound(self: Self, loadness: int) -> str
                                          ^^^
 declared at: test-data/testTypesProtos1.py:13
- 11 | class Dog:
- 12 |     # incorrect implementation of the Animal protocol
- 13 >     def makeSound(self, loadness: int) -> str:
- 14 |         return f"{loadness} wuffs"
- 15 |     def __repr__(self):
 declared at: test-data/testTypesProtos1.py:8
-  6 | class Animal(Protocol):
-  7 |     @abc.abstractmethod
-  8 >     def makeSound(self, loadness: float) -> str:
-  9 |         pass
- 10 |
-
 caused by: test-data/testTypesProtos1.py:13
- 11 | class Dog:
- 12 |     # incorrect implementation of the Animal protocol
- 13 >     def makeSound(self, loadness: int) -> str:
- 14 |         return f"{loadness} wuffs"
- 15 |     def __repr__(self):
+  |     def makeSound(self, loadness: int) -> str:

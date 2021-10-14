@@ -1,25 +1,20 @@
-untypy.error.UntypyTypeError
-Type 'Dog' does not implement Parent 'Animal' correctly.
-
+Traceback (most recent call last):
+  File "test-data/testTypesSubclassing1.py", line 29, in <module>
+    feedAnimal(dog)
+  File "test-data/testTypesSubclassing1.py", line 26, in feedAnimal
+    a.feed(AnimalFood('some cat food'))
+WyppTypeError: Dog does not implement Parent Animal correctly.
 given:    <Dog>
 expected: value of type Animal
 
 context: feedAnimal(a: Animal) -> None
                        ^^^^^^
 declared at: test-data/testTypesSubclassing1.py:25
- 23 |         print(f'Tasty dog food: {food.name} ({food.weight}g)')
- 24 | 
- 25 > def feedAnimal(a: Animal) -> None:
- 26 |     a.feed(AnimalFood('some cat food'))
- 27 |
-
 caused by: test-data/testTypesSubclassing1.py:29
- 27 | 
- 28 | dog = Dog()
- 29 > feedAnimal(dog)
+  | feedAnimal(dog)
 
-The argument 'food' of method 'feed' violates the Parent 'Animal'.
-The annotation 'DogFood' is incompatible with the Parent's annotation 'AnimalFood'
+Argument 'food' of method 'feed' violates the Parent 'Animal'.
+Annotation 'DogFood' is incompatible with the Parent's annotation 'AnimalFood'
 when checking against the following value:
 
 given:    <AnimalFood>
@@ -28,21 +23,6 @@ expected: value of type DogFood
 context: feed(self: Self, food: DogFood) -> None
                                 ^^^^^^^
 declared at: test-data/testTypesSubclassing1.py:22
- 20 | class Dog(Animal):
- 21 |     # Dog provides an invalid override for feed
- 22 >     def feed(self, food: DogFood) -> None:
- 23 |         print(f'Tasty dog food: {food.name} ({food.weight}g)')
- 24 |
 declared at: test-data/testTypesSubclassing1.py:10
-  8 | 
-  9 | class Animal:
- 10 >     def feed(self, food: AnimalFood) -> None:
- 11 |         print(f'Tasty animal food: {food.name}')
- 12 |     def __repr__(self) -> str:
-
 caused by: test-data/testTypesSubclassing1.py:22
- 20 | class Dog(Animal):
- 21 |     # Dog provides an invalid override for feed
- 22 >     def feed(self, food: DogFood) -> None:
- 23 |         print(f'Tasty dog food: {food.name} ({food.weight}g)')
- 24 |
+  |     def feed(self, food: DogFood) -> None:

@@ -349,9 +349,6 @@ def enterInteractive(userDefs):
         globals()[k] = v
     print()
 
-def isMyCode(frame):
-    return '__wypp_runYourProgram' in frame.f_globals
-
 def tbToFrameList(tb):
     cur = tb
     res = []
@@ -360,12 +357,11 @@ def tbToFrameList(tb):
         cur = cur.tb_next
     return res
 
-def isUntypyCode(frame):
-    modName = frame.f_globals["__name__"]
-    return modName == 'untypy' or modName.startswith('untypy.')
-
 def ignoreFrame(frame):
-    return isMyCode(frame) or isUntypyCode(frame)
+    modName = frame.f_globals["__name__"]
+    return '__wypp_runYourProgram' in frame.f_globals or \
+        modName == 'untypy' or modName.startswith('untypy.') or \
+        modName == 'wypp' or modName.startswith('wypp.')
 
 # Returns a StackSummary object
 def limitTraceback(tb):
@@ -377,8 +373,11 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     if tb and removeFirstTb:
         tb = tb.tb_next
     stackSummary = limitTraceback(tb)
-    file.write('Traceback (most recent call last):\n')
+    header = False
     for x in stackSummary.format():
+        if not header:
+            file.write('Traceback (most recent call last):\n')
+            header = True
         file.write(x)
     if isinstance(val, untypy.error.UntypyError):
         name = 'Wypp' + val.simpleName()

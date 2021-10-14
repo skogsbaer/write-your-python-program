@@ -1,16 +1,12 @@
-untypy.error.UntypyTypeError
+Traceback (most recent call last):
+  File "test-data/testTypes1.py", line 4, in <module>
+    inc("1")
+WyppTypeError: got value of wrong type
 given:    '1'
 expected: value of type int
 
 context: inc(x: int) -> int
                 ^^^
 declared at: test-data/testTypes1.py:1
-  1 > def inc(x: int) -> int:
-  2 |     return x + 1
-  3 | 
-  4 | inc("1")
-
 caused by: test-data/testTypes1.py:4
-  2 |     return x + 1
-  3 | 
-  4 > inc("1")
+  | inc("1")

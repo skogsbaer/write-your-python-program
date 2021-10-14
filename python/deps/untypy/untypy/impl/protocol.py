@@ -134,7 +134,7 @@ class ProtocolChecker(TypeChecker):
         if type(arg) in self.wrapper_types:
             return self.wrapper_types[type(arg)](arg, ctx)
         else:
-            wrapped_type = ProtocolWrapper(self, type(arg), self.members, ctx)
+            wrapped_type = ProtocolWrapper(self, arg, self.members, ctx)
             self.wrapper_types[type(arg)] = wrapped_type
             return wrapped_type(arg, ctx)
 
@@ -166,17 +166,19 @@ class ProtocolChecker(TypeChecker):
         return self.describe()
 
 
-def ProtocolWrapper(protocolchecker: ProtocolChecker, original: type,
+def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
                     members: dict[str, Tuple[inspect.Signature, dict[str, TypeChecker], FunctionCondition]],
                     ctx: ExecutionContext):
     list_of_attr = dict()
+    original = type(originalValue)
     for fnname in members:
         if not hasattr(original, fnname):
             raise ctx.wrap(UntypyTypeError(
                 expected=protocolchecker.describe(),
-                given=original.__name__
-            )).with_note(
-                f"Type {original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}. It is missing the function '{fnname}'.")
+                given=originalValue
+            )).with_header(
+                f"{original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}."
+            ).with_note(f"It is missing the function '{fnname}'.")
 
         original_fn = getattr(original, fnname)
         try:
@@ -193,9 +195,10 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, original: type,
             if original_fn_signature is not None and param not in original_fn_signature.parameters:
                 raise ctx.wrap(UntypyTypeError(
                     expected=protocolchecker.describe(),
-                    given=original.__name__
-                )).with_note(
-                    f"Type {original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}. The signature of '{fnname}' does not match. Missing required parameter {param}")
+                    given=originalValue
+                )).with_header(
+                    f"{original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}."
+                 ).with_note(f"The signature of '{fnname}' does not match. Missing required parameter {param}.")
 
         list_of_attr[fnname] = ProtocolWrappedFunction(original_fn, sig, argdict, protocolchecker, fc).build()
 
@@ -289,7 +292,7 @@ class ProtocolWrappedFunction(WrappedFunction):
             err = UntypyTypeError(
                 given=format_argument_values(args, kwargs),
                 expected=self.describe(),
-            ).with_note("Arguments do not match.")
+            ).with_header("Arguments do not match.")
 
             if "self" not in self.signature.parameters:
                 err = err.with_note("Hint: 'self'-parameter was omitted in declaration.")
@@ -356,8 +359,8 @@ class ProtocolReturnExecutionContext(ExecutionContext):
         previous_chain = UntypyTypeError(
             self.me,
             f"{self.wf.protocol.protoname()}"
-        ).with_note(
-            f"Type '{type(self.me).__name__}' does not implement {self.wf.protocol.protocol_type()} '{self.wf.protocol.protoname()}' correctly.")
+        ).with_header(
+            f"{type(self.me).__name__} does not implement {self.wf.protocol.protocol_type()} {self.wf.protocol.protoname()} correctly.")
 
         previous_chain = self.ctx.wrap(previous_chain)
         return err.with_previous_chain(previous_chain)
@@ -385,15 +388,15 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
         ))
 
         err = err.with_note(
-            f"The argument '{self.arg_name}' of method '{WrappedFunction.find_original(self.wf).__name__}' violates the {self.wf.protocol.protocol_type()} '{self.wf.protocol.proto.__name__}'.")
+            f"Argument '{self.arg_name}' of method '{WrappedFunction.find_original(self.wf).__name__}' violates the {self.wf.protocol.protocol_type()} '{self.wf.protocol.proto.__name__}'.")
         err = err.with_note(
-            f"The annotation '{original_expected}' is incompatible with the {self.wf.protocol.protocol_type()}'s annotation '{self.wf.checker_for(self.arg_name).describe()}'\nwhen checking against the following value:")
+            f"Annotation '{original_expected}' is incompatible with the {self.wf.protocol.protocol_type()}'s annotation '{self.wf.checker_for(self.arg_name).describe()}'\nwhen checking against the following value:")
 
         previous_chain = UntypyTypeError(
             self.me,
             f"{self.wf.protocol.protoname()}"
-        ).with_note(
-            f"Type '{type(self.me).__name__}' does not implement {self.wf.protocol.protocol_type()} '{self.wf.protocol.protoname()}' correctly.")
+        ).with_header(
+            f"{type(self.me).__name__} does not implement {self.wf.protocol.protocol_type()} {self.wf.protocol.protoname()} correctly.")
 
         previous_chain = self.ctx.wrap(previous_chain)
         # err = err.with_inverted_responsibility_type()

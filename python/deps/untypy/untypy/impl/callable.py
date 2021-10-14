@@ -170,7 +170,7 @@ class TypedCallableIncompatibleSingature(ExecutionContext):
         ))
 
         err = err.with_note(
-            f"The argument '{self.arg_name}' of method '{name}' violates the signature of {self.tc.describe()}.")
+            f"Argument '{self.arg_name}' of method '{name}' violates the signature of {self.tc.describe()}.")
 
         previous_chain = self.upper.wrap(previous_chain)
 
