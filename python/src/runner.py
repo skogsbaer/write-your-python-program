@@ -98,9 +98,13 @@ def parseCmdlineArgs():
         die()
     return (args, restArgs)
 
-def readFile(f):
-    with open(f) as file:
-        return file.read()
+def readFile(path):
+    try:
+        with open(path, encoding='utf-8') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        with open(path) as f:
+            return f.read()
 
 def readVersion():
     version = None
@@ -266,14 +270,6 @@ class RunSetup:
         if self.sysPathInserted:
             sys.path.remove(self.sysPath)
             self.sysPathInserted = False
-
-def readFile(path):
-    try:
-        with open(path, encoding='utf-8') as f:
-            return f.read()
-    except UnicodeDecodeError:
-        with open(path) as f:
-            return f.read()
 
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
