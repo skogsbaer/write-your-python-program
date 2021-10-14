@@ -5,6 +5,13 @@ from enum import Enum
 from os.path import relpath
 from typing import Any, Optional, Tuple, Iterable
 
+def readFile(path):
+    try:
+        with open(path, encoding='utf-8') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        with open(path) as f:
+            return f.read()
 
 class Location:
     file: str
@@ -21,11 +28,9 @@ class Location:
     def source(self) -> Optional[str]:
         if self.source_lines is None:
             try:
-                with open(self.file, "r") as f:
-                    self.source_lines = f.read()
+                self.source_lines = readFile(self.file)
             except OSError:
                 self.source_lines = ''
-
         return self.source_lines
 
     def source_lines_span(self) -> Optional[str]:
