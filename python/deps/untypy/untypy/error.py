@@ -24,7 +24,7 @@ class Location:
                 with open(self.file, "r") as f:
                     self.source_lines = f.read()
             except OSError:
-                pass
+                self.source_lines = ''
 
         return self.source_lines
 
@@ -44,21 +44,19 @@ class Location:
         return buf
 
     def __str__(self):
-        buf = f"{relpath(self.file)}:{self.line_no}"
+        return f"{relpath(self.file)}:{self.line_no}"
+
+    def format(self, withCode):
+        buf = str(self)
         source = self.source()
-        if source is None:
-            buf += f"\n{'{:3}'.format(self.line_no)} | <source code not found>"
+        if not source:
             return buf
-
-        start = max(self.line_no - 2, 1)
-        end = start + 5
-        for i, line in enumerate(source.splitlines()):
-            if (i + 1) == self.line_no:
-                buf += f"\n{'{:3}'.format(i + 1)} > {line}"
-            elif (i + 1) in range(start, end):
-                buf += f"\n{'{:3}'.format(i + 1)} | {line}"
-
-        return buf
+        lines = source.splitlines()
+        idx = self.line_no - 1
+        if idx < 0 or idx > len(lines):
+            return buf
+        else:
+            return buf + '\n  | ' + lines[idx]
 
     def __repr__(self):
         return f"Location(file={self.file.__repr__()}, line_no={self.line_no.__repr__()}, line_span={self.line_span})"
@@ -252,11 +250,14 @@ class UntypyTypeError(TypeError, UntypyError):
         responsable_locs = []
 
         for f in self.frames:
-            if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN and str(
-                    f.responsable) not in responsable_locs:
-                responsable_locs.append(str(f.responsable))
-            if f.declared is not None and str(f.declared) not in declared_locs:
-                declared_locs.append(str(f.declared))
+            if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN:
+                s = f.responsable.format(True)
+                if s not in responsable_locs:
+                    responsable_locs.append(s)
+            if f.declared is not None:
+                s = str(f.declared)
+                if s not in declared_locs:
+                    declared_locs.append(str(f.declared))
 
         cause = formatLocations(CAUSED_BY_PREFIX, responsable_locs)
         declared = formatLocations(DECLARED_AT_PREFIX, declared_locs)
@@ -289,7 +290,6 @@ expected: {expected}
 
 {ctx}
 {declared}
-
 {cause}""")
 
 
