@@ -356,35 +356,45 @@ def enterInteractive(userDefs):
 def isMyCode(frame):
     return '__wypp_runYourProgram' in frame.f_globals
 
-def ignoreFrame(frame):
-    return isMyCode(frame)
+def tbToFrameList(tb):
+    cur = tb
+    res = []
+    while cur:
+        res.append(cur.tb_frame)
+        cur = cur.tb_next
+    return res
 
-def limitTraceback(fullTb):
-    tb = fullTb
-    while tb:
-        if not ignoreFrame(tb.tb_frame):
-            verbose('Stopping at first non-ignorable frame ' + str(tb.tb_frame))
-            return tb
-        verbose('Ignoring frame ' + str(tb.tb_frame))
-        tb = tb.tb_next
-    verbose('I would ignore all frames, so I return None')
-    return None
+def isUntypyCode(frame):
+    modName = frame.f_globals["__name__"]
+    return modName == 'untypy' or modName.startswith('untypy.')
+
+def ignoreFrame(frame):
+    return isMyCode(frame) or isUntypyCode(frame)
+
+# Returns a StackSummary object
+def limitTraceback(tb):
+    frames = [(f, f.f_lineno) for f in tbToFrameList(tb) if not ignoreFrame(f)]
+    return traceback.StackSummary.extract(frames)
 
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
-    if isinstance(val, untypy.error.UntypyTypeError) or isinstance(val, untypy.error.UntypyAttributeError):
-        file.write(etype.__module__ + "." + etype.__qualname__)
+    if tb and removeFirstTb:
+        tb = tb.tb_next
+    stackSummary = limitTraceback(tb)
+    file.write('Traceback (most recent call last):\n')
+    for x in stackSummary.format():
+        file.write(x)
+    if isinstance(val, untypy.error.UntypyError):
+        name = 'Wypp' + val.simpleName()
+        file.write(name)
         s = str(val)
         if s and s[0] != '\n':
             file.write(': ')
         file.write(s)
         file.write('\n')
     else:
-        if tb and removeFirstTb:
-            tb = tb.tb_next
-        limitedTb = limitTraceback(tb)
-        file.write('\n')
-        traceback.print_exception(etype, val, limitedTb, file=file)
+        for x in traceback.format_exception_only(etype, val):
+            file.write(x)
     if exit:
         die(1)
 

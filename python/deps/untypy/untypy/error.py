@@ -180,7 +180,12 @@ DECLARED_AT_PREFIX = "declared at: "
 def formatLocations(prefix: str, locs: list[Location]) -> str:
     return joinLines(map(lambda s: prefix + str(s), locs))
 
-class UntypyTypeError(TypeError):
+# All error types must be subclasses from UntypyError.
+class UntypyError:
+    def simpleName(self):
+        raise Exception('abstract method')
+
+class UntypyTypeError(TypeError, UntypyError):
     given: Any
     expected: str
     frames: list[Frame]
@@ -202,6 +207,9 @@ class UntypyTypeError(TypeError):
         self.notes = notes.copy()
         self.previous_chain = previous_chain
         super().__init__('\n' + self.__str__())
+
+    def simpleName(self):
+        return 'TypeError'
 
     def next_type_and_indicator(self) -> Tuple[str, str]:
         if len(self.frames) >= 1:
@@ -275,7 +283,7 @@ class UntypyTypeError(TypeError):
         expected = self.expected.strip()
         if expected != 'None':
             expected = f'value of type {expected}'
-        return (f"""
+        return (f"""got value of wrong type
 {previous_chain}{notes}given:    {given.rstrip()}
 expected: {expected}
 
@@ -285,12 +293,15 @@ expected: {expected}
 {cause}""")
 
 
-class UntypyAttributeError(AttributeError):
+class UntypyAttributeError(AttributeError, UntypyError):
 
     def __init__(self, message: str, locations: list[Location] = []):
         self.message = message
         self.locations = locations.copy()
         super().__init__(self.__str__())
+
+    def simpleName(self):
+        return 'AttributeError'
 
     def with_location(self, loc: Location) -> UntypyAttributeError:
         return type(self)(self.message, self.locations + [loc]) # preserve type
@@ -299,5 +310,6 @@ class UntypyAttributeError(AttributeError):
         return f"{self.message}\n{formatLocations(DECLARED_AT_PREFIX, self.locations)}"
 
 
-class UntypyNameError(UntypyAttributeError):
-    pass
+class UntypyNameError(UntypyAttributeError, UntypyError):
+    def simpleName(self):
+        return 'NameError'
