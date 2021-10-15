@@ -22,7 +22,17 @@ def die(ecode=1):
     else:
         sys.exit(ecode)
 
+def getEnv(name, conv, default):
+    s = os.getenv(name)
+    if s is None:
+        return default
+    try:
+        return conv(s)
+    except:
+        return default
+
 VERBOSE = False # set via commandline
+DEBUG = getEnv("WYPP_DEBUG", bool, False)
 
 def enableVerbose():
     global VERBOSE
@@ -36,7 +46,7 @@ UNTYPY_DIR = os.path.join(LIB_DIR, "..", "deps", "untypy", "untypy")
 UNTYPY_MODULE_NAME = 'untypy'
 
 def verbose(s):
-    if VERBOSE:
+    if VERBOSE or DEBUG:
         printStderr('[V] ' + s)
 
 def printStderr(s=''):
@@ -49,7 +59,7 @@ class InstallMode:
     assertInstall = 'assertInstall'
     allModes = [dontInstall, installOnly, install, assertInstall]
 
-def parseCmdlineArgs():
+def parseCmdlineArgs(argList):
     parser = argparse.ArgumentParser(description='Run Your Program!',
                         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--check-runnable', dest='checkRunnable', action='store_const',
@@ -86,8 +96,10 @@ def parseCmdlineArgs():
                         help='Do not check type annotations')
     parser.add_argument('file', metavar='FILE',
                         help='The file to run', nargs='?')
+    if argList is None:
+        argList = sys.argv[1:]
     try:
-        args, restArgs = parser.parse_known_args()
+        args, restArgs = parser.parse_known_args(argList)
     except SystemExit as ex:
         die(ex.code)
     if args.file and not args.file.endswith('.py'):
@@ -358,6 +370,8 @@ def tbToFrameList(tb):
     return res
 
 def ignoreFrame(frame):
+    if DEBUG:
+        return False
     modName = frame.f_globals["__name__"]
     return '__wypp_runYourProgram' in frame.f_globals or \
         modName == 'untypy' or modName.startswith('untypy.') or \
@@ -414,7 +428,7 @@ def importUntypy():
         printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
         die(1)
 
-def main(globals):
+def main(globals, argList=None):
     v = sys.version_info
     if v.major < 3 or v.minor < 9:
         vStr = sys.version.split()[0]
@@ -422,7 +436,7 @@ def main(globals):
 Python in version 3.9 or newer is required. You are still using version {vStr}, please upgrade!
 """)
         sys.exit(1)
-    (args, restArgs) = parseCmdlineArgs()
+    (args, restArgs) = parseCmdlineArgs(argList)
     global VERBOSE
     if args.verbose:
         VERBOSE = True
