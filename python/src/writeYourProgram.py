@@ -27,7 +27,17 @@ Callable = typing.Callable
 dataclass = dataclasses.dataclass
 
 unchecked = untypy.unchecked
-nat = typing.Annotated[int, lambda i: i >= 0]
+
+intPositive = typing.Annotated[int, lambda i: i > 0, 'intPositive']
+nat = typing.Annotated[int, lambda i: i >= 0, 'nat']
+intNonNegative = typing.Annotated[int, lambda i: i >= 0, 'intNonNegative']
+intNonPositive = typing.Annotated[int, lambda i: i <= 0, 'intNonPositive']
+intNegative = typing.Annotated[int, lambda i: i < 0, 'intNegative']
+
+floatPositive = typing.Annotated[float, lambda x: x > 0, 'floatPositive']
+floatNonNegative = typing.Annotated[float, lambda x: x >= 0, 'floatNonNegative']
+floatNegative = typing.Annotated[float, lambda x: x < 0, 'floatNegative']
+floatNonPositive = typing.Annotated[float, lambda x: x <= 0, 'floatNonPositive']
 
 T = typing.TypeVar('T')
 U = typing.TypeVar('U')

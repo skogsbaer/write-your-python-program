@@ -2,7 +2,7 @@
 # Before running, set FILE to the input file that you want
 # to use for debugging.
 
-FILE = 'test-data/testTypesCollections5.py'
+FILE = 'test-data/testNums.py'
 
 import os
 import sys

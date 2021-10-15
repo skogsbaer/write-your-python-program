@@ -13,6 +13,14 @@ Sequence = w.Sequence
 Union = w.Union
 check = w.check
 dataclass = w.dataclass
+floatNegative = w.floatNegative
+floatNonNegative = w.floatNonNegative
+floatNonPositive = w.floatNonPositive
+floatPositive = w.floatPositive
+intNegative = w.intNegative
+intNonNegative = w.intNonNegative
+intNonPositive = w.intNonPositive
+intPositive = w.intPositive
 math = w.math
 nat = w.nat
 record = w.record
@@ -34,6 +42,14 @@ __all__ = [
     'Union',
     'check',
     'dataclass',
+    'floatNegative',
+    'floatNonNegative',
+    'floatNonPositive',
+    'floatPositive',
+    'intNegative',
+    'intNonNegative',
+    'intNonPositive',
+    'intPositive',
     'math',
     'nat',
     'record',

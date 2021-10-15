@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "test-data/testNums.py", line 8, in <module>
+    f(-4)
+WyppTypeError: got value of wrong type
+given:    -4
+expected: value of type floatNonNegative
+
+context: f(x: floatNonNegative) -> float
+              ^^^^^^^^^^^^^^^^
+declared at: test-data/testNums.py:3
+caused by: test-data/testNums.py:8
+  | f(-4)

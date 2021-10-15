@@ -17,23 +17,17 @@ class AnnotatedCheckerCallable(AnnotatedChecker):
     def check(self, arg: Any, ctx: ExecutionContext) -> None:
         res = self.callable(arg)
         if not res:
+            exp = self.annotated.describe()
             # raise error on falsy value
             err = UntypyTypeError(
                 given=arg,
-                expected=self.annotated.describe()
+                expected=exp
             )
-            err = err.with_note(f"\n\nNote: Assertion in Callable failed with {repr(res)}.")
+            if self.annotated.is_anonymous:
+                err = err.with_note(f"condition in {exp} does not hold")
             (t, i) = err.next_type_and_indicator()
-            err = err.with_frame(Frame(
-                t,
-                i,
-                WrappedFunction.find_location(self.callable),
-                None
-            ))
-
             for info in self.annotated.info:
                 err = err.with_note("    - " + info)
-
             raise ctx.wrap(err)
 
 
@@ -48,7 +42,9 @@ class AnnotatedCheckerContainer(AnnotatedChecker):
             err = UntypyTypeError(
                 given=arg,
                 expected=self.annotated.describe()
-            ).with_note(f"\n\nNote: {repr(arg)} is not in {repr(self.cont)}.")
+            )
+            if self.annotated.is_anonymous:
+                err = err.with_note(f"{repr(arg)} is not in {repr(self.cont)}.")
 
             for info in self.annotated.info:
                 err = err.with_note("    - " + info)
@@ -90,6 +86,11 @@ class AnnotatedChecker(TypeChecker):
                                                     f"Only callables or objects providing __contains__ are allowed."))
         self.meta = meta
         self.info = info
+        if len(info) == 1:
+            self.name = info[0]
+            self.info = []
+        else:
+            self.name = None
 
     def check_and_wrap(self, arg: Any, ctx: ExecutionContext) -> Any:
         wrapped = self.inner.check_and_wrap(arg, AnnotatedCheckerExecutionContext(self, ctx))
@@ -98,7 +99,9 @@ class AnnotatedChecker(TypeChecker):
         return wrapped
 
     def describe(self) -> str:
-        if len(self.info) > 0:
+        if self.name:
+            return self.name
+        elif len(self.info) > 0:
             text = ", ".join(map(lambda a: f"'{a}'", self.info))
             return f"Annotated[{text}]"
         else:
@@ -106,6 +109,10 @@ class AnnotatedChecker(TypeChecker):
 
     def base_type(self):
         return self.inner.base_type()
+
+    @property
+    def is_anonymous(self):
+        return self.name is None
 
 
 class AnnotatedCheckerExecutionContext(ExecutionContext):
