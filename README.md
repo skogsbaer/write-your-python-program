@@ -89,9 +89,14 @@ Color = Literal['red', 'green', 'blue']
 
 ~~~python
 @record
-class Record:
+class Point:
     x: float
     y: float
+
+@record
+class Square:
+    center: Point
+    width: float
 
 @record
 class Circle:
@@ -103,7 +108,7 @@ You work with a record like this:
 
 ~~~python
 p = Point(2, 3) # point at x=2, y=3
-print(p.x)      # Print 2
+print(p.x)      # Prints 2
 ~~~
 
 Fields of records are immutable by default. You get mutable fields with `@record(mutable=True)`.
@@ -119,6 +124,7 @@ as a string:
 
 ~~~python
 Shape = Union[Circle, Square, 'Overlay']
+
 @record
 class Overlay:
     top: Shape
@@ -131,18 +137,32 @@ Case distinction works like this:
 def workOnShape(s: Shape) -> None:
     if isinstance(s, Square):
         # s is a Square, do something with it
-    elif isinstance(s, Circle)
+        pass
+    elif isinstance(s, Circle):
         # s is a Circle, do something with it
-    elif isinstance(s, Overlay)
+        pass
+    elif isinstance(s, Overlay):
         # s is an Overlay, do something with it
+        pass
 ~~~
 
 The body of `workOnShape` can safely assume that `s` is indeed one `Square`, `Circle`, or
 `Overlay` because the type hint `Shape` for argument `s` is checked dynamically. Here is
-what happens if you apply `workOnShape` to, say, a string:
+what happens if you apply `workOnShape` to, say, a string, that is `workOnShape('foo')`.
 
 ~~~default
-FIXME
+Traceback (most recent call last):
+  File "test.py", line 42, in <module>
+    workOnShape("foo")
+WyppTypeError: got value of wrong type
+given:    'foo'
+expected: value of type Union[Circle, Square, Overlay]
+
+context: workOnShape(s: Union[Circle, Square, Overlay]) -> None
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+declared at: test.py:31
+caused by: test.py:42
+  | workOnShape("foo")
 ~~~
 
 ### Tests
