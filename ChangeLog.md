@@ -1,5 +1,13 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.13.0 (2021-10-15)
+  * Improve error messages #37
+  * Support for stacktraces #40
+  * Better support for untyped methods #33
+  * Better error message when self parameter is missing #8
+  * Detect invalid method override #10
+  * Detect type errors when writing record fields #12
+  * Fix another encoding bug under Windows #38
 * 0.12.5 (2021-10-06)
   * Fix encoding bug under Windows
   * Fix for #9
