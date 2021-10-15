@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.13.1 (2021-10-15)
+  * Types for negative and positive numbers #39
 * 0.13.0 (2021-10-15)
   * Improve error messages #37
   * Support for stacktraces #40
