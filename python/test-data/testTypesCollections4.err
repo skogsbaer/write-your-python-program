@@ -1,6 +1,6 @@
 Traceback (most recent call last):
-  File "test-data/testTypesCollections4.py", line 10, in <module>
-    foo([])
+  File "test-data/testTypesCollections4.py", line 11, in <module>
+    foo([func])
   File "test-data/testTypesCollections4.py", line 7, in foo
     res.append(f())
 WyppTypeError: got value of wrong type
@@ -13,3 +13,5 @@ declared at: test-data/testTypesCollections4.py:4
 declared at: test-data/testTypesCollections4.py:3
 caused by: test-data/testTypesCollections4.py:4
   |     l.append(lambda: 42) # error
+caused by: test-data/testTypesCollections4.py:11
+  | foo([func])

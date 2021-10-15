@@ -2,7 +2,7 @@
 # Before running, set FILE to the input file that you want
 # to use for debugging.
 
-FILE = 'test-data/declared-at-missing.py'
+FILE = 'test-data/testTypesCollections5.py'
 
 import os
 import sys

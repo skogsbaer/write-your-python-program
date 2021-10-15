@@ -7,4 +7,5 @@ def foo(l: list[Callable[[], str]]) -> list[str]:
         res.append(f())
     return res
 
-foo([lambda: 42])  # error
+func = lambda: 42
+foo([func])  # error

@@ -7,4 +7,5 @@ def foo(l: list[Callable[[], str]]) -> list[str]:
         res.append(f())
     return res
 
-foo([])
+func = lambda: "xxx"
+foo([func])

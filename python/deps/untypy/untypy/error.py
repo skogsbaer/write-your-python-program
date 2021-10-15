@@ -265,10 +265,10 @@ class UntypyTypeError(TypeError, UntypyError):
         responsable_locs = []
 
         for f in self.frames:
-            if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN and \
-                not responsable_locs:
+            if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN:
                 s = f.responsable.formatWithCode()
-                responsable_locs.append(s)
+                if s not in responsable_locs:
+                    responsable_locs.append(s)
             if f.declared is not None:
                 s = str(f.declared)
                 if s not in declared_locs:
