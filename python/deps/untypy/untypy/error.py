@@ -51,7 +51,7 @@ class Location:
     def __str__(self):
         return f"{relpath(self.file)}:{self.line_no}"
 
-    def format(self, withCode):
+    def formatWithCode(self):
         buf = str(self)
         source = self.source()
         if not source:
@@ -265,10 +265,10 @@ class UntypyTypeError(TypeError, UntypyError):
         responsable_locs = []
 
         for f in self.frames:
-            if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN:
-                s = f.responsable.format(True)
-                if s not in responsable_locs:
-                    responsable_locs.append(s)
+            if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN and \
+                not responsable_locs:
+                s = f.responsable.formatWithCode()
+                responsable_locs.append(s)
             if f.declared is not None:
                 s = str(f.declared)
                 if s not in declared_locs:
