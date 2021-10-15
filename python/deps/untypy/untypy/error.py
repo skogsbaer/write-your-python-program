@@ -5,6 +5,13 @@ from enum import Enum
 from os.path import relpath
 from typing import Any, Optional, Tuple, Iterable
 
+def readFile(path):
+    try:
+        with open(path, encoding='utf-8') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        with open(path) as f:
+            return f.read()
 
 class Location:
     file: str
@@ -21,11 +28,9 @@ class Location:
     def source(self) -> Optional[str]:
         if self.source_lines is None:
             try:
-                with open(self.file, "r") as f:
-                    self.source_lines = f.read()
+                self.source_lines = readFile(self.file)
             except OSError:
-                pass
-
+                self.source_lines = ''
         return self.source_lines
 
     def source_lines_span(self) -> Optional[str]:
@@ -44,21 +49,19 @@ class Location:
         return buf
 
     def __str__(self):
-        buf = f"{relpath(self.file)}:{self.line_no}"
+        return f"{relpath(self.file)}:{self.line_no}"
+
+    def formatWithCode(self):
+        buf = str(self)
         source = self.source()
-        if source is None:
-            buf += f"\n{'{:3}'.format(self.line_no)} | <source code not found>"
+        if not source:
             return buf
-
-        start = max(self.line_no - 2, 1)
-        end = start + 5
-        for i, line in enumerate(source.splitlines()):
-            if (i + 1) == self.line_no:
-                buf += f"\n{'{:3}'.format(i + 1)} > {line}"
-            elif (i + 1) in range(start, end):
-                buf += f"\n{'{:3}'.format(i + 1)} | {line}"
-
-        return buf
+        lines = source.splitlines()
+        idx = self.line_no - 1
+        if idx < 0 or idx > len(lines):
+            return buf
+        else:
+            return buf + '\n  | ' + lines[idx]
 
     def __repr__(self):
         return f"Location(file={self.file.__repr__()}, line_no={self.line_no.__repr__()}, line_span={self.line_span})"
@@ -180,8 +183,14 @@ DECLARED_AT_PREFIX = "declared at: "
 def formatLocations(prefix: str, locs: list[Location]) -> str:
     return joinLines(map(lambda s: prefix + str(s), locs))
 
-class UntypyTypeError(TypeError):
+# All error types must be subclasses from UntypyError.
+class UntypyError:
+    def simpleName(self):
+        raise Exception('abstract method')
+
+class UntypyTypeError(TypeError, UntypyError):
     given: Any
+    header: str
     expected: str
     frames: list[Frame]
     notes: list[str]
@@ -191,7 +200,8 @@ class UntypyTypeError(TypeError):
     def __init__(self, given: Any, expected: str, frames: list[Frame] = [],
                  notes: list[str] = [],
                  previous_chain: Optional[UntypyTypeError] = None,
-                 responsibility_type: ResponsibilityType = ResponsibilityType.IN):
+                 responsibility_type: ResponsibilityType = ResponsibilityType.IN,
+                 header: str = ''):
         self.responsibility_type = responsibility_type
         self.given = given
         self.expected = expected
@@ -201,7 +211,11 @@ class UntypyTypeError(TypeError):
                 frame.responsibility_type = responsibility_type
         self.notes = notes.copy()
         self.previous_chain = previous_chain
+        self.header = header
         super().__init__('\n' + self.__str__())
+
+    def simpleName(self):
+        return 'TypeError'
 
     def next_type_and_indicator(self) -> Tuple[str, str]:
         if len(self.frames) >= 1:
@@ -213,19 +227,26 @@ class UntypyTypeError(TypeError):
     def with_frame(self, frame: Frame) -> UntypyTypeError:
         frame.responsibility_type = self.responsibility_type
         return UntypyTypeError(self.given, self.expected, self.frames + [frame],
-                               self.notes, self.previous_chain, self.responsibility_type)
+                               self.notes, self.previous_chain, self.responsibility_type,
+                               self.header)
 
     def with_previous_chain(self, previous_chain: UntypyTypeError):
         return UntypyTypeError(self.given, self.expected, self.frames,
-                               self.notes, previous_chain, self.responsibility_type)
+                               self.notes, previous_chain, self.responsibility_type, self.header)
 
     def with_note(self, note: str):
         return UntypyTypeError(self.given, self.expected, self.frames,
-                               self.notes + [note], self.previous_chain, self.responsibility_type)
+                               self.notes + [note], self.previous_chain, self.responsibility_type,
+                               self.header)
 
     def with_inverted_responsibility_type(self):
         return UntypyTypeError(self.given, self.expected, self.frames,
-                               self.notes, self.previous_chain, self.responsibility_type.invert())
+                               self.notes, self.previous_chain, self.responsibility_type.invert(),
+                               self.header)
+
+    def with_header(self, header: str):
+        return UntypyTypeError(self.given, self.expected, self.frames,
+                               self.notes, self.previous_chain, self.responsibility_type, header)
 
     def last_responsable(self):
         for f in reversed(self.frames):
@@ -244,11 +265,14 @@ class UntypyTypeError(TypeError):
         responsable_locs = []
 
         for f in self.frames:
-            if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN and str(
-                    f.responsable) not in responsable_locs:
-                responsable_locs.append(str(f.responsable))
-            if f.declared is not None and str(f.declared) not in declared_locs:
-                declared_locs.append(str(f.declared))
+            if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN:
+                s = f.responsable.formatWithCode()
+                if s not in responsable_locs:
+                    responsable_locs.append(s)
+            if f.declared is not None:
+                s = str(f.declared)
+                if s not in declared_locs:
+                    declared_locs.append(str(f.declared))
 
         cause = formatLocations(CAUSED_BY_PREFIX, responsable_locs)
         declared = formatLocations(DECLARED_AT_PREFIX, declared_locs)
@@ -261,36 +285,48 @@ class UntypyTypeError(TypeError):
 
         if self.previous_chain is None:
             previous_chain = ""
+            preHeader = self.header or 'got value of wrong type'
+            postHeader = ''
         else:
-            previous_chain = self.previous_chain.__str__()
+            previous_chain = self.previous_chain.__str__().strip()
+            preHeader = ''
+            postHeader = self.header
+        if postHeader:
+            postHeader = postHeader + "\n"
+        if preHeader:
+            preHeader = preHeader + "\n"
         if previous_chain:
-            previous_chain = previous_chain.strip() + "\n\n"
+            previous_chain = previous_chain + "\n\n"
 
         ctx = ""
         if self.expected != ty:
-            ctx = f"context: {ty.rstrip()}\n" \
-                  f"         {ind.rstrip()}"
-
+            ctx = f"context: {ty.rstrip()}"
+            ind = ind.rstrip()
+            if ind:
+                ctx = f"{ctx}\n         {ind}"
+        if ctx:
+            ctx = ctx + "\n"
         given = repr(self.given)
         expected = self.expected.strip()
         if expected != 'None':
             expected = f'value of type {expected}'
-        return (f"""
-{previous_chain}{notes}given:    {given.rstrip()}
+
+        return (f"""{preHeader}{previous_chain}{postHeader}{notes}given:    {given.rstrip()}
 expected: {expected}
 
-{ctx}
-{declared}
-
+{ctx}{declared}
 {cause}""")
 
 
-class UntypyAttributeError(AttributeError):
+class UntypyAttributeError(AttributeError, UntypyError):
 
     def __init__(self, message: str, locations: list[Location] = []):
         self.message = message
         self.locations = locations.copy()
         super().__init__(self.__str__())
+
+    def simpleName(self):
+        return 'AttributeError'
 
     def with_location(self, loc: Location) -> UntypyAttributeError:
         return type(self)(self.message, self.locations + [loc]) # preserve type
@@ -299,5 +335,6 @@ class UntypyAttributeError(AttributeError):
         return f"{self.message}\n{formatLocations(DECLARED_AT_PREFIX, self.locations)}"
 
 
-class UntypyNameError(UntypyAttributeError):
-    pass
+class UntypyNameError(UntypyAttributeError, UntypyError):
+    def simpleName(self):
+        return 'NameError'

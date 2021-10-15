@@ -42,6 +42,7 @@ def _patchDataClass(cls, mutable):
         cls.__init__.__annotations__ =  cls.__annotations__
         cls.__init__.__original = cls # mark class as source of annotation
         cls.__init__ = untypy.typechecked(cls.__init__)
+        cls.__kind = 'record'
 
     if mutable:
         # prevent new fields being added
@@ -56,7 +57,7 @@ def _patchDataClass(cls, mutable):
                 # Would the lambda expression be called at this moment, it may cause an name error
                 # untypy.checker fetches the annotation lazily.
                 checker[name] = untypy.checker(\
-                    lambda cls=cls,name=name: typing.get_type_hints(cls, include_extras=True)[name], 
+                    lambda cls=cls,name=name: typing.get_type_hints(cls, include_extras=True)[name],
                     cls)
 
         oldSetattr = cls.__setattr__

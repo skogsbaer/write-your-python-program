@@ -22,7 +22,17 @@ def die(ecode=1):
     else:
         sys.exit(ecode)
 
+def getEnv(name, conv, default):
+    s = os.getenv(name)
+    if s is None:
+        return default
+    try:
+        return conv(s)
+    except:
+        return default
+
 VERBOSE = False # set via commandline
+DEBUG = getEnv("WYPP_DEBUG", bool, False)
 
 def enableVerbose():
     global VERBOSE
@@ -36,7 +46,7 @@ UNTYPY_DIR = os.path.join(LIB_DIR, "..", "deps", "untypy", "untypy")
 UNTYPY_MODULE_NAME = 'untypy'
 
 def verbose(s):
-    if VERBOSE:
+    if VERBOSE or DEBUG:
         printStderr('[V] ' + s)
 
 def printStderr(s=''):
@@ -49,7 +59,7 @@ class InstallMode:
     assertInstall = 'assertInstall'
     allModes = [dontInstall, installOnly, install, assertInstall]
 
-def parseCmdlineArgs():
+def parseCmdlineArgs(argList):
     parser = argparse.ArgumentParser(description='Run Your Program!',
                         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--check-runnable', dest='checkRunnable', action='store_const',
@@ -86,8 +96,10 @@ def parseCmdlineArgs():
                         help='Do not check type annotations')
     parser.add_argument('file', metavar='FILE',
                         help='The file to run', nargs='?')
+    if argList is None:
+        argList = sys.argv[1:]
     try:
-        args, restArgs = parser.parse_known_args()
+        args, restArgs = parser.parse_known_args(argList)
     except SystemExit as ex:
         die(ex.code)
     if args.file and not args.file.endswith('.py'):
@@ -98,9 +110,13 @@ def parseCmdlineArgs():
         die()
     return (args, restArgs)
 
-def readFile(f):
-    with open(f) as file:
-        return file.read()
+def readFile(path):
+    try:
+        with open(path, encoding='utf-8') as f:
+            return f.read()
+    except UnicodeDecodeError:
+        with open(path) as f:
+            return f.read()
 
 def readVersion():
     version = None
@@ -267,14 +283,6 @@ class RunSetup:
             sys.path.remove(self.sysPath)
             self.sysPathInserted = False
 
-def readFile(path):
-    try:
-        with open(path, encoding='utf-8') as f:
-            return f.read()
-    except UnicodeDecodeError:
-        with open(path) as f:
-            return f.read()
-
 def runCode(fileToRun, globals, args, useUntypy=True):
     localDir = os.path.dirname(fileToRun)
 
@@ -353,38 +361,49 @@ def enterInteractive(userDefs):
         globals()[k] = v
     print()
 
-def isMyCode(frame):
-    return '__wypp_runYourProgram' in frame.f_globals
+def tbToFrameList(tb):
+    cur = tb
+    res = []
+    while cur:
+        res.append(cur.tb_frame)
+        cur = cur.tb_next
+    return res
 
 def ignoreFrame(frame):
-    return isMyCode(frame)
+    if DEBUG:
+        return False
+    modName = frame.f_globals["__name__"]
+    return '__wypp_runYourProgram' in frame.f_globals or \
+        modName == 'untypy' or modName.startswith('untypy.') or \
+        modName == 'wypp' or modName.startswith('wypp.')
 
-def limitTraceback(fullTb):
-    tb = fullTb
-    while tb:
-        if not ignoreFrame(tb.tb_frame):
-            verbose('Stopping at first non-ignorable frame ' + str(tb.tb_frame))
-            return tb
-        verbose('Ignoring frame ' + str(tb.tb_frame))
-        tb = tb.tb_next
-    verbose('I would ignore all frames, so I return None')
-    return None
+# Returns a StackSummary object
+def limitTraceback(tb):
+    frames = [(f, f.f_lineno) for f in tbToFrameList(tb) if not ignoreFrame(f)]
+    return traceback.StackSummary.extract(frames)
 
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
-    if isinstance(val, untypy.error.UntypyTypeError) or isinstance(val, untypy.error.UntypyAttributeError):
-        file.write(etype.__module__ + "." + etype.__qualname__)
+    if tb and removeFirstTb:
+        tb = tb.tb_next
+    stackSummary = limitTraceback(tb)
+    header = False
+    for x in stackSummary.format():
+        if not header:
+            file.write('Traceback (most recent call last):\n')
+            header = True
+        file.write(x)
+    if isinstance(val, untypy.error.UntypyError):
+        name = 'Wypp' + val.simpleName()
+        file.write(name)
         s = str(val)
         if s and s[0] != '\n':
             file.write(': ')
         file.write(s)
         file.write('\n')
     else:
-        if tb and removeFirstTb:
-            tb = tb.tb_next
-        limitedTb = limitTraceback(tb)
-        file.write('\n')
-        traceback.print_exception(etype, val, limitedTb, file=file)
+        for x in traceback.format_exception_only(etype, val):
+            file.write(x)
     if exit:
         die(1)
 
@@ -409,7 +428,7 @@ def importUntypy():
         printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
         die(1)
 
-def main(globals):
+def main(globals, argList=None):
     v = sys.version_info
     if v.major < 3 or v.minor < 9:
         vStr = sys.version.split()[0]
@@ -417,7 +436,7 @@ def main(globals):
 Python in version 3.9 or newer is required. You are still using version {vStr}, please upgrade!
 """)
         sys.exit(1)
-    (args, restArgs) = parseCmdlineArgs()
+    (args, restArgs) = parseCmdlineArgs(argList)
     global VERBOSE
     if args.verbose:
         VERBOSE = True

@@ -1,18 +1,12 @@
-untypy.error.UntypyTypeError
+Traceback (most recent call last):
+  File "test-data/testRecordSetTypeForwardRef.py", line 14, in <module>
+    m()
+  File "test-data/testRecordSetTypeForwardRef.py", line 12, in m
+    r.x = "hello"
+WyppTypeError: got value of wrong type
 given:    'hello'
 expected: value of type A
 
-
 declared at: test-data/testRecordSetTypeForwardRef.py:3
-  1 | from wypp import * 
-  2 | 
-  3 > @record(mutable=True)
-  4 | class Record:
-  5 |     x : A
-
 caused by: test-data/testRecordSetTypeForwardRef.py:12
- 10 | def m():
- 11 |     r = Record(x=A())
- 12 >     r.x = "hello"
- 13 | 
- 14 | m()
+  |     r.x = "hello"

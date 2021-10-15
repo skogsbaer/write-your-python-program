@@ -1,17 +1,12 @@
-untypy.error.UntypyTypeError
+Traceback (most recent call last):
+  File "test-data/declared-at-missing.py", line 22, in <module>
+    semester1_2020 = Semester('AKI', '1. Semester 2020/21', (prog1, ))
+WyppTypeError: got value of wrong type
 given:    Course(name='Programmierung 1', teacher='Wehr', students=())
 expected: value of type CourseM
 
-context: Semester(degreeProgram: str, semester: str, courses: tuple[CourseM, ...]) -> Self
-                                                                    ^^^^^^^
+context: record constructor Semester(degreeProgram: str, semester: str, courses: tuple[CourseM, ...]) -> Self
+                                                                                       ^^^^^^^
 declared at: test-data/declared-at-missing.py:15
- 13 |     students: tuple[str, ...]
- 14 | 
- 15 > @record
- 16 | class Semester:
- 17 |     degreeProgram: str
-
 caused by: test-data/declared-at-missing.py:22
- 20 | 
- 21 | prog1 = Course('Programmierung 1', 'Wehr', ())
- 22 > semester1_2020 = Semester('AKI', '1. Semester 2020/21', (prog1, ))
+  | semester1_2020 = Semester('AKI', '1. Semester 2020/21', (prog1, ))

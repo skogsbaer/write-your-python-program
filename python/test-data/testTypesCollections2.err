@@ -1,17 +1,14 @@
-untypy.error.UntypyTypeError
+Traceback (most recent call last):
+  File "test-data/testTypesCollections2.py", line 10, in <module>
+    foo([lambda: "1", lambda: 42]) # error because the 2nd functions returns an int
+  File "test-data/testTypesCollections2.py", line 6, in foo
+    res.append(f())
+WyppTypeError: got value of wrong type
 given:    42
 expected: value of type str
 
 context: foo(l: list[Callable[[], str]]) -> list[str]
                                   ^^^
 declared at: test-data/testTypesCollections2.py:3
-  1 | from wypp import *
-  2 | 
-  3 > def foo(l: list[Callable[[], str]]) -> list[str]:
-  4 |     res = []
-  5 |     for f in l:
-
 caused by: test-data/testTypesCollections2.py:10
-  8 | 
-  9 | print(foo([lambda: "1", lambda: "2"]))
- 10 > foo([lambda: "1", lambda: 42]) # error because the 2nd functions returns an int
+  | foo([lambda: "1", lambda: 42]) # error because the 2nd functions returns an int

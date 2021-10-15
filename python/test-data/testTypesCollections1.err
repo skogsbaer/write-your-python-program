@@ -1,19 +1,14 @@
-untypy.error.UntypyTypeError
+Traceback (most recent call last):
+  File "test-data/testTypesCollections1.py", line 7, in <module>
+    appendSomething(l)
+  File "test-data/testTypesCollections1.py", line 4, in appendSomething
+    l.append("foo")
+WyppTypeError: got value of wrong type
 given:    'foo'
 expected: value of type int
 
 context: list[int]
               ^^^
 declared at: test-data/testTypesCollections1.py:3
-  1 | from wypp import *
-  2 | 
-  3 > def appendSomething(l: list[int]) -> None:
-  4 |     l.append("foo")
-  5 |
-
 caused by: test-data/testTypesCollections1.py:4
-  2 | 
-  3 | def appendSomething(l: list[int]) -> None:
-  4 >     l.append("foo")
-  5 | 
-  6 | l = [1,2,3]
+  |     l.append("foo")

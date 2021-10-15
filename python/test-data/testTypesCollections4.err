@@ -1,29 +1,17 @@
-untypy.error.UntypyTypeError
+Traceback (most recent call last):
+  File "test-data/testTypesCollections4.py", line 11, in <module>
+    foo([func])
+  File "test-data/testTypesCollections4.py", line 7, in foo
+    res.append(f())
+WyppTypeError: got value of wrong type
 given:    42
 expected: value of type str
 
 context: foo(l: list[Callable[[], str]]) -> list[str]
                                   ^^^
 declared at: test-data/testTypesCollections4.py:4
-  2 | 
-  3 | def foo(l: list[Callable[[], str]]) -> list[str]:
-  4 >     l.append(lambda: 42) # error
-  5 |     res = []
-  6 |     for f in l:
 declared at: test-data/testTypesCollections4.py:3
-  1 | from wypp import *
-  2 | 
-  3 > def foo(l: list[Callable[[], str]]) -> list[str]:
-  4 |     l.append(lambda: 42) # error
-  5 |     res = []
-
 caused by: test-data/testTypesCollections4.py:4
-  2 | 
-  3 | def foo(l: list[Callable[[], str]]) -> list[str]:
-  4 >     l.append(lambda: 42) # error
-  5 |     res = []
-  6 |     for f in l:
-caused by: test-data/testTypesCollections4.py:10
-  8 |     return res
-  9 | 
- 10 > foo([])
+  |     l.append(lambda: 42) # error
+caused by: test-data/testTypesCollections4.py:11
+  | foo([func])

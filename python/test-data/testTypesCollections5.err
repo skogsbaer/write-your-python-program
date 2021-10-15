@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "test-data/testTypesCollections5.py", line 11, in <module>
+    foo([func])  # error
+  File "test-data/testTypesCollections5.py", line 7, in foo
+    res.append(f())
+WyppTypeError: got value of wrong type
+given:    42
+expected: value of type str
+
+context: foo(l: list[Callable[[], str]]) -> list[str]
+                                  ^^^
+declared at: test-data/testTypesCollections5.py:3
+caused by: test-data/testTypesCollections5.py:10
+  | func = lambda: 42
+caused by: test-data/testTypesCollections5.py:11
+  | foo([func])  # error

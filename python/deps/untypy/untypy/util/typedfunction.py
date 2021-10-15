@@ -28,11 +28,14 @@ class TypedFunctionBuilder(WrappedFunction):
             annotations = typing.get_type_hints(inner, include_extras=True)
         except NameError as ne:
             org = WrappedFunction.find_original(self.inner)
-            what = 'function'
-            what = 'class' if inspect.isclass(org) else 'function'
-            raise ctx.wrap(UntypyNameError(
-                f"{ne}.\nType annotation of {what} '{org.__qualname__}' could not be resolved."
-            ))
+            if inspect.isclass(org):
+                raise ctx.wrap(UntypyNameError(
+                    f"{ne}.\nType annotation inside of class '{org.__qualname__}' could not be resolved."
+                ))
+            else:
+                raise ctx.wrap(UntypyNameError(
+                    f"{ne}.\nType annotation of function '{org.__qualname__}' could not be resolved."
+                ))
 
         checkers = {}
         checked_keys = list(self.signature.parameters)
