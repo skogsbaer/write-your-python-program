@@ -176,6 +176,20 @@ check(factorial(4), 24)
 
 ## Annotations
 
+All python types (builtin or from the `typing` module) can be used as annotations.
+Also, you can use every class as a type. In addition, WYPP comes with the following
+predefined types:
+
+* `floatNegative`
+* `floatNonNegative`
+* `floatNonPositive`
+* `floatPositive`
+* `intNegative`
+* `intNonNegative`
+* `intNonPositive`
+* `intPositive`
+* `nat`
+
 The code is run with `from __future__ import annotations`
 (see [PEP 563](https://www.python.org/dev/peps/pep-0563/)), which will be
 the default from python 3.10 on. This means that you can use a type as an annotation
