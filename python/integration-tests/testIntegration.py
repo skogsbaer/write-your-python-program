@@ -58,8 +58,8 @@ WyppTypeError: got value of wrong type
 given:    42.3
 expected: value of type int
 
-context: Person(name: str, age: int) -> Self
-                                ^^^
+context: record constructor Person(name: str, age: int) -> Self
+                                                   ^^^
 declared at: test-data/typeRecords.py:3
 caused by: <console>:1"""
         real = '\n'.join(out)

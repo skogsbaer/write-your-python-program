@@ -119,7 +119,7 @@ class ReturnExecutionContext(ExecutionContext):
             front_sig = []
             for name in signature.parameters:
                 front_sig.append(f"{name}: {self.fn.checker_for(name).describe()}")
-            front_sig = f"{original.__name__}(" + (", ".join(front_sig)) + ") -> "
+            front_sig = f"{format_name(original)}(" + (", ".join(front_sig)) + ") -> "
             return_id = IndicatorStr(front_sig) + return_id
         except:
             return_id = IndicatorStr("???")
@@ -136,6 +136,15 @@ class ReturnExecutionContext(ExecutionContext):
             responsable=responsable,
         ))
 
+def format_name(orig):
+    n = orig.__name__
+    if inspect.isclass(orig):
+        k = 'class'
+        if hasattr(orig, '__kind'):
+            k = getattr(orig, '__kind')
+        if k:
+            return f"{k} constructor {n}"
+    return n
 
 class ArgumentExecutionContext(ExecutionContext):
     n: WrappedFunction
@@ -175,7 +184,7 @@ class ArgumentExecutionContext(ExecutionContext):
                 else:
                     arglist.append(IndicatorStr(f"{name}"))
 
-        id = IndicatorStr(f"{original.__name__}(") + IndicatorStr(", ").join(arglist)
+        id = IndicatorStr(f"{format_name(original)}(") + IndicatorStr(", ").join(arglist)
 
         if wf is not None:
             id += IndicatorStr(f") -> {wf.checker_for('return').describe()}")

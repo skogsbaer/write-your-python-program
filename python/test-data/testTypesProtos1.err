@@ -13,9 +13,8 @@ declared at: test-data/testTypesProtos1.py:18
 caused by: test-data/testTypesProtos1.py:21
   | doSomething(Dog())
 
-Argument 'loadness' of method 'makeSound' violates the protocol 'Animal'.
-Annotation 'int' is incompatible with the protocol's annotation 'float'
-when checking against the following value:
+Argument loadness of method makeSound violates the type declared by the protocol Animal.
+Annotation int is incompatible with the protocol's annotation float.
 
 given:    3.14
 expected: value of type int

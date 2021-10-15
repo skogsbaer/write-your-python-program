@@ -8,7 +8,7 @@ from untypy.interfaces import CreationContext
 
 class BoundGenericProtocolChecker(ProtocolChecker):
     def protocol_type(self) -> str:
-        return "Bound Generic"
+        return "bound generic"
 
 
 def WrappedGenericAlias(alias, ctx: CreationContext):

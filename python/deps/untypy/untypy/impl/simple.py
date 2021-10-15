@@ -19,7 +19,7 @@ class SimpleFactory(TypeCheckerFactory):
 
 class ParentProtocolChecker(ProtocolChecker):
     def protocol_type(self) -> str:
-        return "Parent"
+        return "parent"
 
 def simpleTypeCompat(x: Any, ty: type):
     xTy = type(x)

@@ -1,8 +1,8 @@
-from wypp import * 
+from wypp import *
 
 @record(mutable=True)
 class Record:
-    x : A
+    x: A
 
 class A:
     pass
@@ -12,3 +12,4 @@ def m():
     r.x = "hello"
 
 m()
+

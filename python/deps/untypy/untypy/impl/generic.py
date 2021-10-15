@@ -8,7 +8,7 @@ from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, 
 
 class GenericProtocolChecker(ProtocolChecker):
     def protocol_type(self) -> str:
-        return "Generic"
+        return "generic"
 
     def check_and_wrap(self, arg: Any, ctx: ExecutionContext) -> Any:
         if not isinstance(arg, self.proto):

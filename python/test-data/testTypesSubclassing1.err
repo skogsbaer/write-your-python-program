@@ -3,7 +3,7 @@ Traceback (most recent call last):
     feedAnimal(dog)
   File "test-data/testTypesSubclassing1.py", line 26, in feedAnimal
     a.feed(AnimalFood('some cat food'))
-WyppTypeError: Dog does not implement Parent Animal correctly.
+WyppTypeError: Dog does not implement parent Animal correctly.
 given:    <Dog>
 expected: value of type Animal
 
@@ -13,9 +13,8 @@ declared at: test-data/testTypesSubclassing1.py:25
 caused by: test-data/testTypesSubclassing1.py:29
   | feedAnimal(dog)
 
-Argument 'food' of method 'feed' violates the Parent 'Animal'.
-Annotation 'DogFood' is incompatible with the Parent's annotation 'AnimalFood'
-when checking against the following value:
+Argument food of method feed violates the type declared by the parent Animal.
+Annotation DogFood is incompatible with the parent's annotation AnimalFood.
 
 given:    <AnimalFood>
 expected: value of type DogFood

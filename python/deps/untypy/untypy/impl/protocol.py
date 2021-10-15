@@ -388,9 +388,9 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
         ))
 
         err = err.with_note(
-            f"Argument '{self.arg_name}' of method '{WrappedFunction.find_original(self.wf).__name__}' violates the {self.wf.protocol.protocol_type()} '{self.wf.protocol.proto.__name__}'.")
+            f"Argument {self.arg_name} of method {WrappedFunction.find_original(self.wf).__name__} violates the type declared by the {self.wf.protocol.protocol_type()} {self.wf.protocol.proto.__name__}.")
         err = err.with_note(
-            f"Annotation '{original_expected}' is incompatible with the {self.wf.protocol.protocol_type()}'s annotation '{self.wf.checker_for(self.arg_name).describe()}'\nwhen checking against the following value:")
+            f"Annotation {original_expected} is incompatible with the {self.wf.protocol.protocol_type()}'s annotation {self.wf.checker_for(self.arg_name).describe()}.")
 
         previous_chain = UntypyTypeError(
             self.me,
