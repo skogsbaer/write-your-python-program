@@ -45,7 +45,7 @@ class WDict(Generic[K, V], dict):
     def values(self) -> Iterable[V]:
         pass
 
-    def __contains__(self, k : K) -> bool:
+    def __contains__(self, key: K) -> bool:
         pass
 
     def __delitem__(self, k : K) -> None:

@@ -140,7 +140,6 @@ class TestInterfaceDict(unittest.TestCase):
         with self.assertRaises(UntypyTypeError):
             list(self.valerr.values())
 
-    @unittest.skip("this test fails")
     def test_contains(self):
         self.assertTrue(1 in self.good)
         self.assertFalse(4 in self.good)
