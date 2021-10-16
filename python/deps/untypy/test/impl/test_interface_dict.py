@@ -170,7 +170,6 @@ class TestInterfaceDict(unittest.TestCase):
             for k in self.keyerr:
                 pass
 
-
     def test_len(self):
         self.assertEqual(len(self.good), 3)
 
