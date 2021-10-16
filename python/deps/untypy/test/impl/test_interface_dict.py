@@ -148,13 +148,16 @@ class TestInterfaceDict(unittest.TestCase):
             # Cannot be in if Key : str.
             "42" in self.good
 
-    @unittest.skip("this test fails")
     def test_delitem(self):
         del self.good[1]
-        del self.good[4]
+
+        with self.assertRaises(KeyError):
+            del self.good[4]
 
         with self.assertRaises(UntypyTypeError):
             del self.good["four"]
+
+        self.assertEqual(self.good, {2: "two", 3: "three"})
 
     def test_iter(self):
         for k in self.good:
