@@ -15,7 +15,10 @@ V = TypeVar("V")
 class WDict(Generic[K, V], dict):
     def clear(self) -> None:
         pass
-    # TODO: def copy(self):
+
+    # Cannot Typecheck Copy -> Leads to endless recursion in "UntypyInterfaces"
+    # def copy(self) -> dict[K,V]:
+    #     pass
 
     def get(self, key : K, default: Optional[V] = None) -> Optional[V]:
         pass
@@ -32,10 +35,12 @@ class WDict(Generic[K, V], dict):
     def popitem(self) -> Tuple[K,V]:
         pass
 
-    def setdefault(self, key : K, default : Optional[V] = None) -> Optional[V]: # real signature unknown
+    # Miss-match See: https://github.com/skogsbaer/write-your-python-program/issues/19
+    def setdefault(self, key : K, default : V) -> V:
         pass
 
-    # TODO: def update(self, E=None, **F): # known special case of dict.update
+    # Missing var-arg support :/
+    # def update(self, E=None, **F) -> ???:
 
     def values(self) -> Iterable[V]:
         pass
@@ -46,20 +51,21 @@ class WDict(Generic[K, V], dict):
     def __delitem__(self, k : K) -> None:
         pass
 
-    def __iter__(self) -> Iterator[Tuple[K,V]]:
+    def __iter__(self) -> Iterator[K]:
         pass
 
     def __len__(self) -> int:
         pass
 
-    # TODO: def __or__(self, *args, **kwargs): # real signature unknown
-    #     """ Return self|value. """
+    # Untypy does not support generic functions :/
+    # def __or__(self, other : dict[I, J]) -> dict[Union[K,I], Union[V,J]]:
     #     pass
 
     def __reversed__(self) -> Iterator[K]:
         pass
 
-    # TODO: def __ror__(self, *args, **kwargs): # real signature unknown
+    # Untypy does not support generic functions :/
+    # def __ror__(self, other : dict[I, J]) -> dict[Union[K,I], Union[V,J]]:
     #     """ Return value|self. """
     #     pass
 
@@ -67,9 +73,6 @@ class WDict(Generic[K, V], dict):
         pass
 
     def __setitem__(self, key: K, value: V) -> None:
-        pass
-
-    def __delitem__(self, key) -> None:
         pass
 
 
