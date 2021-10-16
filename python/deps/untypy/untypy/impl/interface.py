@@ -1,5 +1,5 @@
 from collections.abc import Iterator, Iterable
-from typing import TypeVar, Optional, Any, Generic, Dict, List, Set
+from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple
 
 from untypy.error import UntypyAttributeError, UntypyTypeError
 from untypy.impl.protocol import ProtocolChecker
@@ -11,11 +11,65 @@ K = TypeVar("K")
 V = TypeVar("V")
 
 
+# See: https://docs.python.org/3/library/stdtypes.html#typesmapping
 class WDict(Generic[K, V], dict):
+    def clear(self) -> None:
+        pass
+    # TODO: def copy(self):
+
+    def get(self, key : K, default: Optional[V] = None) -> Optional[V]:
+        pass
+
+    def items(self) -> Iterable[Tuple[K, V]]:
+        pass
+
+    def keys(self) -> Iterable[K]:
+        pass
+
+    def pop(self, k : K, default: Optional[V] = None) -> Optional[V]:
+        pass
+
+    def popitem(self) -> Tuple[K,V]:
+        pass
+
+    def setdefault(self, key : K, default : Optional[V] = None) -> Optional[V]: # real signature unknown
+        pass
+
+    # TODO: def update(self, E=None, **F): # known special case of dict.update
+
+    def values(self) -> Iterable[V]:
+        pass
+
+    def __contains__(self, k : K) -> bool:
+        pass
+
+    def __delitem__(self, k : K) -> None:
+        pass
+
+    def __iter__(self) -> Iterator[Tuple[K,V]]:
+        pass
+
+    def __len__(self) -> int:
+        pass
+
+    # TODO: def __or__(self, *args, **kwargs): # real signature unknown
+    #     """ Return self|value. """
+    #     pass
+
+    def __reversed__(self) -> Iterator[K]:
+        pass
+
+    # TODO: def __ror__(self, *args, **kwargs): # real signature unknown
+    #     """ Return value|self. """
+    #     pass
+
     def __getitem__(self, item: K) -> V:
         pass
 
     def __setitem__(self, key: K, value: V) -> None:
+        pass
+
+    def __delitem__(self, key) -> None:
         pass
 
 
