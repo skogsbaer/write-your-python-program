@@ -121,7 +121,6 @@ class WrappedClassFunction(WrappedFunction):
         self.checker = checker
         self.create_fn = create_fn
         self._declared = declared
-
         self.fc = None
         if hasattr(self.inner, "__fc"):
             self.fc = getattr(self.inner, "__fc")
@@ -133,7 +132,7 @@ class WrappedClassFunction(WrappedFunction):
         def wrapper_cls(*args, **kwargs):
             caller = sys._getframe(1)
             (args, kwargs, bindings) = self.wrap_arguments(
-                lambda n: ArgumentExecutionContext(self, caller, n, declared=self.declared()),
+                lambda n: ArgumentExecutionContext(wrapper_cls, caller, n, declared=self.declared()),
                 args, kwargs)
             ret = fn(*args, **kwargs)
             return self.wrap_return(ret, bindings, ReturnExecutionContext(self))
@@ -144,7 +143,7 @@ class WrappedClassFunction(WrappedFunction):
                 me.__inner = self.create_fn()
             caller = sys._getframe(1)
             (args, kwargs, bindings) = self.wrap_arguments(
-                lambda n: ArgumentExecutionContext(self, caller, n, declared=self.declared()),
+                lambda n: ArgumentExecutionContext(wrapper_self, caller, n, declared=self.declared()),
                 (me.__inner, *args), kwargs)
             ret = fn(*args, **kwargs)
             if me.__return_ctx is None:

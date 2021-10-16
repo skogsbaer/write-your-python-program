@@ -29,7 +29,7 @@ class WDict(Generic[K, V], dict):
     def keys(self) -> Iterable[K]:
         pass
 
-    def pop(self, k : K, default: Optional[V] = None) -> Optional[V]:
+    def pop(self, k: K, default: Optional[V] = None) -> Optional[V]:
         pass
 
     def popitem(self) -> Tuple[K,V]:

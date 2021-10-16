@@ -77,7 +77,6 @@ class TestInterfaceDict(unittest.TestCase):
             [1, 2, 3]
         )
 
-    @unittest.skip("this test fails")
     def test_pop(self):
         self.assertEqual(self.good.pop(1), "one")
         self.assertEqual(self.good.pop(4), None)
@@ -180,7 +179,6 @@ class TestInterfaceDict(unittest.TestCase):
         with self.assertRaises(UntypyTypeError):
             list(reversed(self.keyerr))
 
-    @unittest.skip("this test fails")
     def test_getitem(self):
         self.assertEqual(self.good[1], "one")
 
