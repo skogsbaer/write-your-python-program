@@ -4,7 +4,7 @@ from untypy.error import UntypyTypeError
 
 class TestInterfaceDict(UntypyTestCase):
     """
-    Test's that the signatures match the implementation.
+    Test's that the signatures matches the implementation.
     """
 
     def setUp(self) -> None:
