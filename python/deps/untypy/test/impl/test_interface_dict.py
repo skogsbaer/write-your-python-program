@@ -1,71 +1,75 @@
-import unittest
-
-import untypy
-from untypy.error import UntypyTypeError, Location
+from test.util_test.untypy_test_case import UntypyTestCase, dummy_caller
+from untypy.error import UntypyTypeError
 
 
-def dummy_caller_2(ch, arg):
-    return ch(arg)
-
-
-# Sets up callstack so that this function is blamed for creation.
-# untypy.checker uses the function that called the function that
-# invokes the checker.
-def dummy_caller(ch, arg):
-    return dummy_caller_2(ch, arg)
-
-
-class TestInterfaceDict(unittest.TestCase):
+class TestInterfaceDict(UntypyTestCase):
     """
     Test's that the signatures match the implementation.
     """
 
     def setUp(self) -> None:
-        ch1 = untypy.checker(lambda: dict[int, str], dummy_caller)
-
         # A: No Errors
-        self.good = dummy_caller(ch1, {
-            1: "one",
-            2: "two",
-            3: "three",
-        })
+        self.good = dummy_caller(
+            dict[int, str],
+            {
+                1: "one",
+                2: "two",
+                3: "three",
+            }
+        )
 
         # B: Value error on 2
-        self.valerr = dummy_caller(ch1, {
-            1: "one",
-            2: 2,
-            3: "three",
-        })
+        self.valerr = dummy_caller(
+            dict[int, str],
+            {
+                1: "one",
+                2: 2,
+                3: "three",
+            }
+        )
 
-        # B: Key error on 2
-        self.keyerr = dummy_caller(ch1, {
-            1: "one",
-            "two": 2,
-            3: "three",
-        })
+        # C: Key error on 2
+        self.keyerr = dummy_caller(
+            dict[int, str],
+            {
+                1: "one",
+                "two": 2,
+                3: "three",
+            }
+        )
 
-    def assertBlame(self, cm, caller):
-        self.assertTrue(cm.exception.last_responsable() in Location.from_code(caller))
+    def test_blame(self):
+        with self.assertRaises(UntypyTypeError) as cm:
+            # 42 must be str
+            self.good.get(1, 42)
+        self.assertBlame(cm, TestInterfaceDict.test_blame)
+
+        with self.assertRaises(UntypyTypeError) as cm:
+            # key must be int
+            self.good.get("two")
+        self.assertBlame(cm, TestInterfaceDict.test_blame)
+
+        with self.assertRaises(UntypyTypeError) as cm:
+            # value err
+            self.valerr.get(2)
+        self.assertBlame(cm, dummy_caller)
 
     def test_get(self):
         self.assertEqual(self.good.get(1), "one")
         self.assertEqual(self.good.get(4), None)
         self.assertEqual(self.good.get(4, "four"), "four")
 
-        with self.assertRaises(UntypyTypeError) as cm:
+        with self.assertRaises(UntypyTypeError):
             # 42 must be str
             self.good.get(1, 42)
-        self.assertBlame(cm, TestInterfaceDict.test_get)
 
-        with self.assertRaises(UntypyTypeError) as cm:
+        with self.assertRaises(UntypyTypeError):
             # key must be int
             self.good.get("two")
-        self.assertBlame(cm, TestInterfaceDict.test_get)
 
-        with self.assertRaises(UntypyTypeError) as cm:
+        with self.assertRaises(UntypyTypeError):
             # value err
             self.valerr.get(2)
-        self.assertBlame(cm, dummy_caller)
 
     def test_items(self):
         self.assertEqual(
@@ -73,10 +77,10 @@ class TestInterfaceDict(unittest.TestCase):
             [(1, "one"), (2, "two"), (3, "three")]
         )
 
-        with self.assertRaises(UntypyTypeError) as cm:
+        with self.assertRaises(UntypyTypeError):
             list(self.keyerr.items())
 
-        with self.assertRaises(UntypyTypeError) as cm:
+        with self.assertRaises(UntypyTypeError):
             list(self.valerr.items())
 
     def test_keys(self):
