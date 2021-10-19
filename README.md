@@ -220,7 +220,7 @@ For builtin `dict[K,V]` the supported typechecked operations are:
 - `dict.keys()`
 - `dict.pop()`
 - `dict.popitem()`
-- `dict.setdefault(key, default)` <br/>_Note:_ In contrast to the standart library `default` is required, to avoid insereting `None` as value into otherwise typed dicts.
+- `dict.setdefault(key, default)` <br/>_Note:_ In contrast to the standard library `default` is required, to avoid inserting `None` as value into otherwise typed dicts.
 - `dict.update(other)`
 - `dict.update(key=value, ...)`
 - `dict.values()`
