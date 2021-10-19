@@ -180,6 +180,22 @@ class TestInterfaceDict(UntypyTestCase):
 
         self.assertEqual(self.good, {2: "two", 3: "three"})
 
+    def test_update(self):
+        self.good.update({4: "four", 5: "five"})
+        str_int = dummy_caller(
+            dict[str, int],
+            {
+                "one": 1,
+            }
+        )
+        str_int.update(four=4, five=5)
+
+        with self.assertRaises(UntypyTypeError):
+            self.good.update({"a": "b"})
+
+        with self.assertRaises(UntypyTypeError):
+            str_int.update(four="111")
+
     def test_iter(self):
         for k in self.good:
             pass

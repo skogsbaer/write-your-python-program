@@ -1,11 +1,29 @@
 from collections.abc import Iterator, Iterable
-from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple
+from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
 
 from untypy.error import UntypyAttributeError, UntypyTypeError
 from untypy.impl.protocol import ProtocolChecker
 from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, ExecutionContext
 from untypy.util import ReplaceTypeExecutionContext
+
+A = TypeVar("A")
+B = TypeVar("B")
+
+
+class WDictLike(Protocol[A, B]):
+    """
+    This protocol implements a subset of dict.
+    It exists solly to prevent an recursion issue
+    inside of WDict
+    """
+
+    def __iter__(self) -> Iterator[A]:
+        pass
+
+    def __getitem__(self, item: A) -> B:
+        pass
+
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -20,7 +38,7 @@ class WDict(Generic[K, V], dict):
     # def copy(self) -> dict[K,V]:
     #     pass
 
-    def get(self, key : K, default: Optional[V] = None) -> Optional[V]:
+    def get(self, key: K, default: Optional[V] = None) -> Optional[V]:
         pass
 
     def items(self) -> Iterable[Tuple[K, V]]:
@@ -32,15 +50,15 @@ class WDict(Generic[K, V], dict):
     def pop(self, k: K, default: Optional[V] = None) -> Optional[V]:
         pass
 
-    def popitem(self) -> Tuple[K,V]:
+    def popitem(self) -> Tuple[K, V]:
         pass
 
     # Miss-match See: https://github.com/skogsbaer/write-your-python-program/issues/19
-    def setdefault(self, key : K, default : V) -> V:
+    def setdefault(self, key: K, default: V) -> V:
         pass
 
-    # Missing var-arg support :/
-    # def update(self, E=None, **F) -> ???:
+    def update(self, *E: Iterable[WDictLike[K, V]], **F: Optional[WDictLike[K, V]]) -> Any:
+        pass
 
     def values(self) -> Iterable[V]:
         pass
@@ -48,7 +66,7 @@ class WDict(Generic[K, V], dict):
     def __contains__(self, key: K) -> bool:
         pass
 
-    def __delitem__(self, key : K) -> None:
+    def __delitem__(self, key: K) -> None:
         pass
 
     def __iter__(self) -> Iterator[K]:
@@ -174,6 +192,7 @@ class WIterable(Generic[I]):
 InterfaceMapping = {
     dict: (WDict,),
     Dict: (WDict,),
+    WDictLike: (WDictLike[K, V],),
     list: (WList,),
     List: (WList,),
     set: (WSet,),
@@ -182,6 +201,7 @@ InterfaceMapping = {
 }
 
 InterfaceFactoryCache = {}
+
 
 class InterfaceFactory(TypeCheckerFactory):
 
