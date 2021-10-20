@@ -197,6 +197,40 @@ before the type being defined, for example to define recursive types or as
 the type of `self` inside of classes. In fact, there is no check at all to make sure
 that anotations refer to existing types.
 
+For builtin `list[T]` the following operations are typechecked:
+- `list[idx]`
+- `list[idx] = value`
+- `list += [...]`
+- `list.append(value)`
+- `list.insert(idx, value)`
+- `list.extend(iterator)`
+- `for i in list:` (Iterator)
+
+For builtin `set[T]` these operations are typechecked:
+- `set.add(value)`
+- `set.pop()`
+- `set.remove(value)` Value must be of `T`
+- `set.update(other, ...)`
+- `value in set` Value must be of `T`
+- `for i in set:` (Iterator)
+
+For builtin `dict[K,V]` the supported typechecked operations are:
+- `dict.get(key)`
+- `dict.items()`
+- `dict.keys()`
+- `dict.pop()`
+- `dict.popitem()`
+- `dict.setdefault(key, default)` <br/>_Note:_ In contrast to the standard library `default` is required, to avoid inserting `None` as value into otherwise typed dicts.
+- `dict.update(other)`
+- `dict.update(key=value, ...)`
+- `dict.values()`
+- `key in dict` Key must be of `K`
+- `del dict[key]`
+- `for k in dict` (Iterator)
+- `reversed(dict)`
+- `dict[key]`
+- `dict[key] = value`
+
 ## Module name and current working directory
 
 When executing a python file with the RUN button, the current working directory is set to
