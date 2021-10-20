@@ -384,6 +384,8 @@ def limitTraceback(tb):
 
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
+    if isinstance(val, SystemExit):
+        die(val.code)
     if tb and removeFirstTb:
         tb = tb.tb_next
     stackSummary = limitTraceback(tb)
