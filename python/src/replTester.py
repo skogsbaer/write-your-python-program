@@ -76,9 +76,25 @@ doctestOptions = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
 if opts.diffOutput:
     doctestOptions = doctestOptions | doctest.REPORT_NDIFF
 
+# We use our own DocTestParser to replace exception names in stacktraces
+class MyDocTestParser(doctest.DocTestParser):
+    def get_examples(self, string, name='<string>'):
+        prefs = {'WyppTypeError: ': 'untypy.error.UntypyTypeError: ',
+                 'WyppNameError: ': 'untypy.error.UntypyNameError: ',
+                 'WyppAttributeError: ': 'untypy.error.UntypyAttributeError: '}
+        lines = []
+        for l in string.split('\n'):
+            for pref,repl in prefs.items():
+                if l.startswith(pref):
+                    l = repl + l[len(pref):]
+            lines.append(l)
+        string = '\n'.join(lines)
+        x = super().get_examples(string, name)
+        return x
+
 for repl in opts.repls:
     (failures, tests) = doctest.testfile(repl, globs=defs, module_relative=False,
-                                         optionflags=doctestOptions)
+                                         optionflags=doctestOptions, parser=MyDocTestParser())
 
     totalFailures += failures
     totalTests += tests
