@@ -115,7 +115,11 @@ class Location:
                     line_span=1
                 )
 
-    def narrow_in_span(self, reti_loc : Tuple[str, int]):
+    def __contains__(self, other: Location):
+        file, line = (other.file, other.line_no)
+        return self.file == file and line in range(self.line_no, self.line_no + self.line_span)
+
+    def narrow_in_span(self, reti_loc: Tuple[str, int]):
         """
         Use new Location if inside of span of this Location
         :param reti_loc: filename and line_no

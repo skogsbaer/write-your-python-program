@@ -146,6 +146,7 @@ def format_name(orig):
             return f"{k} constructor {n}"
     return n
 
+
 class ArgumentExecutionContext(ExecutionContext):
     n: WrappedFunction
     stack: inspect.FrameInfo
@@ -166,7 +167,11 @@ class ArgumentExecutionContext(ExecutionContext):
         error_id = IndicatorStr(next_ty, indicator)
 
         original = WrappedFunction.find_original(self.fn)
-        signature = inspect.signature(original)
+        try:
+            signature = inspect.signature(original)
+        except ValueError:
+            # fails on some built-ins
+            signature = inspect.signature(self.fn)
 
         wf = None
         if (hasattr(self.fn, '__wf')):
