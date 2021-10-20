@@ -84,11 +84,13 @@ function checkWithOutputAux()
     local t=$(mktemp)
     local out=$t.out
     local err=$t.err
+    local errtemp=$t.errtemp
     set +e
     echo "Checking $file (typecheck: $tycheck)"
-    PYTHONPATH=$d/site-lib python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$err" > "$out"
+    PYTHONPATH=$d/site-lib python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$errtemp" > "$out"
     ecode=$?
     set -e
+    cat "$errtemp" | sed 's/at 0x[0-9a-f][0-9a-f]*>/at 0x00>/g' > "$err"
     if [ $ecode != $expectedEcode ]; then
         echo "Expected exit code $expectedEcode got $ecode for test $file"
         exit 1
@@ -145,5 +147,13 @@ checkWithOutputAux yes 1 test-data/testTypesSequence2.py
 checkWithOutputAux yes 1 test-data/testTypesTuple1.py
 # checkWithOutputAux yes 1 test-data/wrong-caused-by.py  See #17
 checkWithOutputAux yes 1 test-data/declared-at-missing.py
-
-
+checkWithOutputAux yes 1 test-data/testTypesSet1.py
+checkWithOutputAux yes 1 test-data/testTypesSet2.py
+checkWithOutputAux yes 1 test-data/testTypesSet3.py
+checkWithOutputAux yes 1 test-data/testTypesSet4.py
+checkWithOutputAux yes 1 test-data/testTypesDict1.py
+checkWithOutputAux yes 1 test-data/testTypesDict2.py
+checkWithOutputAux yes 1 test-data/testTypesDict3.py
+checkWithOutputAux yes 1 test-data/testTypesDict4.py
+# checkWithOutputAux yes 1 test-data/testClassRecursion.py See #47
+# checkWithOutputAux yes 1 test-data/testWrongNumOfArguments.py See #48

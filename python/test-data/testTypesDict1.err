@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "test-data/testTypesDict1.py", line 7, in <module>
+    appendSomething(d)
+  File "test-data/testTypesDict1.py", line 4, in appendSomething
+    d['x'] = "foo"
+WyppTypeError: got value of wrong type
+given:    'foo'
+expected: value of type ~V=int
+
+context: __setitem__(self: Self, key: ~K=str, value: ~V=int) -> None
+                                                     ^^^^^^
+declared at: test-data/testTypesDict1.py:3
+caused by: test-data/testTypesDict1.py:4
+  |     d['x'] = "foo"
