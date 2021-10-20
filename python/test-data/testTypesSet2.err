@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "test-data/testTypesSet2.py", line 10, in <module>
+    foo(set([lambda: "1", lambda: 42])) # error because the 2nd functions returns an int
+  File "test-data/testTypesSet2.py", line 6, in foo
+    res.append(f())
+WyppTypeError: got value of wrong type
+given:    42
+expected: value of type str
+
+context: foo(l: set[Callable[[], str]]) -> list[str]
+                ^^^^^^^^^^^^^^^^^^^^^^
+declared at: test-data/testTypesSet2.py:3
+caused by: test-data/testTypesSet2.py:10
+  | foo(set([lambda: "1", lambda: 42])) # error because the 2nd functions returns an int
