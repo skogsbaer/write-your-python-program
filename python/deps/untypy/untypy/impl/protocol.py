@@ -82,7 +82,11 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
                                 f"Missing annotation for argument '{key}' of function {member.__name__} "
                                 f"in protocol {proto.__name__}\n"))
 
-                        checker = ctx.find_checker(annotations[key])
+                        param_anot = annotations[key]
+                        if param_anot is proto:
+                            checker = SimpleInstanceOfChecker(proto, None)
+                        else:
+                            checker = ctx.find_checker(param_anot)
                         if checker is None:
                             raise ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {param.annotation}\n"
                                                                 f"for argument '{key}' of function {member.__name__} "
@@ -115,13 +119,18 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
 class ProtocolChecker(TypeChecker):
     def __init__(self, annotation: type, ctx: CreationContext, *, altname : Optional[str] = None):
         (proto, typevars) = _find_bound_typevars(annotation)
-        ctx = ctx.with_typevars(typevars)
-        members = get_proto_members(proto, ctx)
+        self.ctx = ctx.with_typevars(typevars)
         self.proto = proto
-        self.members = members
+        self._members = None
         self.typevars = typevars
         self.wrapper_types = dict()
         self.altname = altname
+
+    @property
+    def members(self):
+        if not self._members:
+            self._members = get_proto_members(self.proto, self.ctx)
+        return self._members
 
     def may_change_identity(self) -> bool:
         return True
