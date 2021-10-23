@@ -3,11 +3,8 @@ Traceback (most recent call last):
     doSomething(Dog())
   File "test-data/testTypesProtos2.py", line 19, in doSomething
     print(a.makeSound(3.14))
-WyppTypeError: Arguments do not match.
+WyppTypeError: too many positional arguments
 Hint: 'self'-parameter was omitted in declaration.
-
-given:    '(<Dog>, 3.14)'
-expected: value of type makeSound(loadness: 'float') -> 'str'
 
 context: makeSound(loadness: float) -> str
 declared at: test-data/testTypesProtos2.py:8

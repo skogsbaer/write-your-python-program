@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.13.2 (2021-10-23)
+  * Better error message when number of args do not match #48
+  * Fix class recursion bug #47
 * 0.13.1 (2021-10-15)
   * Types for negative and positive numbers #39
 * 0.13.0 (2021-10-15)

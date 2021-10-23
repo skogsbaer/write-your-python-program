@@ -192,16 +192,21 @@ class UntypyError:
     def simpleName(self):
         raise Exception('abstract method')
 
+NO_GIVEN = object()
+
 class UntypyTypeError(TypeError, UntypyError):
-    given: Any
+    given: Any  # NO_GIVEN if not present
     header: str
-    expected: str
+    expected: Optional[str]
     frames: list[Frame]
     notes: list[str]
     previous_chain: Optional[UntypyTypeError]
     responsibility_type: ResponsibilityType
 
-    def __init__(self, given: Any, expected: str, frames: list[Frame] = [],
+    def __init__(self,
+                 given: Any = NO_GIVEN,
+                 expected: str = None,
+                 frames: list[Frame] = [],
                  notes: list[str] = [],
                  previous_chain: Optional[UntypyTypeError] = None,
                  responsibility_type: ResponsibilityType = ResponsibilityType.IN,
@@ -226,7 +231,10 @@ class UntypyTypeError(TypeError, UntypyError):
             frame = self.frames[-1]
             return frame.type_declared, frame.indicator_line
         else:
-            return self.expected, "^" * len(self.expected)
+            n = 0
+            if self.expected:
+                n = len(self.expected)
+            return self.expected, "^" * n
 
     def with_frame(self, frame: Frame) -> UntypyTypeError:
         frame.responsibility_type = self.responsibility_type
@@ -285,7 +293,7 @@ class UntypyTypeError(TypeError, UntypyError):
 
         notes = joinLines(self.notes)
         if notes:
-            notes = notes + "\n\n"
+            notes = notes + "\n"
 
         if self.previous_chain is None:
             previous_chain = ""
@@ -310,14 +318,21 @@ class UntypyTypeError(TypeError, UntypyError):
                 ctx = f"{ctx}\n         {ind}"
         if ctx:
             ctx = ctx + "\n"
-        given = repr(self.given)
-        expected = self.expected.strip()
-        if expected != 'None':
+        given = None if self.given is NO_GIVEN else repr(self.given)
+        expected = None if self.expected is None else self.expected.strip()
+        if expected is not None and expected != 'None':
             expected = f'value of type {expected}'
-
-        return (f"""{preHeader}{previous_chain}{postHeader}{notes}given:    {given.rstrip()}
-expected: {expected}
-
+        if given is not None:
+            given = f"given:    {given.rstrip()}\n"
+        else:
+            given = ""
+        if expected is not None:
+            expected = f"expected: {expected}\n"
+        else:
+            expected = ""
+        if notes and (given or expected):
+            notes += "\n"
+        return (f"""{preHeader}{previous_chain}{postHeader}{notes}{given}{expected}
 {ctx}{declared}
 {cause}""")
 
