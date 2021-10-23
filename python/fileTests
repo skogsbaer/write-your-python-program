@@ -156,4 +156,5 @@ checkWithOutputAux yes 1 test-data/testTypesDict2.py
 checkWithOutputAux yes 1 test-data/testTypesDict3.py
 checkWithOutputAux yes 1 test-data/testTypesDict4.py
 # checkWithOutputAux yes 1 test-data/testClassRecursion.py See #47
-# checkWithOutputAux yes 1 test-data/testWrongNumOfArguments.py See #48
+checkWithOutputAux yes 1 test-data/testWrongNumOfArguments.py
+checkWithOutputAux yes 1 test-data/testWrongNumOfArguments2.py

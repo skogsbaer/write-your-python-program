@@ -6,7 +6,8 @@ class IndicatorStr:
     indicator: str
 
     def __init__(self, ty: str, indicator: str = ""):
-        while len(indicator) < len(ty):
+        n = 0 if ty is None else len(ty)
+        while len(indicator) < n:
             indicator += " "
 
         self.ty = ty

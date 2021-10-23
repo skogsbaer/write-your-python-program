@@ -171,11 +171,8 @@ class WrappedClassFunction(WrappedFunction):
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
         try:
             bindings = self.signature.bind(*args, **kwargs)
-        except TypeError:
-            err = UntypyTypeError(
-                given=format_argument_values(args, kwargs),
-                expected=self.describe(),
-            ).with_note("Arguments do not match.")
+        except TypeError as e:
+            err = UntypyTypeError(header=str(e))
             raise ctxprv("").wrap(err)
 
         bindings.apply_defaults()
