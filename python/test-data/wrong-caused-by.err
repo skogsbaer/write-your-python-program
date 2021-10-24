@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "test-data/wrong-caused-by.py", line 30, in <module>
+    mainStreetM.turnIntoStreet(redCarM)
+WyppTypeError: got value of wrong type
+given:    CarM(licensePlate='OG PY 123', color='rot')
+expected: value of type Car
+
+context: turnIntoStreet(self: Self, car: Car) -> None
+                                         ^^^
+declared at: test-data/wrong-caused-by.py:9
+caused by: test-data/wrong-caused-by.py:30
+  | mainStreetM.turnIntoStreet(redCarM)
