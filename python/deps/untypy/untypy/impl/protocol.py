@@ -3,7 +3,6 @@ import sys
 import typing
 from typing import Protocol, Any, Optional, Callable, Union, TypeVar, Dict, Tuple
 
-from untypy.util.display import format_argument_values
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, ResponsibilityType
 from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, ExecutionContext, \
@@ -378,18 +377,16 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
         self.ctx = ctx
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
-        (original_expected, _ind) = err.next_type_and_indicator()
         err = ArgumentExecutionContext(self.wf, None, self.arg_name).wrap(err)
 
         responsable = WrappedFunction.find_location(self.wf)
 
-        (decl, ind) = err.next_type_and_indicator()
         err = err.with_frame(Frame(
-            decl,
-            ind,
             declared=self.wf.declared(),
             responsable=responsable
         ))
+
+        original_expected = err.expected.find(self.arg_name)
 
         err = err.with_note(
             f"Argument {self.arg_name} of method {WrappedFunction.find_original(self.wf).__name__} violates the type declared by the {self.wf.protocol.protocol_type()} {self.wf.protocol.proto.__name__}.")

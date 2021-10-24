@@ -3,7 +3,6 @@ import sys
 from types import ModuleType
 from typing import Any, Callable, Union, Optional
 
-from untypy.util.display import format_argument_values
 from untypy.error import Location, UntypyAttributeError, UntypyTypeError
 from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeChecker, CreationContext, ExecutionContext, WrappedFunction, \
@@ -140,10 +139,11 @@ class WrappedClassFunction(WrappedFunction):
         def wrapper_self(me, *args, **kwargs):
             if name == '__init__':
                 me.__return_ctx = None
-                me.__inner = self.create_fn()
+                me.__ctx = None
+            me.__inner = self.create_fn()
             caller = sys._getframe(1)
             (args, kwargs, bindings) = self.wrap_arguments(
-                lambda n: ArgumentExecutionContext(wrapper_self, caller, n, declared=self.declared()),
+                lambda n: ArgumentExecutionContext(wrapper_self, caller, n, declared=self.declared(), upper=me.__ctx),
                 (me.__inner, *args), kwargs)
             ret = fn(*args, **kwargs)
             if me.__return_ctx is None:
@@ -159,10 +159,10 @@ class WrappedClassFunction(WrappedFunction):
             else:
                 w = wrapper_cls
 
-        setattr(w, '__wrapped__', fn)
+        # setattr(w, '__wrapped__', fn)
         setattr(w, '__name__', fn.__name__)
         setattr(w, '__signature__', self.signature)
-        setattr(w, '__wf', self)
+        #setattr(w, '__wf', self)
         return w
 
     def get_original(self):

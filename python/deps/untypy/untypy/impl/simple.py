@@ -68,7 +68,10 @@ class SimpleChecker(TypeChecker):
             else:
                 return self.parent_checker(arg, ctx)
         else:
-            raise ctx.wrap(UntypyTypeError(arg, self.describe()))
+            raise ctx.wrap(UntypyTypeError(
+                arg,
+                self.annotation.__name__,
+            ))
 
     def describe(self) -> str:
         return self.annotation.__name__

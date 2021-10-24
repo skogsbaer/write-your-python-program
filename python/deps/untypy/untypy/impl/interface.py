@@ -1,7 +1,7 @@
 from collections.abc import Iterator, Iterable
 from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
 
-from untypy.error import UntypyAttributeError, UntypyTypeError
+from untypy.error import UntypyAttributeError, UntypyTypeError, Frame, Location
 from untypy.impl.protocol import ProtocolChecker
 from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, ExecutionContext
@@ -228,7 +228,7 @@ class InterfaceFactory(TypeCheckerFactory):
             if type(origin) == type:
                 template = WrappedType(protocol, ctx.with_typevars(bindings), name=name, implementation_template=origin,
                                        declared=ctx.declared_location())
-                return InterfaceChecker(origin, template, name)
+                return InterfaceChecker(origin, template, name, ctx.declared_location())
             else:
                 # type(origin) == collection.abc.ABCMeta
                 return ProtocolChecker(protocol, ctx, altname=name)
@@ -238,10 +238,11 @@ class InterfaceFactory(TypeCheckerFactory):
 
 class InterfaceChecker(TypeChecker):
 
-    def __init__(self, origin, template, name):
+    def __init__(self, origin, template, name, declared):
         self.origin = origin
         self.template = template
         self.name = name
+        self.declared = declared
         pass
 
     def may_change_identity(self) -> bool:
@@ -253,8 +254,29 @@ class InterfaceChecker(TypeChecker):
 
         instance = self.template.__new__(self.template)
         instance._WrappedClassFunction__inner = arg
+        instance._WrappedClassFunction__ctx = InterfaceCheckerContext(ctx, arg, self.name, self.declared)
         instance._WrappedClassFunction__return_ctx = ReplaceTypeExecutionContext(ctx, self.name)
         return instance
 
     def describe(self) -> str:
         return self.name
+
+
+class InterfaceCheckerContext(ExecutionContext):
+    def __init__(self, upper: ExecutionContext, arg: Any, name, declared: Location):
+        self.upper = upper
+        self.arg = arg
+        self.name = name
+        self.declared = declared
+
+    def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
+        decl = self.upper.wrap(UntypyTypeError(
+            given=self.arg,
+            expected=self.name
+        ))
+
+        return err.with_frame(Frame(
+            responsable=None,
+            declared=self.declared,
+            declared_tree=decl.expected
+        ))

@@ -2,9 +2,9 @@ import inspect
 import types
 from typing import Optional, Union, List
 
-from untypy.util.display import IndicatorStr
-from untypy.error import UntypyTypeError, Frame, Location
+from untypy.error import UntypyTypeError, Frame, Location, AttributeTree
 from untypy.interfaces import ExecutionContext, TypeChecker, WrappedFunction
+from untypy.util.display import IndicatorStr
 from untypy.util.return_traces import get_last_return
 
 
@@ -151,68 +151,40 @@ class ArgumentExecutionContext(ExecutionContext):
     n: WrappedFunction
     stack: inspect.FrameInfo
     argument_name: str
+    upper: Optional[ExecutionContext]
 
     def __init__(self,
                  fn: Union[WrappedFunction, types.FunctionType],
                  stack: Optional[inspect.FrameInfo],
                  argument_name: str,
-                 declared: Optional[Location] = None):
+                 declared: Optional[Location] = None,
+                 upper: ExecutionContext = None):
         self.fn = fn
         self.stack = stack
         self.argument_name = argument_name
         self.declared = declared
+        self.upper = upper
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
-        (next_ty, indicator) = err.next_type_and_indicator()
-        error_id = IndicatorStr(next_ty, indicator)
-
         original = WrappedFunction.find_original(self.fn)
-        try:
-            signature = inspect.signature(original)
-        except ValueError:
-            # fails on some built-ins
-            signature = inspect.signature(self.fn)
-
-        wf = None
-        if (hasattr(self.fn, '__wf')):
-            wf = getattr(self.fn, '__wf')
-        elif isinstance(self.fn, WrappedFunction):
-            wf = self.fn
-
-        arglist = []
-        for name in signature.parameters:
-            if name is self.argument_name:
-                arglist.append(IndicatorStr(f"{name}: ") + error_id)
-            else:
-                if wf is not None:
-                    arglist.append(IndicatorStr(f"{name}: {wf.checker_for(name).describe()}"))
-                else:
-                    arglist.append(IndicatorStr(f"{name}"))
-
-        id = IndicatorStr(f"{format_name(original)}(") + IndicatorStr(", ").join(arglist)
-
-        if wf is not None:
-            id += IndicatorStr(f") -> {wf.checker_for('return').describe()}")
-        else:
-            id += IndicatorStr(f")")
-
-        if self.declared is None:
-            declared = WrappedFunction.find_location(self.fn)
-        else:
-            declared = self.declared
-
         if self.stack is not None:
             responsable = Location.from_stack(self.stack)
         else:
             responsable = None
 
-        frame = Frame(
-            id.ty,
-            id.indicator,
-            declared=declared,
+        tree = AttributeTree.from_function(original)
+        tree.replace(self.argument_name, err.expected)
+        tree.append("\n")
+        tree.append("\t...")
+
+        err = err.with_expected(tree).with_frame(Frame(
+            declared=Location.from_code(original),
             responsable=responsable
-        )
-        return err.with_frame(frame)
+        ))
+
+        if self.upper:
+            err = self.upper.wrap(err)
+        return err
 
 
 class GenericExecutionContext(ExecutionContext):

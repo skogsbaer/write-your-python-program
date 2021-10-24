@@ -3,7 +3,8 @@ from __future__ import annotations
 import inspect
 from enum import Enum
 from os.path import relpath
-from typing import Any, Optional, Tuple, Iterable
+from typing import Any, Optional, Tuple, Iterable, Union
+
 
 def readFile(path):
     try:
@@ -137,33 +138,20 @@ class Location:
 
 
 class Frame:
-    type_declared: str
-    indicator_line: str
-
     declared: Optional[Location]
+    declared_tree: Optional[Location]
     responsable: Optional[Location]
 
     responsibility_type: Optional[ResponsibilityType]
 
-    def __init__(self, type_declared: str, indicator_line: Optional[str],
-                 declared: Optional[Location], responsable: Optional[Location]):
-
-        self.type_declared = type_declared
-        if indicator_line is None:
-            indicator_line = '^' * len(type_declared)
-        self.indicator_line = indicator_line
+    def __init__(self, declared: Optional[Location], responsable: Optional[Location],
+                 declared_tree: Optional[AttributeTree] = None):
         self.declared = declared
         self.responsable = responsable
+        self.declared_tree = declared_tree
 
     def __str__(self):
-        buf = f"in: {self.type_declared}\n" \
-              f"    {self.indicator_line}\n"
-
-        if self.responsable is not None:
-            buf += f"{self.responsable.file}:{self.responsable.line_no}:\n" \
-                   f"{self.responsable.source_line}\n" \
-                   f"\n"
-        return buf
+        raise NotImplementedError
 
 
 class ResponsibilityType(Enum):
@@ -197,7 +185,6 @@ NO_GIVEN = object()
 class UntypyTypeError(TypeError, UntypyError):
     given: Any  # NO_GIVEN if not present
     header: str
-    expected: Optional[str]
     frames: list[Frame]
     notes: list[str]
     previous_chain: Optional[UntypyTypeError]
@@ -205,7 +192,7 @@ class UntypyTypeError(TypeError, UntypyError):
 
     def __init__(self,
                  given: Any = NO_GIVEN,
-                 expected: str = None,
+                 expected: Union[str, AttributeTree] = "",
                  frames: list[Frame] = [],
                  notes: list[str] = [],
                  previous_chain: Optional[UntypyTypeError] = None,
@@ -213,7 +200,6 @@ class UntypyTypeError(TypeError, UntypyError):
                  header: str = ''):
         self.responsibility_type = responsibility_type
         self.given = given
-        self.expected = expected
         self.frames = frames.copy()
         for frame in self.frames:
             if frame.responsibility_type is None:
@@ -221,20 +207,17 @@ class UntypyTypeError(TypeError, UntypyError):
         self.notes = notes.copy()
         self.previous_chain = previous_chain
         self.header = header
+
+        if isinstance(expected, str):
+            tree = AttributeTree()
+            tree.append(expected, None, True)
+            self.expected = tree
+        else:
+            self.expected = expected
         super().__init__('\n' + self.__str__())
 
     def simpleName(self):
         return 'TypeError'
-
-    def next_type_and_indicator(self) -> Tuple[str, str]:
-        if len(self.frames) >= 1:
-            frame = self.frames[-1]
-            return frame.type_declared, frame.indicator_line
-        else:
-            n = 0
-            if self.expected:
-                n = len(self.expected)
-            return self.expected, "^" * n
 
     def with_frame(self, frame: Frame) -> UntypyTypeError:
         frame.responsibility_type = self.responsibility_type
@@ -260,6 +243,10 @@ class UntypyTypeError(TypeError, UntypyError):
         return UntypyTypeError(self.given, self.expected, self.frames,
                                self.notes, self.previous_chain, self.responsibility_type, header)
 
+    def with_expected(self, expected: AttributeTree):
+        return UntypyTypeError(self.given, expected, self.frames,
+                               self.notes, self.previous_chain, self.responsibility_type, self.header)
+
     def last_responsable(self):
         for f in reversed(self.frames):
             if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN:
@@ -273,8 +260,8 @@ class UntypyTypeError(TypeError, UntypyError):
         return None
 
     def __str__(self):
-        declared_locs = []
         responsable_locs = []
+        declared_locs = []
 
         for f in self.frames:
             if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN:
@@ -283,13 +270,15 @@ class UntypyTypeError(TypeError, UntypyError):
                     responsable_locs.append(s)
             if f.declared is not None:
                 s = str(f.declared)
+                if f.declared_tree:
+                    s += "\n" + str(f.declared_tree)
                 if s not in declared_locs:
-                    declared_locs.append(str(f.declared))
+                    declared_locs.append(s)
+
+        ex = "\n" + self.expected.__str__()
 
         cause = formatLocations(CAUSED_BY_PREFIX, responsable_locs)
         declared = formatLocations(DECLARED_AT_PREFIX, declared_locs)
-
-        (ty, ind) = self.next_type_and_indicator()
 
         notes = joinLines(self.notes)
         if notes:
@@ -310,31 +299,13 @@ class UntypyTypeError(TypeError, UntypyError):
         if previous_chain:
             previous_chain = previous_chain + "\n\n"
 
-        ctx = ""
-        if self.expected != ty:
-            ctx = f"context: {ty.rstrip()}"
-            ind = ind.rstrip()
-            if ind:
-                ctx = f"{ctx}\n         {ind}"
-        if ctx:
-            ctx = ctx + "\n"
         given = None if self.given is NO_GIVEN else repr(self.given)
-        expected = None if self.expected is None else self.expected.strip()
-        if expected is not None and expected != 'None':
-            expected = f'value of type {expected}'
         if given is not None:
             given = f"given:    {given.rstrip()}\n"
         else:
             given = ""
-        if expected is not None:
-            expected = f"expected: {expected}\n"
-        else:
-            expected = ""
-        if notes and (given or expected):
-            notes += "\n"
-        return (f"""{preHeader}{previous_chain}{postHeader}{notes}{given}{expected}
-{ctx}{declared}
-{cause}""")
+
+        return (f"""{preHeader}{previous_chain}{postHeader}{notes}{given}{ex}{declared}\n{cause}""")
 
 
 class UntypyAttributeError(AttributeError, UntypyError):
@@ -348,7 +319,7 @@ class UntypyAttributeError(AttributeError, UntypyError):
         return 'AttributeError'
 
     def with_location(self, loc: Location) -> UntypyAttributeError:
-        return type(self)(self.message, self.locations + [loc]) # preserve type
+        return type(self)(self.message, self.locations + [loc])  # preserve type
 
     def __str__(self):
         return f"{self.message}\n{formatLocations(DECLARED_AT_PREFIX, self.locations)}"
@@ -357,3 +328,90 @@ class UntypyAttributeError(AttributeError, UntypyError):
 class UntypyNameError(UntypyAttributeError, UntypyError):
     def simpleName(self):
         return 'NameError'
+
+
+class AttributeTree:
+    token_stream_lines: list[list[Tuple[str, Optional[str], bool]]]
+
+    def __init__(self):
+        self.token_stream_lines = [[]]
+
+    def append(self, token: str, tag: Optional[str] = None, highlight: bool = False):
+        token = str(token)
+        if token.endswith("\n"):
+            self.token_stream_lines.append([])
+        token = token.replace("\n", "")
+        self.token_stream_lines[-1].append((token, tag, highlight))
+
+    def replace(self, name, other: AttributeTree):
+        for line in self.token_stream_lines:
+            for i in range(0, len(line)):
+                t, ident, h = line[i]
+                if ident == name:
+                    del line[i]
+                    for ol in reversed(other.token_stream_lines):
+                        for ot, oi, oh in reversed(ol):
+                            line.insert(i, (ot, ident, oh))
+                    return
+
+    def find(self, name: str):
+        for line in self.token_stream_lines:
+            for i in range(0, len(line)):
+                t, ident, h = line[i]
+                if ident == name:
+                    return t
+
+    def __str__(self):
+        out = ""
+        for token_line in self.token_stream_lines:
+            line = ""
+            indicator = ""
+            second_line = False
+
+            for token, ident, highlight in token_line:
+                line += token
+                if highlight:
+                    second_line = True
+                    indicator += len(token) * "^"
+                else:
+                    indicator += len(token) * " "
+            if second_line:
+                out += line + "\n"
+                out += indicator + "\n"
+            else:
+                out += line + "\n"
+        return out
+
+    @staticmethod
+    def from_function(fn):
+        signature = inspect.signature(fn)
+
+        tree = AttributeTree()
+        tree.append(f"def {fn.__name__}(")
+        for i, key in enumerate(signature.parameters):
+            parm = signature.parameters[key]
+
+            if i != 0:
+                tree.append(", ")
+
+            if parm.kind == inspect.Parameter.VAR_KEYWORD:
+                tree.append("**")
+            if parm.kind == inspect.Parameter.VAR_POSITIONAL:
+                tree.append("*")
+
+            tree.append(parm.name)
+
+            if parm.annotation != inspect.Parameter.empty:
+                tree.append(": ")
+                tree.append(parm.annotation, key)
+
+            if parm.default != inspect.Parameter.empty:
+                tree.append("=")
+                tree.append(parm.default.__repr__())
+        tree.append(f")")
+        if signature.return_annotation != inspect.Parameter.empty:
+            tree.append(f" -> ")
+            tree.append(signature.return_annotation, 'return')
+        tree.append(f":")
+
+        return tree
