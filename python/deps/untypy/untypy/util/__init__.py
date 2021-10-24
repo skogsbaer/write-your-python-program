@@ -179,6 +179,7 @@ class ArgumentExecutionContext(ExecutionContext):
 
         err = err.with_expected(tree).with_frame(Frame(
             declared=Location.from_code(original),
+            declared_tree=tree,
             responsable=responsable
         ))
 

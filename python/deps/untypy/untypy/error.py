@@ -197,7 +197,8 @@ class UntypyTypeError(TypeError, UntypyError):
                  notes: list[str] = [],
                  previous_chain: Optional[UntypyTypeError] = None,
                  responsibility_type: ResponsibilityType = ResponsibilityType.IN,
-                 header: str = ''):
+                 header: str = '',
+                 initial_expected: Optional[str] = None):
         self.responsibility_type = responsibility_type
         self.given = given
         self.frames = frames.copy()
@@ -214,6 +215,11 @@ class UntypyTypeError(TypeError, UntypyError):
             self.expected = tree
         else:
             self.expected = expected
+
+        if not initial_expected:
+            self.initial_expected = expected.__str__()
+        else:
+            self.initial_expected = initial_expected
         super().__init__('\n' + self.__str__())
 
     def simpleName(self):
@@ -223,29 +229,30 @@ class UntypyTypeError(TypeError, UntypyError):
         frame.responsibility_type = self.responsibility_type
         return UntypyTypeError(self.given, self.expected, self.frames + [frame],
                                self.notes, self.previous_chain, self.responsibility_type,
-                               self.header)
+                               self.header, self.initial_expected)
 
     def with_previous_chain(self, previous_chain: UntypyTypeError):
         return UntypyTypeError(self.given, self.expected, self.frames,
-                               self.notes, previous_chain, self.responsibility_type, self.header)
+                               self.notes, previous_chain, self.responsibility_type, self.header, self.initial_expected)
 
     def with_note(self, note: str):
         return UntypyTypeError(self.given, self.expected, self.frames,
                                self.notes + [note], self.previous_chain, self.responsibility_type,
-                               self.header)
+                               self.header, self.initial_expected)
 
     def with_inverted_responsibility_type(self):
         return UntypyTypeError(self.given, self.expected, self.frames,
                                self.notes, self.previous_chain, self.responsibility_type.invert(),
-                               self.header)
+                               self.header, self.initial_expected)
 
     def with_header(self, header: str):
         return UntypyTypeError(self.given, self.expected, self.frames,
-                               self.notes, self.previous_chain, self.responsibility_type, header)
+                               self.notes, self.previous_chain, self.responsibility_type, header, self.initial_expected)
 
     def with_expected(self, expected: AttributeTree):
         return UntypyTypeError(self.given, expected, self.frames,
-                               self.notes, self.previous_chain, self.responsibility_type, self.header)
+                               self.notes, self.previous_chain, self.responsibility_type, self.header,
+                               self.initial_expected)
 
     def last_responsable(self):
         for f in reversed(self.frames):
@@ -275,8 +282,6 @@ class UntypyTypeError(TypeError, UntypyError):
                 if s not in declared_locs:
                     declared_locs.append(s)
 
-        ex = "\n" + self.expected.__str__()
-
         cause = formatLocations(CAUSED_BY_PREFIX, responsable_locs)
         declared = formatLocations(DECLARED_AT_PREFIX, declared_locs)
 
@@ -299,14 +304,26 @@ class UntypyTypeError(TypeError, UntypyError):
         if previous_chain:
             previous_chain = previous_chain + "\n\n"
 
+        expected = None if self.expected is None else self.initial_expected.strip()
         given = None if self.given is NO_GIVEN else repr(self.given)
         if given is not None:
             given = f"given:    {given.rstrip()}\n"
         else:
             given = ""
 
-        return (f"""{preHeader}{previous_chain}{postHeader}{notes}{given}{ex}{declared}\n{cause}""")
-
+        if expected is not None and expected != 'None':
+            expected = f'value of type {expected}'
+        if given is not None:
+            given = f"given:    {given.rstrip()}\n"
+        else:
+            given = ""
+        if expected is not None:
+            expected = f"expected: {expected}\n"
+        else:
+            expected = ""
+        return (f"""{preHeader}{previous_chain}{postHeader}{notes}{given}{expected}
+{declared}
+{cause}""")
 
 class UntypyAttributeError(AttributeError, UntypyError):
 
