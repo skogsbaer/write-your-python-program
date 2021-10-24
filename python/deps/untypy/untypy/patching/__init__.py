@@ -1,9 +1,9 @@
 import inspect
 from collections import namedtuple
 from types import FunctionType
-from typing import Callable, Protocol, Optional, Any
+from typing import Callable, Protocol
 
-from untypy.error import Location, UntypyNameError, UntypyAttributeError
+from untypy.error import Location
 from untypy.impl import DefaultCreationContext
 from untypy.impl.bound_generic import WrappedGenericAlias
 from untypy.impl.wrappedclass import WrappedType
@@ -52,38 +52,10 @@ def wrap_function(fn: FunctionType, cfg: Config) -> Callable:
     if len(inspect.getfullargspec(fn).annotations) > 0:
         if cfg.verbose:
             print(f"Patching Function: {fn.__name__}")
-        try:
-            return TypedFunctionBuilder(fn, DefaultCreationContext(
-                typevars=dict(),
-                declared_location=WrappedFunction.find_location(fn),
-                checkedpkgprefixes=cfg.checkedprefixes)).build()
-        except UntypyNameError:  # Argument Typ was not defined yet.
-            class CallableContainer:
-                inner: Optional[Callable]
-
-            def lazy_typechecked_outer(c):
-                c.inner = None
-
-                def lazy_typechecked(*args, **kwargs):
-                    if c.inner is None:
-                        c.inner = TypedFunctionBuilder(fn, DefaultCreationContext(
-                            typevars=dict(),
-                            declared_location=WrappedFunction.find_location(fn),
-                            checkedpkgprefixes=cfg.checkedprefixes)).build()
-                    return c.inner(*args, **kwargs)
-
-                return lazy_typechecked
-
-            w = lazy_typechecked_outer(CallableContainer())
-            setattr(w, '__wrapped__', fn)
-            setattr(w, '__original', fn)
-            setattr(w, '__name__', fn.__name__)
-            setattr(w, '__signature__', inspect.signature(fn))
-
-            return w
-    else:
-        return fn
-
+        return TypedFunctionBuilder(fn, DefaultCreationContext(
+            typevars=dict(),
+            declared_location=WrappedFunction.find_location(fn),
+            checkedpkgprefixes=cfg.checkedprefixes)).build()
 
 def wrap_class(a: type, cfg: Config) -> Callable:
     return WrappedType(a, DefaultCreationContext(
