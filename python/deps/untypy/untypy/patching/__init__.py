@@ -56,6 +56,9 @@ def wrap_function(fn: FunctionType, cfg: Config) -> Callable:
             typevars=dict(),
             declared_location=WrappedFunction.find_location(fn),
             checkedpkgprefixes=cfg.checkedprefixes)).build()
+    else:
+        return fn
+
 
 def wrap_class(a: type, cfg: Config) -> Callable:
     return WrappedType(a, DefaultCreationContext(
