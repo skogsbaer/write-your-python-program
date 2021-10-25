@@ -1,9 +1,8 @@
 import inspect
 import sys
 import typing
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
 
-from untypy.util.display import format_argument_values
 from untypy.error import UntypyAttributeError, UntypyNameError, UntypyTypeError
 from untypy.impl.any import SelfChecker
 from untypy.interfaces import WrappedFunction, TypeChecker, CreationContext, WrappedFunctionContextProvider, \
@@ -14,7 +13,7 @@ from untypy.util import ArgumentExecutionContext, ReturnExecutionContext
 class TypedFunctionBuilder(WrappedFunction):
     inner: Callable
     signature: inspect.Signature
-    checkers: Dict[str, TypeChecker]
+    _checkers: Optional[Dict[str, TypeChecker]]
 
     special_args = ['self', 'cls']
     method_name_ignore_return = ['__init__']
@@ -22,18 +21,36 @@ class TypedFunctionBuilder(WrappedFunction):
     def __init__(self, inner: Callable, ctx: CreationContext):
         self.inner = inner
         self.signature = inspect.signature(inner)
+        self.ctx = ctx
+        self.fc = None
+        self._checkers = None
 
-        # SEE: https://www.python.org/dev/peps/pep-0563/#id7
         try:
-            annotations = typing.get_type_hints(inner, include_extras=True)
+            # try to detect errors like missing arguments as early as possible.
+            # but not all type annotations are resolvable yet.
+            # so ignore `UntypyNameError`s
+            self.checkers()
+        except UntypyNameError:
+            pass
+
+        if hasattr(self.inner, "__fc"):
+            self.fc = getattr(self.inner, "__fc")
+
+    def checkers(self) -> Dict[str, TypeChecker]:
+        if self._checkers is not None:
+            return self._checkers
+
+            # SEE: https://www.python.org/dev/peps/pep-0563/#id7
+        try:
+            annotations = typing.get_type_hints(self.inner, include_extras=True)
         except NameError as ne:
             org = WrappedFunction.find_original(self.inner)
             if inspect.isclass(org):
-                raise ctx.wrap(UntypyNameError(
+                raise self.ctx.wrap(UntypyNameError(
                     f"{ne}.\nType annotation inside of class '{org.__qualname__}' could not be resolved."
                 ))
             else:
-                raise ctx.wrap(UntypyNameError(
+                raise self.ctx.wrap(UntypyNameError(
                     f"{ne}.\nType annotation of function '{org.__qualname__}' could not be resolved."
                 ))
 
@@ -47,37 +64,35 @@ class TypedFunctionBuilder(WrappedFunction):
 
         for key in checked_keys:
             if self.signature.parameters[key].annotation is inspect.Parameter.empty:
-                raise ctx.wrap(
+                raise self.ctx.wrap(
                     UntypyAttributeError(f"Missing annotation for argument '{key}' of function {inner.__name__}\n"
                                          "Partial annotation are not supported."))
             annotation = annotations[key]
-            checker = ctx.find_checker(annotation)
+            checker = self.ctx.find_checker(annotation)
             if checker is None:
-                raise ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {annotation}\n"
-                                                    f"\tin argument '{key}'"))
+                raise self.ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {annotation}\n"
+                                                         f"\tin argument '{key}'"))
             else:
                 checkers[key] = checker
 
-        if inner.__name__ in self.method_name_ignore_return:
+        if self.inner.__name__ in self.method_name_ignore_return:
             checkers['return'] = SelfChecker()
         else:
             if not 'return' in annotations:
-                raise ctx.wrap(
+                raise self.ctx.wrap(
                     UntypyAttributeError(f"Missing annotation for return value of function {inner.__name__}\n"
                                          "Partial annotation are not supported. Use 'None' or 'NoReturn'"
                                          "for specifying no return value."))
             annotation = annotations['return']
-            return_checker = ctx.find_checker(annotation)
+            return_checker = self.ctx.find_checker(annotation)
             if return_checker is None:
-                raise ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {annotation}\n"
-                                                    f"\tin return"))
+                raise self.ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {annotation}\n"
+                                                         f"\tin return"))
 
             checkers['return'] = return_checker
 
-        self.fc = None
-        if hasattr(self.inner, "__fc"):
-            self.fc = getattr(self.inner, "__fc")
-        self.checkers = checkers
+        self._checkers = checkers
+        return checkers
 
     def build(self):
         def wrapper(*args, **kwargs):
@@ -111,13 +126,13 @@ class TypedFunctionBuilder(WrappedFunction):
         if self.fc is not None:
             self.fc.prehook(bindings, ctxprv)
         for name in bindings.arguments:
-            check = self.checkers[name]
+            check = self.checkers()[name]
             ctx = ctxprv(name)
             bindings.arguments[name] = check.check_and_wrap(bindings.arguments[name], ctx)
         return bindings.args, bindings.kwargs, bindings
 
     def wrap_return(self, ret, bindings, ctx: ExecutionContext):
-        check = self.checkers['return']
+        check = self.checkers()['return']
         if self.fc is not None:
             self.fc.posthook(ret, bindings, ctx)
         return check.check_and_wrap(ret, ctx)
@@ -129,4 +144,4 @@ class TypedFunctionBuilder(WrappedFunction):
         return self.inner
 
     def checker_for(self, name: str) -> TypeChecker:
-        return self.checkers[name]
+        return self.checkers()[name]
