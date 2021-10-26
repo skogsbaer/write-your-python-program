@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "test-data/testCallableInvertedResponsibility.py", line 12, in <module>
+    foo([func])
+  File "test-data/testCallableInvertedResponsibility.py", line 8, in foo
+    res.append(f())
+WyppTypeError: got value of wrong type
+given:    42
+expected: value of type str
+
+context: foo(l: list[Callable[[], str]]) -> list[str]
+                                  ^^^
+declared at: test-data/testCallableInvertedResponsibility.py:5
+declared at: test-data/testCallableInvertedResponsibility.py:4
+caused by: test-data/testCallableInvertedResponsibility.py:5
+  |     l.append(lambda: 42) # error
