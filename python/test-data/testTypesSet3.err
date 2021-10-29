@@ -13,5 +13,3 @@ declared at: test-data/testTypesSet3.py:4
 declared at: test-data/testTypesSet3.py:3
 caused by: test-data/testTypesSet3.py:4
   |     l.add(lambda: 42) # error
-caused by: test-data/testTypesSet3.py:11
-  | foo(set([func]))

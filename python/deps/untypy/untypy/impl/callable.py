@@ -200,6 +200,7 @@ class TypedCallableReturnExecutionContext(ExecutionContext):
                 declared=None,
                 responsable=responsable
             ))
+            err = err.with_inverted_responsibility_type()
             return self.upper.wrap(err)
 
         (next_ty, indicator) = err.next_type_and_indicator()
