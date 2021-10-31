@@ -48,7 +48,6 @@ def _collectDataClassAttributes(cls):
     for c in cls.mro():
         if hasattr(c, '__kind') and c.__kind == 'record' and hasattr(c, '__annotations__'):
             result = c.__annotations__ | result
-    print("\n\n\n")
     return result
 
 def _patchDataClass(cls, mutable):
