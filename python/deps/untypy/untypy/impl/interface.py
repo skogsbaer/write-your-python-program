@@ -1,7 +1,7 @@
 from collections.abc import Iterator, Iterable
 from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
 
-from untypy.error import UntypyAttributeError, UntypyTypeError, Frame, Location
+from untypy.error import UntypyAttributeError, UntypyTypeError, Frame, Location, AttributeTree
 from untypy.impl.protocol import ProtocolChecker
 from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, ExecutionContext
@@ -270,13 +270,15 @@ class InterfaceCheckerContext(ExecutionContext):
         self.declared = declared
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
-        decl = self.upper.wrap(UntypyTypeError(
-            given=self.arg,
-            expected=self.name
-        ))
+        err = self.upper.wrap(UntypyTypeError().with_frame(Frame(
+            given=repr(self.arg),
+            expected=AttributeTree(self.name),
+            responsable=None,
+            declared=None,
+            declared_path=["0"],
+        )))
 
         return err.with_frame(Frame(
             responsable=None,
             declared=self.declared,
-            declared_tree=decl.expected
         ))

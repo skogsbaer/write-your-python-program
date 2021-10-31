@@ -173,17 +173,25 @@ class ArgumentExecutionContext(ExecutionContext):
         else:
             responsable = None
 
-        mark = mark_source(responsable)
-        tree = AttributeTree.from_function(original)
-        tree.replace(self.argument_name, err.expected)
-        tree.append("\n")
-        tree.append("\t...")
-
-        err = err.with_expected(tree).with_frame(Frame(
-            declared=Location.from_code(original),
-            declared_tree=tree,
-            responsable=responsable
-        ))
+        path = err.declared_ast_path()
+        path = [self.argument_name] + path
+        try:
+            mark = mark_source(Location.from_code(original), path)
+            err = err.with_frame(Frame(
+                declared=Location.from_code(original),
+                declared_show=mark,
+                responsable=responsable
+            ))
+        except:
+            tree = AttributeTree.from_function(original)
+            tree.replace(self.argument_name, err.last_expected())
+            tree.append("\n")
+            tree.append("\t...")
+            err = err.with_frame(Frame(
+                declared=Location.from_code(original),
+                declared_show=str(tree),
+                responsable=responsable
+            ))
 
         if self.upper:
             err = self.upper.wrap(err)

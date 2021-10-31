@@ -1,7 +1,7 @@
 import typing
 from typing import Optional, TypeVar, Any
 
-from untypy.error import UntypyTypeError, AttributeTree
+from untypy.error import UntypyTypeError, AttributeTree, Frame
 from untypy.impl.protocol import ProtocolChecker
 from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, ExecutionContext
 
@@ -69,12 +69,12 @@ class BoundTypeVarCtx(ExecutionContext):
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
         tree = AttributeTree()
-        tree.append(self.bv.typevar)
+        tree.append(str(self.bv.typevar))
         tree.append("=")
         tree.append("", "item")
-        tree.replace("item", err.expected)
+        tree.replace("item", err.last_expected())
 
-        err = err.with_expected(tree)
+        err = err.with_frame(Frame(expected=tree))
 
         return self.upper.wrap(err)
 

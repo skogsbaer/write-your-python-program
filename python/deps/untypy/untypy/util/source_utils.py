@@ -9,14 +9,18 @@ class MarkException(Exception):
 
 
 def mark_source(location: Location, path: list[str]) -> str:
-    source = location.source_lines_span()
+    source = location.source()
     tree = ast.parse(source)
 
-    function = tree.body[0]
-    n = find_loc(function, path)
+    n = None
+    function = None
+    for fn in tree.body:
+        if fn.lineno == location.line_no:
+            function = fn
+            n = find_loc(fn, path)
 
-    display = DisplayMatrix(source)
-    display.write((n.col_offset, n.lineno), "^" * (n.end_col_offset - n.col_offset))
+    display = DisplayMatrix(ast.unparse(function))
+    display.write((n.col_offset, n.lineno - function.lineno + 1), "^" * (n.end_col_offset - n.col_offset))
 
     return str(display)
 

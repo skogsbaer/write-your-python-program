@@ -3,8 +3,7 @@ from __future__ import annotations
 import inspect
 from enum import Enum
 from os.path import relpath
-from typing import Any, Optional, Tuple, Iterable, Union
-
+from typing import Optional, Tuple, Iterable
 
 
 def readFile(path):
@@ -141,16 +140,34 @@ class Location:
 
 class Frame:
     declared: Optional[Location]
-    declared_tree: Optional[Location]
+    declared_tree: Optional[AttributeTree]
+    declared_path: list[str]
+    declared_show: Optional[str]
     responsable: Optional[Location]
+    given: Optional[str]
+    expected: AttributeTree
 
     responsibility_type: Optional[ResponsibilityType]
 
-    def __init__(self, declared: Optional[Location], responsable: Optional[Location],
-                 declared_tree: Optional[AttributeTree] = None):
+    def __init__(self,
+                 declared: Optional[Location] = None,
+                 responsable: Optional[Location] = None,
+                 declared_tree: Optional[AttributeTree] = None,
+                 declared_path: list[str] = [],
+                 declared_show: Optional[str] = None,
+                 given: Optional[str] = None,
+                 expected: AttributeTree = None
+                 ):
         self.declared = declared
         self.responsable = responsable
         self.declared_tree = declared_tree
+        self.declared_path = declared_path[:]
+        self.declared_show = declared_show
+        self.given = given
+        self.expected = expected
+
+        if self.declared_show and self.declared is None:
+            raise "Location: declared is required when declared_show is set."
 
     def __str__(self):
         raise NotImplementedError
@@ -182,10 +199,7 @@ class UntypyError:
     def simpleName(self):
         raise Exception('abstract method')
 
-NO_GIVEN = object()
-
 class UntypyTypeError(TypeError, UntypyError):
-    given: Any  # NO_GIVEN if not present
     header: str
     frames: list[Frame]
     notes: list[str]
@@ -193,16 +207,12 @@ class UntypyTypeError(TypeError, UntypyError):
     responsibility_type: ResponsibilityType
 
     def __init__(self,
-                 given: Any = NO_GIVEN,
-                 expected: Union[str, AttributeTree] = "",
                  frames: list[Frame] = [],
                  notes: list[str] = [],
                  previous_chain: Optional[UntypyTypeError] = None,
                  responsibility_type: ResponsibilityType = ResponsibilityType.IN,
-                 header: str = '',
-                 initial_expected: Optional[str] = None):
+                 header: str = ''):
         self.responsibility_type = responsibility_type
-        self.given = given
         self.frames = frames.copy()
         for frame in self.frames:
             if frame.responsibility_type is None:
@@ -211,17 +221,6 @@ class UntypyTypeError(TypeError, UntypyError):
         self.previous_chain = previous_chain
         self.header = header
 
-        if isinstance(expected, str):
-            tree = AttributeTree()
-            tree.append(expected, None, True)
-            self.expected = tree
-        else:
-            self.expected = expected
-
-        if not initial_expected:
-            self.initial_expected = expected.__str__()
-        else:
-            self.initial_expected = initial_expected
         super().__init__('\n' + self.__str__())
 
     def simpleName(self):
@@ -229,32 +228,27 @@ class UntypyTypeError(TypeError, UntypyError):
 
     def with_frame(self, frame: Frame) -> UntypyTypeError:
         frame.responsibility_type = self.responsibility_type
-        return UntypyTypeError(self.given, self.expected, self.frames + [frame],
+        return UntypyTypeError(self.frames + [frame],
                                self.notes, self.previous_chain, self.responsibility_type,
-                               self.header, self.initial_expected)
+                               self.header)
 
     def with_previous_chain(self, previous_chain: UntypyTypeError):
-        return UntypyTypeError(self.given, self.expected, self.frames,
-                               self.notes, previous_chain, self.responsibility_type, self.header, self.initial_expected)
+        return UntypyTypeError(self.frames,
+                               self.notes, previous_chain, self.responsibility_type, self.header)
 
     def with_note(self, note: str):
-        return UntypyTypeError(self.given, self.expected, self.frames,
+        return UntypyTypeError(self.frames,
                                self.notes + [note], self.previous_chain, self.responsibility_type,
-                               self.header, self.initial_expected)
+                               self.header)
 
     def with_inverted_responsibility_type(self):
-        return UntypyTypeError(self.given, self.expected, self.frames,
+        return UntypyTypeError(self.frames,
                                self.notes, self.previous_chain, self.responsibility_type.invert(),
-                               self.header, self.initial_expected)
+                               self.header)
 
     def with_header(self, header: str):
-        return UntypyTypeError(self.given, self.expected, self.frames,
-                               self.notes, self.previous_chain, self.responsibility_type, header, self.initial_expected)
-
-    def with_expected(self, expected: AttributeTree):
-        return UntypyTypeError(self.given, expected, self.frames,
-                               self.notes, self.previous_chain, self.responsibility_type, self.header,
-                               self.initial_expected)
+        return UntypyTypeError(self.frames,
+                               self.notes, self.previous_chain, self.responsibility_type, header)
 
     def last_responsable(self):
         for f in reversed(self.frames):
@@ -268,21 +262,38 @@ class UntypyTypeError(TypeError, UntypyError):
                 return f.declared
         return None
 
+    def last_expected(self):
+        for f in reversed(self.frames):
+            if f.expected is not None:
+                return f.expected
+        return None
+
+    def declared_ast_path(self):
+        path = []
+        for f in reversed(self.frames):
+            path.extend(f.declared_path)
+        return path
+
     def __str__(self):
         responsable_locs = []
         declared_locs = []
+
+        given = None
+        expected = None
 
         for f in self.frames:
             if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN:
                 s = f.responsable.formatWithCode()
                 if s not in responsable_locs:
                     responsable_locs.append(s)
-            if f.declared is not None:
-                s = str(f.declared)
-                if f.declared_tree:
-                    s += "\n" + str(f.declared_tree)
+            if f.declared_show is not None:
+                s = f"{f.declared.file}:{f.declared.line_no}\n{f.declared_show}"
                 if s not in declared_locs:
                     declared_locs.append(s)
+            if given is None:
+                given = f.given
+            if expected is None:
+                expected = f.expected
 
         cause = formatLocations(CAUSED_BY_PREFIX, responsable_locs)
         declared = formatLocations(DECLARED_AT_PREFIX, declared_locs)
@@ -306,8 +317,9 @@ class UntypyTypeError(TypeError, UntypyError):
         if previous_chain:
             previous_chain = previous_chain + "\n\n"
 
-        expected = None if self.expected is None else self.initial_expected.strip()
-        given = None if self.given is NO_GIVEN else repr(self.given)
+        expected = None if expected is None else str(expected).splitlines()[0].strip()
+        given = None if given is None else given
+
         if given is not None:
             given = f"given:    {given.rstrip()}\n"
         else:
@@ -352,8 +364,10 @@ class UntypyNameError(UntypyAttributeError, UntypyError):
 class AttributeTree:
     token_stream_lines: list[list[Tuple[str, Optional[str], bool]]]
 
-    def __init__(self):
+    def __init__(self, *tokens):
         self.token_stream_lines = [[]]
+        for t in tokens:
+            self.append(t, None, True)
 
     def append(self, token: str, tag: Optional[str] = None, highlight: bool = False):
         token = str(token)

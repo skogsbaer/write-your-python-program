@@ -1,7 +1,7 @@
 import abc
 from typing import Any, Optional, Callable
 
-from untypy.error import UntypyTypeError
+from untypy.error import UntypyTypeError, Frame, AttributeTree
 from untypy.impl.protocol import ProtocolChecker
 from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext
@@ -68,10 +68,10 @@ class SimpleChecker(TypeChecker):
             else:
                 return self.parent_checker(arg, ctx)
         else:
-            raise ctx.wrap(UntypyTypeError(
-                arg,
-                self.annotation.__name__,
-            ))
+            raise ctx.wrap(UntypyTypeError().with_frame(Frame(
+                given=repr(arg),
+                expected=AttributeTree(self.annotation.__name__)
+            )))
 
     def describe(self) -> str:
         return self.annotation.__name__
