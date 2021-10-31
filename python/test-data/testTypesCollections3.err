@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "test-data/testTypesCollections3.py", line 7, in <module>
+    appendSomething(l, [])
+  File "test-data/testTypesCollections3.py", line 4, in appendSomething
+    l.append("foo")
+WyppTypeError: got value of wrong type
+given:    'foo'
+expected: value of type int
+
+context: list[int]
+              ^^^
+declared at: test-data/testTypesCollections3.py:3
+caused by: test-data/testTypesCollections3.py:4
+  |     l.append("foo")

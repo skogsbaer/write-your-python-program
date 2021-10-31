@@ -3,22 +3,12 @@ Traceback (most recent call last):
     foo({'y': func})
   File "test-data/testTypesDict3.py", line 7, in foo
     res.append(f())
-WyppTypeError: dict_items does not implement protocol Iterable[tuple[~K=str, ~V=Callable[[], str]]] correctly.
-given:    dict_items([('y', <function <lambda> at 0x00>), ('x', <untypy.impl.callable.TypedCallable object at 0x00>)])
-expected: value of type Iterable[tuple[~K=str, ~V=Callable[[], str]]]
-
-context: foo(d: dict[str, Callable[[], str]]) -> list[str]
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-declared at: test-data/testTypesDict3.py:3
-caused by: test-data/testTypesDict3.py:11
-  | foo({'y': func})
-
+WyppTypeError: got value of wrong type
 given:    42
 expected: value of type str
 
 context: __iter__(self: Self) -> Iterator[tuple[~K=str, Callable[[], str]]]
                                                                      ^^^
 declared at: test-data/testTypesDict3.py:4
-declared at: site-lib/untypy/impl/interface.py:188
 caused by: test-data/testTypesDict3.py:4
   |     d['x'] = lambda: 42 # error

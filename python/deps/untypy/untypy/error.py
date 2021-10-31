@@ -6,6 +6,7 @@ from os.path import relpath
 from typing import Any, Optional, Tuple, Iterable, Union
 
 
+
 def readFile(path):
     try:
         with open(path, encoding='utf-8') as f:
@@ -13,6 +14,7 @@ def readFile(path):
     except UnicodeDecodeError:
         with open(path) as f:
             return f.read()
+
 
 class Location:
     file: str
