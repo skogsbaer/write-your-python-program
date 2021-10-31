@@ -6,6 +6,7 @@ from untypy.error import UntypyTypeError, Frame, Location, AttributeTree
 from untypy.interfaces import ExecutionContext, TypeChecker, WrappedFunction
 from untypy.util.display import IndicatorStr
 from untypy.util.return_traces import get_last_return
+from untypy.util.source_utils import mark_source
 
 
 class ReplaceTypeExecutionContext(ExecutionContext):
@@ -172,6 +173,7 @@ class ArgumentExecutionContext(ExecutionContext):
         else:
             responsable = None
 
+        mark = mark_source(responsable)
         tree = AttributeTree.from_function(original)
         tree.replace(self.argument_name, err.expected)
         tree.append("\n")
