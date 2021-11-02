@@ -1,5 +1,10 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.13.3
+  * Fix blame assignment for functions without return
+  * Support record inheritance #11
+  * Remove unnecessary "caused by parts" #43
+  * Do not display location from untypy #17
 * 0.13.2 (2021-10-23)
   * Better error message when number of args do not match #48
   * Fix class recursion bug #47
