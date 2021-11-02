@@ -130,7 +130,7 @@ class ReturnExecutionContext(ExecutionContext):
         if responsable is not None:
             if err.expected is not None and err.given is None:
                 # Missing Return-Value?
-                err = err.with_note("Did you miss an return statement?")
+                err = err.with_note("Did you miss a return statement?")
                 last_line = responsable.line_no + responsable.line_span - 1
                 responsable = responsable.narrow_in_span((responsable.file, last_line))
             else:
