@@ -50,7 +50,7 @@ class Literal(types.GenericAlias):
     # Note: Cannot subclass Literal
     # It is also not possible to overwrite '__instancecheck__'
     def __init__(self, args):
-        super().__init__(args, typing.Literal)
+        super().__init__(self, args, typing.Literal)
     
     def __class_getitem__(self, items):
         # Multiple __class_getitem__ are given as a tuple,
