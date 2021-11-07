@@ -158,3 +158,6 @@ checkWithOutputAux yes 1 test-data/testTypesDict4.py
 checkWithOutputAux yes 0 test-data/testClassRecursion.py
 checkWithOutputAux yes 1 test-data/testWrongNumOfArguments.py
 checkWithOutputAux yes 1 test-data/testWrongNumOfArguments2.py
+checkWithOutputAux yes 0 test-data/testLiteralInstanceOf.py
+
+

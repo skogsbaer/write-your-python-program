@@ -79,6 +79,12 @@ class Literal:
                 return True
         return False
 
+    def __eq__(self, other):
+        if hasattr(other, '__origin__') and hasattr(other, '__args__') and other.__origin__ in [typing.Literal]:
+            return set(self.__args__) == set(other.__args__)
+        else:
+            return False
+
 
 def _patchDataClass(cls, mutable):
     fieldNames = [f.name for f in dataclasses.fields(cls)]
