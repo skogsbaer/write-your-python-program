@@ -61,13 +61,13 @@ class Literal(types.GenericAlias):
         # flattening
         # cannot reuse typing.Literal for flattening,
         # as it does not recognize this type
-        args_set = set()
+        args_set = []
         for i in items:
             if hasattr(i, '__origin__') and hasattr(i, '__args__') and i.__origin__ in [typing.Literal]:
-                for arg in i.__args__:
-                    args_set.add(arg)
-            else:
-                args_set.add(i)
+                for arg in i.__args__ and arg not in args_set:
+                    args_set.append(arg)
+            elif i not in args_set:
+                args_set.append(i)
 
         return Literal(cls, tuple(args_set))
 
