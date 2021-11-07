@@ -13,14 +13,12 @@ def mark_source(location: Location, path: list[str]) -> str:
     tree = ast.parse(source)
 
     n = None
-    function = None
     for fn in tree.body:
         if fn.lineno == location.line_no:
-            function = fn
             n = find_loc(fn, path)
 
-    display = DisplayMatrix(ast.unparse(function))
-    display.write((n.col_offset, n.lineno - function.lineno + 1), "^" * (n.end_col_offset - n.col_offset))
+    display = DisplayMatrix(location.source_lines_span())
+    display.write((n.col_offset, n.lineno - location.line_no + 2), "^" * (n.end_col_offset - n.col_offset))
 
     return str(display)
 
@@ -55,10 +53,11 @@ def find_loc(node: Optional[ast.FunctionDef], path):
 
 
 class DisplayMatrix:
-    chars = {}
+    chars: dict
 
-    def __init__(self, input: str):
-        for y, line in enumerate(input.splitlines()):
+    def __init__(self, src: str):
+        self.chars = {}
+        for y, line in enumerate(src.splitlines()):
             for x, char in enumerate(line):
                 self.chars[(x, y)] = char
 
