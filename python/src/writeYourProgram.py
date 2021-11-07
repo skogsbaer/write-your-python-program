@@ -63,7 +63,7 @@ class Literal:
         # as it does not recognize this type
         args_set = set()
         for i in items:
-            if hasattr(i, '__origin__') and hasattr(i, '__args__') and i.__origin__ in [typing.Literal, typing.Union]:
+            if hasattr(i, '__origin__') and hasattr(i, '__args__') and i.__origin__ in [typing.Literal]:
                 for arg in i.__args__:
                     args_set.add(arg)
             else:
