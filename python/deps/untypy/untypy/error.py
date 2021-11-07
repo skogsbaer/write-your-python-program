@@ -146,6 +146,7 @@ class Frame:
     responsable: Optional[Location]
     given: Optional[str]
     expected: AttributeTree
+    note: Optional[str]
 
     responsibility_type: Optional[ResponsibilityType]
 
@@ -156,8 +157,8 @@ class Frame:
                  declared_path: list[str] = [],
                  declared_show: Optional[str] = None,
                  given: Optional[str] = None,
-                 expected: AttributeTree = None
-                 ):
+                 expected: AttributeTree = None,
+                 note: str = None):
         self.declared = declared
         self.responsable = responsable
         self.declared_tree = declared_tree
@@ -165,6 +166,7 @@ class Frame:
         self.declared_show = declared_show
         self.given = given
         self.expected = expected
+        self.note = note
 
         if self.declared_show and self.declared is None:
             raise "Location: declared is required when declared_show is set."
@@ -202,24 +204,24 @@ class UntypyError:
 class UntypyTypeError(TypeError, UntypyError):
     header: str
     frames: list[Frame]
-    notes: list[str]
     previous_chain: Optional[UntypyTypeError]
     responsibility_type: ResponsibilityType
 
     def __init__(self,
                  frames: list[Frame] = [],
-                 notes: list[str] = [],
                  previous_chain: Optional[UntypyTypeError] = None,
                  responsibility_type: ResponsibilityType = ResponsibilityType.IN,
-                 header: str = ''):
+                 header: str = '', **kwargs):
         self.responsibility_type = responsibility_type
         self.frames = frames.copy()
         for frame in self.frames:
             if frame.responsibility_type is None:
                 frame.responsibility_type = responsibility_type
-        self.notes = notes.copy()
         self.previous_chain = previous_chain
         self.header = header
+
+        if len(kwargs) > 0:
+            self.frames.append(Frame(**kwargs))
 
         super().__init__('\n' + self.__str__())
 
@@ -229,26 +231,24 @@ class UntypyTypeError(TypeError, UntypyError):
     def with_frame(self, frame: Frame) -> UntypyTypeError:
         frame.responsibility_type = self.responsibility_type
         return UntypyTypeError(self.frames + [frame],
-                               self.notes, self.previous_chain, self.responsibility_type,
+                               self.previous_chain, self.responsibility_type,
                                self.header)
 
     def with_previous_chain(self, previous_chain: UntypyTypeError):
         return UntypyTypeError(self.frames,
-                               self.notes, previous_chain, self.responsibility_type, self.header)
+                               previous_chain, self.responsibility_type, self.header)
 
-    def with_note(self, note: str):
-        return UntypyTypeError(self.frames,
-                               self.notes + [note], self.previous_chain, self.responsibility_type,
-                               self.header)
+    def with_note(self, note: str) -> UntypyTypeError:
+        return self.with_frame(Frame(note=note))
 
     def with_inverted_responsibility_type(self):
         return UntypyTypeError(self.frames,
-                               self.notes, self.previous_chain, self.responsibility_type.invert(),
+                               self.previous_chain, self.responsibility_type.invert(),
                                self.header)
 
     def with_header(self, header: str):
         return UntypyTypeError(self.frames,
-                               self.notes, self.previous_chain, self.responsibility_type, header)
+                               self.previous_chain, self.responsibility_type, header)
 
     def last_responsable(self):
         for f in reversed(self.frames):
@@ -280,6 +280,7 @@ class UntypyTypeError(TypeError, UntypyError):
 
         given = None
         expected = None
+        notes = []
 
         for f in self.frames:
             if f.responsable is not None and f.responsibility_type is ResponsibilityType.IN:
@@ -294,11 +295,13 @@ class UntypyTypeError(TypeError, UntypyError):
                 given = f.given
             if expected is None:
                 expected = f.expected
+            if f.note:
+                notes.append(f.note)
 
         cause = formatLocations(CAUSED_BY_PREFIX, responsable_locs)
         declared = formatLocations(DECLARED_AT_PREFIX, declared_locs)
 
-        notes = joinLines(self.notes)
+        notes = joinLines(notes)
         if notes:
             notes = notes + "\n"
 
