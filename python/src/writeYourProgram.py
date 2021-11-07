@@ -86,16 +86,24 @@ class Literal:
             return False
 
 
+def _collectDataClassAttributes(cls):
+    result = dict()
+    for c in cls.mro():
+        if hasattr(c, '__kind') and c.__kind == 'record' and hasattr(c, '__annotations__'):
+            result = c.__annotations__ | result
+    return result
+
+
 def _patchDataClass(cls, mutable):
     fieldNames = [f.name for f in dataclasses.fields(cls)]
     setattr(cls, EQ_ATTRS_ATTR, fieldNames)
 
     if hasattr(cls, '__annotations__'):
         # add annotions for type checked constructor.
-        cls.__init__.__annotations__ =  cls.__annotations__
+        cls.__kind = 'record'
+        cls.__init__.__annotations__ = _collectDataClassAttributes(cls)
         cls.__init__.__original = cls # mark class as source of annotation
         cls.__init__ = untypy.typechecked(cls.__init__)
-        cls.__kind = 'record'
 
     if mutable:
         # prevent new fields being added

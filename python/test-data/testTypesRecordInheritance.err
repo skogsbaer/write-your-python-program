@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "test-data/testTypesRecordInheritance.py", line 18, in <module>
+    Point3D(1,2, "foo")
+WyppTypeError: got value of wrong type
+given:    'foo'
+expected: value of type int
+
+context: record constructor Point3D(x: int, y: int, z: int) -> Self
+                                                       ^^^
+declared at: test-data/testTypesRecordInheritance.py:9
+caused by: test-data/testTypesRecordInheritance.py:18
+  | Point3D(1,2, "foo")
