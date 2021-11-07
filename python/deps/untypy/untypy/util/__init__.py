@@ -2,9 +2,9 @@ import inspect
 import types
 from typing import Optional, Union, List
 
-from untypy.util.display import IndicatorStr
 from untypy.error import UntypyTypeError, Frame, Location
 from untypy.interfaces import ExecutionContext, TypeChecker, WrappedFunction
+from untypy.util.display import IndicatorStr
 from untypy.util.return_traces import get_last_return
 
 
@@ -126,8 +126,15 @@ class ReturnExecutionContext(ExecutionContext):
 
         declared = WrappedFunction.find_location(self.fn)
         responsable = declared
+
         if responsable is not None:
-            responsable = responsable.narrow_in_span(self.reti_loc)
+            if err.expected is not None and err.given is None:
+                # Missing Return-Value?
+                err = err.with_note("Did you miss a return statement?")
+                last_line = responsable.line_no + responsable.line_span - 1
+                responsable = responsable.narrow_in_span((responsable.file, last_line))
+            else:
+                responsable = responsable.narrow_in_span(self.reti_loc)
 
         return err.with_frame(Frame(
             return_id.ty,
