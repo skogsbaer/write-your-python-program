@@ -3,6 +3,7 @@ import untypy
 import typing
 import dataclasses
 import inspect
+import types
 
 _DEBUG = False
 def _debug(s):
@@ -42,17 +43,15 @@ T = typing.TypeVar('T')
 U = typing.TypeVar('U')
 V = typing.TypeVar('V')
 
-class Literal:
+class Literal(types.GenericAlias):
     """
     Behaves like typing.Literal, but allows isinstance checks.
     """
     # Note: Cannot subclass Literal
     # It is also not possible to overwrite '__instancecheck__'
     def __init__(self, args):
-        self.__args__ = args
-        # Origin needed for untypy
-        self.__origin__ = typing.Literal
-
+        super().__init__(args, typing.Literal)
+    
     def __class_getitem__(self, items):
         # Multiple __class_getitem__ are given as a tuple,
         # but if there is only a single argument, it is not wrapped.
