@@ -64,8 +64,9 @@ class Literal(types.GenericAlias):
         args_set = []
         for i in items:
             if hasattr(i, '__origin__') and hasattr(i, '__args__') and i.__origin__ in [typing.Literal]:
-                for arg in i.__args__ and arg not in args_set:
-                    args_set.append(arg)
+                for arg in i.__args__: 
+                    if arg not in args_set:
+                        args_set.append(arg)
             elif i not in args_set:
                 args_set.append(i)
 
