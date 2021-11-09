@@ -23,7 +23,8 @@ class ParentProtocolChecker(ProtocolChecker):
 
 def simpleTypeCompat(x: Any, ty: type):
     xTy = type(x)
-    return xTy is ty or (ty is float and xTy is int)
+    return xTy is ty or (ty is float and xTy is int) or \
+        (ty is complex and (xTy is int or xTy is float))
 
 class SimpleChecker(TypeChecker):
     annotation: type
