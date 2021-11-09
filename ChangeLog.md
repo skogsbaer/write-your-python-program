@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.14.0 (2021-11-09)
+  * Allow Literals to be used in isinstance tests #55
+  * Fix typechecking for complex numbers
 * 0.13.3
   * Fix blame assignment for functions without return
   * Support record inheritance #11
