@@ -3,13 +3,11 @@ from typing import Any, Optional, Literal
 from untypy.error import UntypyTypeError
 from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext
 
-LiteralType = type(Literal[42])
-
 
 class LiteralFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
-        if type(annotation) is LiteralType and annotation.__origin__ == Literal:
+        if hasattr(annotation, '__origin__') and hasattr(annotation, '__args__') and annotation.__origin__ == Literal:
             return LiteralChecker(annotation.__args__)
         else:
             return None
