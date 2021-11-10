@@ -64,7 +64,7 @@ class Literal(types.GenericAlias):
         args_set = []
         for i in items:
             if hasattr(i, '__origin__') and hasattr(i, '__args__') and i.__origin__ in [typing.Literal]:
-                for arg in i.__args__: 
+                for arg in i.__args__:
                     if arg not in args_set:
                         args_set.append(arg)
             elif i not in args_set:
@@ -95,6 +95,8 @@ class Literal(types.GenericAlias):
         else:
             return False
 
+    def __hash__(self):
+        return hash(frozenset(self.__args__))
 
 def _collectDataClassAttributes(cls):
     result = dict()
