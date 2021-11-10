@@ -64,7 +64,7 @@ class Literal(types.GenericAlias):
         args_set = []
         for i in items:
             if hasattr(i, '__origin__') and hasattr(i, '__args__') and i.__origin__ in [typing.Literal]:
-                for arg in i.__args__: 
+                for arg in i.__args__:
                     if arg not in args_set:
                         args_set.append(arg)
             elif i not in args_set:
@@ -95,6 +95,8 @@ class Literal(types.GenericAlias):
         else:
             return False
 
+    def __hash__(self):
+        return hash(frozenset(self.__args__))
 
 def _collectDataClassAttributes(cls):
     result = dict()
@@ -204,8 +206,13 @@ def check(actual, expected, structuralObjEq=True, floatEqWithDelta=True):
     if not matches:
         stack = inspect.stack()
         caller = stack[1] if len(stack) > 1 else None
-        msg = f"{caller.filename}:{caller.lineno}: Erwartet wird {expected}, aber das " \
-            f"Ergebnis ist {actual}"
+        def fmt(x):
+            if type(x) == str:
+                return repr(x)
+            else:
+                return str(x)
+        msg = f"{caller.filename}:{caller.lineno}: Erwartet wird {fmt(expected)}, aber das " \
+            f"Ergebnis ist {fmt(actual)}"
         if _dieOnCheckFailures():
             raise Exception(msg)
         else:
