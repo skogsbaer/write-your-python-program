@@ -430,14 +430,23 @@ def importUntypy():
         printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
         die(1)
 
+def versionOk(v):
+    if v.major < 3 or v.minor < 9:
+        return False
+    if v.major == 3 and v.minor == 9 and v.micro < 2:
+        return False
+    else:
+        return True
+
 def main(globals, argList=None):
     v = sys.version_info
-    if v.major < 3 or v.minor < 9:
+    if not versionOk(v):
         vStr = sys.version.split()[0]
         print(f"""
-Python in version 3.9 or newer is required. You are still using version {vStr}, please upgrade!
+Python in version 3.9.2 or newer is required. You are still using version {vStr}, please upgrade!
 """)
         sys.exit(1)
+
     (args, restArgs) = parseCmdlineArgs(argList)
     global VERBOSE
     if args.verbose:
