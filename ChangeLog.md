@@ -1,7 +1,11 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.14.1 (2021-11-10)
+  * Fix hashable for literals
+  * Document that Python 3.9.0 and 3.9.1 are not working
+  * Use quoted strings in check error messages #59
 * 0.14.0 (2021-11-09)
-  * Allow Literals to be used in isinstance tests #55
+  * Allow literals to be used in isinstance tests #55
   * Fix typechecking for complex numbers
 * 0.13.3
   * Fix blame assignment for functions without return
