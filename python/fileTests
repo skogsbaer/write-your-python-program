@@ -165,3 +165,4 @@ checkWithOutputAux yes 1 test-data/testWrongKeywordArg2.py
 checkWithOutputAux yes 0 test-data/testComplex.py
 checkWithOutputAux yes 0 test-data/testUnionLiteral.py
 checkWithOutputAux yes 0 test-data/testCheck.py
+checkWithOutputAux yes 1 test-data/testNameErrorBug.py

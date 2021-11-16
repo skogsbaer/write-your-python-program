@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "test-data/testNameErrorBug.py", line 3, in <module>
+    def foo(seq: Sequence[tuple[int, str]]):
+WyppAttributeError: Missing annotation for return value of function foo
+Partial annotation are not supported. Use 'None' or 'NoReturn' for specifying no return value.
+declared at: test-data/testNameErrorBug.py:3

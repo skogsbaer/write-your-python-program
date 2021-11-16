@@ -65,7 +65,7 @@ class TypedFunctionBuilder(WrappedFunction):
         for key in checked_keys:
             if self.signature.parameters[key].annotation is inspect.Parameter.empty:
                 raise self.ctx.wrap(
-                    UntypyAttributeError(f"Missing annotation for argument '{key}' of function {inner.__name__}\n"
+                    UntypyAttributeError(f"Missing annotation for argument '{key}' of function {self.inner.__name__}\n"
                                          "Partial annotation are not supported."))
             annotation = annotations[key]
             checker = self.ctx.find_checker(annotation)
@@ -80,8 +80,8 @@ class TypedFunctionBuilder(WrappedFunction):
         else:
             if not 'return' in annotations:
                 raise self.ctx.wrap(
-                    UntypyAttributeError(f"Missing annotation for return value of function {inner.__name__}\n"
-                                         "Partial annotation are not supported. Use 'None' or 'NoReturn'"
+                    UntypyAttributeError(f"Missing annotation for return value of function {self.inner.__name__}\n"
+                                         "Partial annotation are not supported. Use 'None' or 'NoReturn' "
                                          "for specifying no return value."))
             annotation = annotations['return']
             return_checker = self.ctx.find_checker(annotation)
