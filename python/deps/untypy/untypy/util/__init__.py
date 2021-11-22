@@ -6,6 +6,7 @@ from untypy.error import UntypyTypeError, Frame, Location
 from untypy.interfaces import ExecutionContext, TypeChecker, WrappedFunction
 from untypy.util.display import IndicatorStr
 from untypy.util.return_traces import get_last_return
+from untypy.util.source_utils import mark_source
 
 
 class ReplaceTypeExecutionContext(ExecutionContext):
@@ -163,11 +164,13 @@ class ArgumentExecutionContext(ExecutionContext):
                  fn: Union[WrappedFunction, types.FunctionType],
                  stack: Optional[inspect.FrameInfo],
                  argument_name: str,
-                 declared: Optional[Location] = None):
+                 declared: Optional[Location] = None,
+                 upper: ExecutionContext = None):
         self.fn = fn
         self.stack = stack
         self.argument_name = argument_name
         self.declared = declared
+        self.upper = upper
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
         (next_ty, indicator) = err.next_type_and_indicator()
@@ -179,6 +182,13 @@ class ArgumentExecutionContext(ExecutionContext):
         except ValueError:
             # fails on some built-ins
             signature = inspect.signature(self.fn)
+
+        try:
+            m = mark_source(Location.from_code(original), [self.argument_name])
+            err = err.with_note(m)
+        except Exception as e:
+            print(e)
+            pass
 
         wf = None
         if (hasattr(self.fn, '__wf')):
@@ -219,6 +229,8 @@ class ArgumentExecutionContext(ExecutionContext):
             declared=declared,
             responsable=responsable
         )
+        if self.upper:
+            err = self.upper.wrap(err)
         return err.with_frame(frame)
 
 
