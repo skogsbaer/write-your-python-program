@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import Optional, Any, Callable, TypeVar, List, Tuple
 
-from untypy.error import UntypyTypeError, Location, UntypyAttributeError
+from untypy.error import UntypyTypeError, Location, UntypyAttributeError, AttributeTree
 
 
 class CreationContext:
@@ -36,7 +36,7 @@ class ExecutionContext:
 
 class TypeChecker:
 
-    def describe(self) -> str:
+    def describe(self) -> AttributeTree:
         raise NotImplementedError
 
     def may_be_wrapped(self) -> bool:
@@ -72,7 +72,7 @@ class WrappedFunction:
     def wrap_return(self, ret, bindings, ctx: ExecutionContext):
         raise NotImplementedError
 
-    def describe(self) -> str:
+    def describe(self) -> AttributeTree:
         raise NotImplementedError
 
     def checker_for(self, name: str) -> TypeChecker:

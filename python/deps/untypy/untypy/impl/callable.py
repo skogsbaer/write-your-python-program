@@ -3,7 +3,7 @@ import sys
 from collections.abc import Callable as AbcCallable
 from typing import Any, Optional, Callable, Union, Tuple
 
-from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location
+from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, AttributeTree
 from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext, WrappedFunction, \
     WrappedFunctionContextProvider
 # These Types are prefixed with an underscore...
@@ -56,9 +56,20 @@ class CallableChecker(TypeChecker):
         else:
             raise ctx.wrap(UntypyTypeError(arg, self.describe()))
 
-    def describe(self) -> str:
-        arguments = ", ".join(map(lambda e: e.describe(), self.argument_checker))
-        return f"Callable[[{arguments}], {self.return_checker.describe()}]"
+    def describe(self) -> AttributeTree:
+        tree = AttributeTree()
+        tree.append("Callable")
+        tree.append("[")
+        tree.append("[")
+        for i, arg in enumerate(self.argument_checker):
+            if i != 0:
+                tree.append(", ")
+            tree.append(arg.describe(), str(i))
+        tree.append("]")
+        tree.append(", ")
+        tree.append(self.return_checker.describe(), "return")
+        tree.append("]")
+        return tree
 
 
 class TypedCallable(Callable, WrappedFunction):
@@ -115,8 +126,8 @@ class TypedCallable(Callable, WrappedFunction):
 
         if len(kwargs) > 0:
             raise self.ctx.wrap(UntypyTypeError(
-                kwargs,
-                self.describe()
+                given=kwargs,
+                expected=self.describe()
             ).with_note("Keyword arguments are not supported in callable types."))
 
         bindings = None
@@ -126,8 +137,19 @@ class TypedCallable(Callable, WrappedFunction):
         return self.return_checker.check_and_wrap(ret, ctx)
 
     def describe(self) -> str:
-        arguments = ", ".join(map(lambda e: e.describe(), self.argument_checker))
-        return f"Callable[[{arguments}], {self.return_checker.describe()}]"
+        tree = AttributeTree()
+        tree.append("Callable")
+        tree.append("[")
+        tree.append("[")
+        for i, arg in enumerate(self.argument_checker):
+            if i != 0:
+                tree.append(", ")
+            tree.append(arg.describe(), str(i))
+        tree.append("]")
+        tree.append(", ")
+        tree.append(self.return_checker.describe(), "return")
+        tree.append("]")
+        return tree
 
     def checker_for(self, name: str) -> TypeChecker:
         raise NotImplementedError
@@ -142,29 +164,22 @@ class TypedCallableIncompatibleSingature(ExecutionContext):
         self.caller = caller
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
-        (original_expected, _ind) = err.next_type_and_indicator()
         err = ArgumentExecutionContext(self.tc.inner, None, self.arg_name).wrap(err)
 
         func_decl = WrappedFunction.find_location(self.tc.inner)
 
         name = WrappedFunction.find_original(self.tc.inner).__name__
 
-        (decl, ind) = err.next_type_and_indicator()
         err = err.with_frame(Frame(
-            decl,
-            ind,
             declared=None,
             responsable=func_decl
         ))
 
         previous_chain = UntypyTypeError(
-            f"def {name}{self.tc.inner.describe()}",
-            f"{self.tc.describe()}"
+            given=f"def {name}{self.tc.inner.describe()}",
+            expected=f"{self.tc.describe()}"
         )
-        (decl, ind) = previous_chain.next_type_and_indicator()
         previous_chain = previous_chain.with_frame(Frame(
-            decl,
-            ind,
             declared=func_decl,
             responsable=None
         ))
@@ -187,27 +202,20 @@ class TypedCallableReturnExecutionContext(ExecutionContext):
         self.invert = invert
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
-        desc = lambda s: s.describe()
-        front_str = f"Callable[[{', '.join(map(desc, self.fn.argument_checker))}], "
-        responsable = WrappedFunction.find_location(self.fn.inner)
+        tree = self.fn.describe().replace("return", err.last_expected())
 
+        responsable = WrappedFunction.find_location(self.fn.inner)
         if self.invert:
-            (next_ty, indicator) = err.next_type_and_indicator()
             err = ReturnExecutionContext(self.fn.inner).wrap(err)
             err = err.with_frame(Frame(
-                f"{front_str}{next_ty}]",
-                (" " * len(front_str)) + indicator,
-                declared=None,
+                expected=tree,
                 responsable=responsable
             ))
             err = err.with_inverted_responsibility_type()
             return self.upper.wrap(err)
 
-        (next_ty, indicator) = err.next_type_and_indicator()
         err = err.with_frame(Frame(
-            f"{front_str}{next_ty}]",
-            (" " * len(front_str)) + indicator,
-            declared=None,
+            expected=tree,
             responsable=responsable
         ))
 

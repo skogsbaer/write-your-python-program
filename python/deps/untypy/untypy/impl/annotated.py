@@ -1,6 +1,6 @@
 from typing import Optional, Any, Iterator
 
-from untypy.error import UntypyTypeError, UntypyAttributeError, Frame
+from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, AttributeTree
 from untypy.interfaces import TypeCheckerFactory, TypeChecker, ExecutionContext, CreationContext, WrappedFunction
 
 
@@ -25,7 +25,6 @@ class AnnotatedCheckerCallable(AnnotatedChecker):
             )
             if self.annotated.is_anonymous:
                 err = err.with_note(f"condition in {exp} does not hold")
-            (t, i) = err.next_type_and_indicator()
             for info in self.annotated.info:
                 err = err.with_note("    - " + info)
             raise ctx.wrap(err)
@@ -39,9 +38,11 @@ class AnnotatedCheckerContainer(AnnotatedChecker):
     def check(self, arg: Any, ctx: ExecutionContext) -> None:
         if arg not in self.cont:
             # raise error on falsy value
+
             err = UntypyTypeError(
                 given=arg,
-                expected=self.annotated.describe()
+                expected=self.annotated.describe(),
+                declared_path=["0"],# mark 1st base type
             )
             if self.annotated.is_anonymous:
                 err = err.with_note(f"{repr(arg)} is not in {repr(self.cont)}.")
@@ -99,13 +100,22 @@ class AnnotatedChecker(TypeChecker):
         return wrapped
 
     def describe(self) -> str:
+        tree = AttributeTree("Annotated")
+        tree.append("[")
         if self.name:
-            return self.name
+            tree.append(self.name)
         elif len(self.info) > 0:
-            text = ", ".join(map(lambda a: f"'{a}'", self.info))
-            return f"Annotated[{text}]"
+            for i,a in enumerate(self.info):
+                if i != 0:
+                    tree.append(", ")
+                tree.append(f"'{a}'", str(i))
         else:
-            return repr(self.annotated)
+            for i,a in enumerate(self.annotated.__args__):
+                if i != 0:
+                    tree.append(", ")
+                tree.append(f"'{a}'", str(i))
+        tree.append("]")
+        return tree
 
     def base_type(self):
         return self.inner.base_type()
@@ -121,15 +131,9 @@ class AnnotatedCheckerExecutionContext(ExecutionContext):
         self.upper = upper
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
-        offset = self.ch.describe().find("[") + 1
-
-        (t, i) = err.next_type_and_indicator()
-
         err = err.with_frame(Frame(
-            type_declared=self.ch.describe(),
-            indicator_line=(" " * offset) + i,
-            declared=None,
-            responsable=None
+            expected=self.ch.describe(),
+            declared_path=["0"],
         ))
 
         return self.upper.wrap(err)

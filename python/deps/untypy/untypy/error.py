@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from enum import Enum
 from os.path import relpath
-from typing import Optional, Tuple, Iterable
+from typing import Optional, Tuple, Iterable, Union
 
 
 def readFile(path):
@@ -157,14 +157,17 @@ class Frame:
                  declared_path: list[str] = [],
                  declared_show: Optional[str] = None,
                  given: Optional[str] = None,
-                 expected: AttributeTree = None,
+                 expected: Union[None, str, AttributeTree] = None,
                  note: str = None):
+        self.responsibility_type = None
         self.declared = declared
         self.responsable = responsable
         self.declared_tree = declared_tree
         self.declared_path = declared_path[:]
         self.declared_show = declared_show
         self.given = given
+        if isinstance(expected, str):
+            self.expected = AttributeTree(expected)
         self.expected = expected
         self.note = note
 
