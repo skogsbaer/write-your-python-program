@@ -6,7 +6,6 @@ from untypy.error import UntypyTypeError, Frame, Location
 from untypy.interfaces import ExecutionContext, TypeChecker, WrappedFunction
 from untypy.util.display import IndicatorStr
 from untypy.util.return_traces import get_last_return
-from untypy.util.source_utils import mark_source
 
 
 class ReplaceTypeExecutionContext(ExecutionContext):
@@ -182,13 +181,6 @@ class ArgumentExecutionContext(ExecutionContext):
         except ValueError:
             # fails on some built-ins
             signature = inspect.signature(self.fn)
-
-        try:
-            m = mark_source(Location.from_code(original), [self.argument_name])
-            err = err.with_note(m)
-        except Exception as e:
-            print(e)
-            pass
 
         wf = None
         if (hasattr(self.fn, '__wf')):
