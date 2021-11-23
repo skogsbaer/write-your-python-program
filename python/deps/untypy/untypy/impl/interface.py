@@ -1,5 +1,5 @@
 from collections.abc import Iterator, Iterable
-from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
+from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol, Union
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
 from untypy.impl.protocol import ProtocolChecker
@@ -98,11 +98,79 @@ I = TypeVar("I")
 
 
 class WList(Generic[I], list):
+    # doc @ https://docs.python.org/3/tutorial/datastructures.html
+    # and https://docs.python.org/3/library/stdtypes.html#common-sequence-operations
+    # Exact signatures are undocumented :/
+
+    def append(self, x: I) -> None:
+        pass
+
+    def extend(self, iterable: Iterable[I]) -> None:
+        pass
+
+    def insert(self, i: int, x: I) -> None:
+        pass
+
+    def remove(self, x: I) -> None:
+        pass
+
+    def pop(self, i: Optional[int] = None) -> None:
+        pass
+
+    def clear(self) -> None:
+        pass
+
+    def index(self, x: I, start: Optional[int] = None, end: Optional[int] = None) -> int:
+        # get index of list
+        pass
+
+    def count(self, x: I) -> int:
+        pass
+
+    def sort(self, key: Any = None, reverse: bool = False) -> None:
+        # inner list will check type of key.
+        pass
+
+    def __contains__(self, item: I) -> bool:
+        pass
+
+    def __delitem__(self, i: Union[int, slice]):
+        pass
+
     def __getitem__(self, item: int) -> I:
+        pass
+
+    def __iadd__(self, other: Iterable[I]) -> None:
+        pass
+
+    def __imul__(self, n: int) -> None:
+        pass
+
+    def __iter__(self) -> Iterator[I]:
         pass
 
     def __setitem__(self, key: int, value: I) -> None:
         pass
+
+    # lower type on
+    # __add__
+    # __mul__
+    # copy
+
+    # Type fixed by std impl
+    # __repr__
+    # __reversed__
+    # __len__
+    # reverse
+
+    # type would be any
+    # __eq__
+    # __ge__
+    # __gt__
+    # __le__
+    # __lt__
+    # __ne__
+    #
 
 
 I = TypeVar("I")
