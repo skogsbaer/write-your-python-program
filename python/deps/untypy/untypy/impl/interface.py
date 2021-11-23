@@ -101,8 +101,9 @@ class WList(Generic[I], list):
     # doc @ https://docs.python.org/3/tutorial/datastructures.html
     # and https://docs.python.org/3/library/stdtypes.html#common-sequence-operations
     # Exact signatures are undocumented :/
+    # HINT: Argument names must match.
 
-    def append(self, x: I) -> None:
+    def append(self, object: I) -> None:
         pass
 
     def extend(self, iterable: Iterable[I]) -> None:
