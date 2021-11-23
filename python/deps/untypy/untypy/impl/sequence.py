@@ -1,13 +1,9 @@
-from typing import Any, Optional, Sequence
 from collections.abc import Sequence as ABCSequence
+from typing import Any, Optional, Sequence
 
-from untypy.error import UntypyTypeError, UntypyAttributeError
-from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext
-from untypy.util import CompoundTypeExecutionContext
 from untypy.impl.simple import SimpleFactory
-from untypy.impl.list import ListChecker
-from untypy.impl.tuple import VariadicTupleChecker
 from untypy.impl.union import UnionChecker
+from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext
 
 SequenceTypeA = type(Sequence[int])
 SequenceTypeB = type(ABCSequence[int])
@@ -25,17 +21,12 @@ class SequenceFactory(TypeCheckerFactory):
                 args = []
             inner = []
             elemChecker = None
-            if len(args) == 0:
+            if len(args) == 0 or len(args == 1):
+                # TODO: Reimplement ME using Interface.py
                 sf = SimpleFactory()
                 inner = [sf.create_from(list, ctx),
                          sf.create_from(tuple, ctx),
                          sf.create_from(str, ctx)]
-            elif len(args) == 1:
-                elemChecker = ctx.find_checker(args[0])
-                if elemChecker is None:
-                    return None
-                inner = [ListChecker(elemChecker, ctx.declared_location()),
-                         VariadicTupleChecker(elemChecker)]
             return SequenceChecker(inner, ctx, elemChecker)
         else:
             return None
