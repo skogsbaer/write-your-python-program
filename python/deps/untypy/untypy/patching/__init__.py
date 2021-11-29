@@ -38,7 +38,6 @@ def patch_class(clas: type, cfg: Config):
                 line_no=0,
                 line_span=1
             ), checkedpkgprefixes=cfg.checkedprefixes,
-            eval_context=vars(clas.__module__),
         )
 
     setattr(clas, '__patched', True)
@@ -66,4 +65,4 @@ def wrap_class(a: type, cfg: Config) -> Callable:
     return WrappedType(a, DefaultCreationContext(
         typevars=dict(),
         declared_location=Location.from_code(a),
-        checkedpkgprefixes=cfg.checkedprefixes, eval_context=vars(a.__module__)))
+        checkedpkgprefixes=cfg.checkedprefixes))
