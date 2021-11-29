@@ -7,6 +7,12 @@ from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, ExecutionContext
 from untypy.util import ReplaceTypeExecutionContext
 
+
+def overwrite(fn):
+    setattr(fn, '__overwrite', True)
+    return fn
+
+
 A = TypeVar("A")
 B = TypeVar("B")
 
@@ -97,6 +103,12 @@ class WDict(Generic[K, V], dict):
 I = TypeVar("I")
 
 
+def cast_wlist(lst) -> list:
+    if hasattr(lst, '_WrappedClassFunction__inner'):
+        return lst._WrappedClassFunction__inner
+    else:
+        return lst
+
 class WList(Generic[I], list):
     # doc @ https://docs.python.org/3/tutorial/datastructures.html
     # and https://docs.python.org/3/library/stdtypes.html#common-sequence-operations
@@ -115,7 +127,7 @@ class WList(Generic[I], list):
     def remove(self, x: I) -> None:
         pass
 
-    def pop(self, i: Optional[int] = None) -> None:
+    def pop(self, i: int = -1) -> Optional[I]:
         pass
 
     def clear(self) -> None:
@@ -128,7 +140,7 @@ class WList(Generic[I], list):
     def count(self, x: I) -> int:
         pass
 
-    def sort(self, key: Any = None, reverse: bool = False) -> None:
+    def sort(self, *, key: Any = None, reverse: bool = False) -> None:
         # inner list will check type of key.
         pass
 
@@ -138,20 +150,48 @@ class WList(Generic[I], list):
     def __delitem__(self, i: Union[int, slice]):
         pass
 
-    def __getitem__(self, item: int) -> I:
+    def __getitem__(self, item: Union[int, slice]) -> Any:  # cannot be expressed in type system
         pass
 
-    def __iadd__(self, other: Iterable[I]) -> None:
+    def __iadd__(self, other: Iterable[I]) -> Any:  # returns self
         pass
 
-    def __imul__(self, n: int) -> None:
+    def __imul__(self, n: int) -> Any:  # returns self
         pass
 
     def __iter__(self) -> Iterator[I]:
         pass
 
-    def __setitem__(self, key: int, value: I) -> None:
+    def __setitem__(self, key: Union[int, slice], value: Any) -> None:
         pass
+
+    @overwrite
+    def __radd__(self, other):
+        return cast_wlist(other) + cast_wlist(self)
+
+    @overwrite
+    def __lt__(self, other):
+        return cast_wlist(self).__lt__(cast_wlist(other))
+
+    @overwrite
+    def __le__(self, other):
+        return cast_wlist(self).__le__(cast_wlist(other))
+
+    @overwrite
+    def __eq__(self, other):
+        return cast_wlist(self).__eq__(cast_wlist(other))
+
+    @overwrite
+    def __ne__(self, other):
+        return cast_wlist(self).__ne__(cast_wlist(other))
+
+    @overwrite
+    def __gt__(self, other):
+        return cast_wlist(self).__gt__(cast_wlist(other))
+
+    @overwrite
+    def __ge__(self, other):
+        return cast_wlist(self).__ge__(cast_wlist(other))
 
     # lower type on
     # __add__
@@ -188,7 +228,7 @@ class WSet(Generic[I], set):
     def discard(self, elem: I):
         pass
 
-    def pop(self) -> I:
+    def pop(self) -> Optional[I]:
         pass
 
     def remove(self, elem: I) -> None:
@@ -296,7 +336,7 @@ class InterfaceFactory(TypeCheckerFactory):
             ctx = ctx.with_typevars(bindings)
             if type(origin) == type:
                 template = WrappedType(protocol, ctx.with_typevars(bindings), name=name, implementation_template=origin,
-                                       declared=ctx.declared_location())
+                                       declared=ctx.declared_location(), overwrites=protocol)
                 return InterfaceChecker(origin, template, name, ctx.declared_location())
             else:
                 # type(origin) == collection.abc.ABCMeta

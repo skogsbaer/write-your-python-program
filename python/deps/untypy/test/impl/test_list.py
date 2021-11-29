@@ -1,24 +1,22 @@
 import unittest
 
-from test.util import DummyExecutionContext, DummyDefaultCreationContext
+import untypy
+from test.util import DummyExecutionContext
+from test.util_test.untypy_test_case import dummy_caller
 from untypy.error import UntypyTypeError
 from untypy.impl.dummy_delayed import DummyDelayedType
-from untypy.impl.list import ListFactory
 
 
 class TestList(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.checker = ListFactory() \
-            .create_from(list[int], DummyDefaultCreationContext())
+        self.checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
 
         self.normal_list = [0, 1, 2, 3]
-        self.wrapped_list = self.checker \
-            .check_and_wrap(self.normal_list, DummyExecutionContext())
+        self.wrapped_list = self.checker(self.normal_list)
 
         self.faulty_normal_list = [0, 1, "2", 3]
-        self.faulty_wrapped_list = self.checker \
-            .check_and_wrap(self.faulty_normal_list, DummyExecutionContext())
+        self.faulty_wrapped_list = self.checker(self.faulty_normal_list)
 
     def test_side_effects(self):
         self.assertEqual(self.normal_list, self.wrapped_list)
@@ -28,11 +26,8 @@ class TestList(unittest.TestCase):
         self.assertEqual(self.normal_list, self.wrapped_list)
 
     def test_error_delayed(self):
-        checker = ListFactory() \
-            .create_from(list[DummyDelayedType], DummyDefaultCreationContext())
-
-        lst = checker \
-            .check_and_wrap([1], DummyExecutionContext())
+        checker = untypy.checker(lambda ty=list[DummyDelayedType]: ty, dummy_caller)
+        lst = checker([1])
 
         res = lst[0]
         with self.assertRaises(UntypyTypeError) as cm:
@@ -248,10 +243,10 @@ class TestList(unittest.TestCase):
         self.check2(lambda l1, l2: l2 >= l1)
 
     def check(self, f):
-        l = [1,4,2,1]
+        l = [1, 4, 2, 1]
         refRes = f(l.copy())
-        checker = ListFactory().create_from(list[int], DummyDefaultCreationContext())
-        wrapped = checker.check_and_wrap(l, DummyExecutionContext())
+        checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
+        wrapped = checker(l)
         res = f(wrapped)
         self.assertEqual(l, wrapped)
         self.assertEqual(refRes, res)
@@ -261,21 +256,21 @@ class TestList(unittest.TestCase):
         self.check22(f)
 
     def check21(self, f):
-        l1 = [1,4,2,1]
+        l1 = [1, 4, 2, 1]
         refRes11 = f(l1.copy(), l1.copy())
-        checker = ListFactory().create_from(list[int], DummyDefaultCreationContext())
-        wrapped1 = checker.check_and_wrap(l1, DummyExecutionContext())
+        checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
+        wrapped1 = checker(l1)
         res11 = f(wrapped1, wrapped1)
         self.assertEqual(l1, wrapped1)
         self.assertEqual(refRes11, res11)
 
     def check22(self, f):
-        l1 = [1,4,2,1]
-        l2 = [1,4,1]
+        l1 = [1, 4, 2, 1]
+        l2 = [1, 4, 1]
         refRes12 = f(l1.copy(), l2.copy())
-        checker = ListFactory().create_from(list[int], DummyDefaultCreationContext())
-        wrapped1 = checker.check_and_wrap(l1, DummyExecutionContext())
-        wrapped2 = checker.check_and_wrap(l2, DummyExecutionContext())
+        checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
+        wrapped1 = checker(l1)
+        wrapped2 = checker(l2)
         res12 = f(wrapped1, wrapped2)
         self.assertEqual(l1, wrapped1)
         self.assertEqual(l2, wrapped2)

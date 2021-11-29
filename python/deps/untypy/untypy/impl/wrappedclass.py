@@ -55,7 +55,8 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
                 implementation_template: Union[type, ModuleType, None] = None,
                 create_type: Optional[type] = None,
                 name: Optional[str] = None,
-                declared: Optional[Location] = None):
+                declared: Optional[Location] = None,
+                overwrites: Optional[type] = None):
     blacklist = ['__class__', '__delattr__', '__dict__', '__dir__',
                  '__doc__', '__getattribute__', '__getattr__', '__init_subclass__',
                  '__new__', '__setattr__', '__subclasshook__', '__weakref__']
@@ -77,9 +78,16 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
         create_fn = raise_err
 
     list_of_attr = dict()
+
     for attr in dir(template):
         if attr in blacklist:
             continue
+
+        if overwrites is not None and hasattr(overwrites, attr):
+            a = getattr(overwrites, attr)
+            if hasattr(a, '__overwrite'):
+                list_of_attr[attr] = getattr(overwrites, attr)
+                continue
 
         original = getattr(template, attr)
         if type(original) == type:  # Note: Order matters, types are also callable
