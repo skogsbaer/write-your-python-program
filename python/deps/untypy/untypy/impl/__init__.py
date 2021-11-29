@@ -17,6 +17,7 @@ from .optional import OptionalFactory
 from .protocol import ProtocolFactory
 from .sequence import SequenceFactory
 from .simple import SimpleFactory
+from .string_forward_refs import StringForwardRefFactory
 from .tuple import TupleFactory
 from .union import UnionFactory
 from ..error import Location, UntypyAttributeError
@@ -39,6 +40,7 @@ _FactoryList = [
     GeneratorFactory(),
     IteratorFactory(),
     InterfaceFactory(),
+    StringForwardRefFactory(),  # resolve types passed as strings
     # must come last
     SimpleFactory()
 ]
@@ -46,10 +48,12 @@ _FactoryList = [
 
 class DefaultCreationContext(CreationContext):
 
-    def __init__(self, typevars: Dict[TypeVar, Any], declared_location: Location, checkedpkgprefixes: List[str]):
+    def __init__(self, typevars: Dict[TypeVar, Any], declared_location: Location,
+                 checkedpkgprefixes: List[str], eval_context: Optional[Any] = None):
         self.typevars = typevars
         self.declared = declared_location
         self.checkedpkgprefixes = checkedpkgprefixes
+        self._eval_context = eval_context
 
     def declared_location(self) -> Location:
         return self.declared
@@ -77,7 +81,7 @@ class DefaultCreationContext(CreationContext):
     def with_typevars(self, typevars: Dict[TypeVar, Any]) -> CreationContext:
         tv = self.typevars.copy()
         tv.update(typevars)
-        return DefaultCreationContext(tv, self.declared, self.checkedpkgprefixes)
+        return DefaultCreationContext(tv, self.declared, self.checkedpkgprefixes, self._eval_context)
 
     def should_be_inheritance_checked(self, annotation: type) -> bool:
         m = inspect.getmodule(annotation)
@@ -90,3 +94,6 @@ class DefaultCreationContext(CreationContext):
                 return True
 
         return False
+
+    def eval_context(self):
+        return self._eval_context
