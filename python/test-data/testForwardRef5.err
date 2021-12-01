@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "test-data/testForwardRef5.py", line 23, in <module>
+    for car in garage.cars:
+WyppTypeError: got value of wrong type
+given:    'Not A Car'
+expected: value of type Car
+
+context: record constructor Garage(cars: list[Car]) -> Self
+                                              ^^^
+declared at: test-data/testForwardRef5.py:9
+caused by: test-data/testForwardRef5.py:23
+  | for car in garage.cars:
