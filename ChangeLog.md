@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.14.2
+  * Allow forwards refs in generic types
+  * Explictly require Python 3.9.2 or greater in setup.py
 * 0.14.1 (2021-11-10)
   * Fix hashable for literals
   * Document that Python 3.9.0 and 3.9.1 are not working
