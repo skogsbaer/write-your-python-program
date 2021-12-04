@@ -28,6 +28,9 @@ class CreationContext:
     def should_be_inheritance_checked(self, annotation: type) -> bool:
         raise NotImplementedError
 
+    def eval_context(self):
+        raise NotImplementedError
+
 
 class ExecutionContext:
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:

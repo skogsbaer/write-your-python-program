@@ -37,7 +37,8 @@ def patch_class(clas: type, cfg: Config):
                 file="<not found>",
                 line_no=0,
                 line_span=1
-            ), checkedpkgprefixes=cfg.checkedprefixes)
+            ), checkedpkgprefixes=cfg.checkedprefixes,
+        )
 
     setattr(clas, '__patched', True)
 
@@ -55,7 +56,7 @@ def wrap_function(fn: FunctionType, cfg: Config) -> Callable:
         return TypedFunctionBuilder(fn, DefaultCreationContext(
             typevars=dict(),
             declared_location=WrappedFunction.find_location(fn),
-            checkedpkgprefixes=cfg.checkedprefixes)).build()
+            checkedpkgprefixes=cfg.checkedprefixes, eval_context=fn.__globals__)).build()
     else:
         return fn
 
