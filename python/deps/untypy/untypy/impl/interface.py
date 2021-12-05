@@ -1,17 +1,12 @@
 from collections.abc import Iterator, Iterable
-from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol, Union
+from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
+from untypy.impl.interfaces.wlist import WList
 from untypy.impl.protocol import ProtocolChecker
 from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, ExecutionContext
 from untypy.util import ReplaceTypeExecutionContext
-
-
-def overwrite(fn):
-    setattr(fn, '__overwrite', True)
-    return fn
-
 
 A = TypeVar("A")
 B = TypeVar("B")
@@ -99,119 +94,6 @@ class WDict(Generic[K, V], dict):
     def __setitem__(self, key: K, value: V) -> None:
         pass
 
-
-I = TypeVar("I")
-
-
-def cast_wlist(lst) -> list:
-    if hasattr(lst, '_WrappedClassFunction__inner'):
-        return lst._WrappedClassFunction__inner
-    else:
-        return lst
-
-class WList(Generic[I], list):
-    # doc @ https://docs.python.org/3/tutorial/datastructures.html
-    # and https://docs.python.org/3/library/stdtypes.html#common-sequence-operations
-    # Exact signatures are undocumented :/
-    # HINT: Argument names must match.
-
-    def append(self, object: I) -> None:
-        pass
-
-    def extend(self, iterable: Iterable[I]) -> None:
-        pass
-
-    def insert(self, i: int, x: I) -> None:
-        pass
-
-    def remove(self, x: I) -> None:
-        pass
-
-    def pop(self, i: int = -1) -> Optional[I]:
-        pass
-
-    def clear(self) -> None:
-        pass
-
-    def index(self, x: I, start: Optional[int] = None, end: Optional[int] = None) -> int:
-        # get index of list
-        pass
-
-    def count(self, x: I) -> int:
-        pass
-
-    def sort(self, *, key: Any = None, reverse: bool = False) -> None:
-        # inner list will check type of key.
-        pass
-
-    def __contains__(self, item: I) -> bool:
-        pass
-
-    def __delitem__(self, i: Union[int, slice]):
-        pass
-
-    def __getitem__(self, item: Union[int, slice]) -> Any:  # cannot be expressed in type system
-        pass
-
-    def __iadd__(self, other: Iterable[I]) -> Any:  # returns self
-        pass
-
-    def __imul__(self, n: int) -> Any:  # returns self
-        pass
-
-    def __iter__(self) -> Iterator[I]:
-        pass
-
-    def __setitem__(self, key: Union[int, slice], value: Any) -> None:
-        pass
-
-    @overwrite
-    def __radd__(self, other):
-        return cast_wlist(other) + cast_wlist(self)
-
-    @overwrite
-    def __lt__(self, other):
-        return cast_wlist(self).__lt__(cast_wlist(other))
-
-    @overwrite
-    def __le__(self, other):
-        return cast_wlist(self).__le__(cast_wlist(other))
-
-    @overwrite
-    def __eq__(self, other):
-        return cast_wlist(self).__eq__(cast_wlist(other))
-
-    @overwrite
-    def __ne__(self, other):
-        return cast_wlist(self).__ne__(cast_wlist(other))
-
-    @overwrite
-    def __gt__(self, other):
-        return cast_wlist(self).__gt__(cast_wlist(other))
-
-    @overwrite
-    def __ge__(self, other):
-        return cast_wlist(self).__ge__(cast_wlist(other))
-
-    # lower type on
-    # __add__
-    # __mul__
-    # copy
-
-    # Type fixed by std impl
-    # __repr__
-    # __reversed__
-    # __len__
-    # reverse
-
-    # type would be any
-    # __eq__
-    # __ge__
-    # __gt__
-    # __le__
-    # __lt__
-    # __ne__
-    #
 
 
 I = TypeVar("I")

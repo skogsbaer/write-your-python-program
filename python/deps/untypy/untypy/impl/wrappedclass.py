@@ -85,7 +85,7 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
 
         if overwrites is not None and hasattr(overwrites, attr):
             a = getattr(overwrites, attr)
-            if hasattr(a, '__overwrite'):
+            if hasattr(a, '__overwrite') and getattr(a, '__overwrite') == 'simple':
                 list_of_attr[attr] = getattr(overwrites, attr)
                 continue
 
@@ -99,8 +99,16 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
                 (signature, checker) = find_signature(original, ctx)
                 implementation_fn = getattr(implementation_template, attr)
                 if implementation_fn is not None:
-                    list_of_attr[attr] = WrappedClassFunction(implementation_fn, signature, checker,
-                                                              create_fn=create_fn, declared=declared).build()
+                    if overwrites is not None and hasattr(overwrites, attr) and hasattr(getattr(overwrites, attr),
+                                                                                        '__overwrite') and getattr(
+                            getattr(overwrites, attr), '__overwrite') == 'advanced':
+                        list_of_attr[attr] = WrappedClassFunction(implementation_fn, signature, checker,
+                                                                  create_fn=create_fn,
+                                                                  declared=declared).build_overwrite(
+                            getattr(overwrites, attr), ctx)
+                    else:
+                        list_of_attr[attr] = WrappedClassFunction(implementation_fn, signature, checker,
+                                                                  create_fn=create_fn, declared=declared).build()
             except ValueError as e:
                 # this fails sometimes on built-ins.
                 # "ValueError: no signature found for builtin"
@@ -131,6 +139,17 @@ class WrappedClassFunction(WrappedFunction):
         self.fc = None
         if hasattr(self.inner, "__fc"):
             self.fc = getattr(self.inner, "__fc")
+
+    def build_overwrite(self, f, ctx: CreationContext):
+        fn = self.inner
+
+        w = f(self, ctx)
+
+        setattr(w, '__wrapped__', fn)
+        setattr(w, '__name__', fn.__name__)
+        setattr(w, '__signature__', self.signature)
+        setattr(w, '__wf', self)
+        return w
 
     def build(self):
         fn = self.inner
