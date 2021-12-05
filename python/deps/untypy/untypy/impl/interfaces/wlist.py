@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Iterable, Optional, Union, Any, Iterator
+from typing import TypeVar, Generic, Iterable, Optional, Union, Any
 
 from untypy.impl.interfaces.util import overwrite
 from untypy.interfaces import CreationContext
@@ -82,7 +82,7 @@ class WList(Generic[I], list):
                 return inner_checker.check_and_wrap(item, ret_ctx)
             elif isinstance(item, slice):
                 item = me._WrappedClassFunction__inner[item]
-                return me_checker().check_and_wrap(item, ret_ctx)
+                return item
             else:
                 # TODO:
                 raise NotImplementedError()
@@ -90,13 +90,18 @@ class WList(Generic[I], list):
         setattr(self, '__original', sig_getitem())
         return inner
 
+    @overwrite("simple")
+    def __add__(self, other: Iterable) -> Any:
+        return cast_wlist(self) + other
+
+    @overwrite("simple")
+    def __mul__(self, n: int) -> Any:
+        return cast_wlist(self) * n
+
     def __iadd__(self, other: Iterable[I]) -> Any:  # returns self
         pass
 
     def __imul__(self, n: int) -> Any:  # returns self
-        pass
-
-    def __iter__(self) -> Iterator[I]:
         pass
 
     def __setitem__(self, key: Union[int, slice], value: Any) -> None:

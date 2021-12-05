@@ -34,10 +34,7 @@ class TestList(unittest.TestCase):
             res.use()
 
         (t, i) = cm.exception.next_type_and_indicator()
-        i = i.rstrip()
-
         self.assertEqual(t, "list[DummyDelayedType]")
-        self.assertEqual(i, "     ^^^^^^^^^^^^^^^^")
 
         self.assertEqual(cm.exception.last_responsable().file, "dummy")
 
@@ -116,7 +113,6 @@ class TestList(unittest.TestCase):
         self.assertEqual(self.wrapped_list[1], 1)
         self.assertEqual(self.wrapped_list[:], [0, 1, 2, 3])
         self.assertEqual(self.wrapped_list[1:], [1, 2, 3])
-
         self.wrapped_list.append(4)
         self.assertEqual(self.wrapped_list, [0, 1, 2, 3, 4])
 
