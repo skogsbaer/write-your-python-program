@@ -1,7 +1,8 @@
-from collections.abc import Iterator, Iterable
+from collections.abc import Iterator, Iterable, Sequence as ABCSequence
 from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
+from untypy.impl.interfaces.sequence import Sequence
 from untypy.impl.interfaces.wlist import WList
 from untypy.impl.protocol import ProtocolChecker
 from untypy.impl.wrappedclass import WrappedType
@@ -22,7 +23,7 @@ class WDictLike(Protocol[A, B]):
     def __iter__(self) -> Iterator[A]:
         pass
 
-    def __getitem__(self, item: A) -> B:
+    def __getitem__(self, key: A) -> B:
         pass
 
 
@@ -88,7 +89,7 @@ class WDict(Generic[K, V], dict):
     #     """ Return value|self. """
     #     pass
 
-    def __getitem__(self, item: K) -> V:
+    def __getitem__(self, key: K) -> V:
         pass
 
     def __setitem__(self, key: K, value: V) -> None:
@@ -123,7 +124,7 @@ class WSet(Generic[I], set):
     def __ior__(self, *others: Tuple[Iterable[I], ...]) -> Any:
         pass
 
-    def __contains__(self, item: I) -> bool:
+    def __contains__(self, key: I) -> bool:
         pass
 
     def __iter__(self) -> Iterator[I]:
@@ -189,10 +190,8 @@ InterfaceMapping = {
     set: (WSet,),
     Set: (WSet,),
     Iterable: (WIterable,),
+    ABCSequence: (Sequence,),
 }
-
-InterfaceFactoryCache = {}
-
 
 class InterfaceFactory(TypeCheckerFactory):
 

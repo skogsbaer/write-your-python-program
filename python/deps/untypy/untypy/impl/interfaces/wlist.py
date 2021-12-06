@@ -8,7 +8,7 @@ I = TypeVar("I")
 
 
 def sig_getitem():
-    def __getitem__(self, item: Union[int, slice]) -> Union[I, list[I]]:
+    def __getitem__(self, key: Union[int, slice]) -> Union[I, list[I]]:
         pass
 
     return __getitem__
@@ -45,18 +45,18 @@ class WList(Generic[I], list):
     def clear(self) -> None:
         pass
 
-    def index(self, x: I, start: Optional[int] = None, end: Optional[int] = None) -> int:
+    def index(self, value: I, start: Optional[int] = None, stop: Optional[int] = None) -> int:
         # get index of list
         pass
 
-    def count(self, x: I) -> int:
+    def count(self, value: I) -> int:
         pass
 
     def sort(self, *, key: Any = None, reverse: bool = False) -> None:
         # inner list will check type of key.
         pass
 
-    def __contains__(self, item: I) -> bool:
+    def __contains__(self, key: I) -> bool:
         pass
 
     def __delitem__(self, i: Union[int, slice]):
