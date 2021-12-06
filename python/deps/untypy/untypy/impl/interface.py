@@ -1,5 +1,5 @@
 from collections.abc import Iterator, Iterable, Sequence as ABCSequence
-from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
+from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol, Sequence as TypingSequence
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
 from untypy.impl.interfaces.sequence import Sequence
@@ -191,6 +191,7 @@ InterfaceMapping = {
     Set: (WSet,),
     Iterable: (WIterable,),
     ABCSequence: (Sequence,),
+    TypingSequence: (Sequence,)
 }
 
 class InterfaceFactory(TypeCheckerFactory):
