@@ -1,7 +1,9 @@
 Traceback (most recent call last):
   File "test-data/testTypesSequence1.py", line 10, in <module>
     foo(1) # should fail
-WyppTypeError: got value of wrong type
+WyppTypeError: int does not meet the requirements of protocol Sequence.
+It is missing the function '__contains__'.
+
 given:    1
 expected: value of type Sequence
 

@@ -1,12 +1,22 @@
 Traceback (most recent call last):
-  File "test-data/testTypesSequence2.py", line 9, in <module>
+  File "test-data/testTypesSequence2.py", line 10, in <module>
     foo("Hello!") # should fail
-WyppTypeError: got value of wrong type
+  File "test-data/testTypesSequence2.py", line 4, in foo
+    for item in seq:
+WyppTypeError: str does not implement protocol Sequence[int] correctly.
 given:    'Hello!'
 expected: value of type Sequence[int]
 
 context: foo(seq: Sequence[int]) -> None
                   ^^^^^^^^^^^^^
 declared at: test-data/testTypesSequence2.py:3
-caused by: test-data/testTypesSequence2.py:9
+caused by: test-data/testTypesSequence2.py:10
   | foo("Hello!") # should fail
+
+given:    'H'
+expected: value of type ~I=int
+
+context: __getitem__(self: Self, key: int) -> ~I=int
+                                              ^^^^^^
+declared at: site-lib/untypy/impl/interfaces/sequence.py:9
+
