@@ -197,12 +197,12 @@ InterfaceMapping = {
 class InterfaceFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
+        # Generics
         if hasattr(annotation, '__origin__') and hasattr(annotation,
                                                          '__args__') and annotation.__origin__ in InterfaceMapping:
             (protocol,) = InterfaceMapping[annotation.__origin__]
             bindings = protocol.__parameters__  # args of Generic super class
             origin = annotation.__origin__
-
             inner_checkers = []
             for param in annotation.__args__:
                 ch = ctx.find_checker(param)
@@ -221,6 +221,24 @@ class InterfaceFactory(TypeCheckerFactory):
                 template = WrappedType(protocol, ctx.with_typevars(bindings), name=name, implementation_template=origin,
                                        declared=ctx.declared_location(), overwrites=protocol)
                 return InterfaceChecker(origin, template, name, ctx.declared_location())
+            else:
+                # type(origin) == collection.abc.ABCMeta
+                return ProtocolChecker(protocol, ctx, altname=name)
+
+        # Non Generic
+        elif annotation in InterfaceMapping:
+            (protocol,) = InterfaceMapping[annotation]
+
+            # Edge-Case `TypingSequence has no __name__, like every other class`
+            if annotation == TypingSequence:
+                name = 'Sequence'
+            else:
+                name = annotation.__name__
+
+            if type(annotation) == type:
+                template = WrappedType(protocol, ctx, name=name, implementation_template=annotation,
+                                       declared=ctx.declared_location(), overwrites=protocol)
+                return InterfaceChecker(annotation, template, name, ctx.declared_location())
             else:
                 # type(origin) == collection.abc.ABCMeta
                 return ProtocolChecker(protocol, ctx, altname=name)
