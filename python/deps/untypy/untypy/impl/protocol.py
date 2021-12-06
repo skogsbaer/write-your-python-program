@@ -3,7 +3,6 @@ import sys
 import typing
 from typing import Protocol, Any, Optional, Callable, Union, TypeVar, Dict, Tuple
 
-from untypy.util.display import format_argument_values
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, ResponsibilityType
 from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, ExecutionContext, \
@@ -207,13 +206,16 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
                     given=originalValue
                 )).with_header(
                     f"{original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}."
-                 ).with_note(f"The signature of '{fnname}' does not match. Missing required parameter {param}.")
+                ).with_note(f"The signature of '{fnname}' does not match. Missing required parameter {param}.")
 
         list_of_attr[fnname] = ProtocolWrappedFunction(original_fn, sig, argdict, protocolchecker, fc).build()
 
     def constructor(me, inner, ctx):
         me._ProtocolWrappedFunction__inner = inner
         me._ProtocolWrappedFunction__ctx = ctx
+
+    def __repr__(me):
+        return me._ProtocolWrappedFunction__inner.__repr__()
 
     def __getattr__(me, name):
         return getattr(me._ProtocolWrappedFunction__inner, name)
@@ -231,6 +233,7 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__init__'] = constructor
     list_of_attr['__getattr__'] = __getattr__  # allow access of attributes
     list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
+    list_of_attr['__repr__'] = __repr__
     name = f"{protocolchecker.proto.__name__}For{original.__name__}"
     return type(name, (), list_of_attr)
 
