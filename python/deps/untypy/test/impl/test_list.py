@@ -10,7 +10,7 @@ from untypy.impl.dummy_delayed import DummyDelayedType
 class TestList(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
+        self.checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller, DummyExecutionContext())
 
         self.normal_list = [0, 1, 2, 3]
         self.wrapped_list = self.checker(self.normal_list)
@@ -26,7 +26,7 @@ class TestList(unittest.TestCase):
         self.assertEqual(self.normal_list, self.wrapped_list)
 
     def test_error_delayed(self):
-        checker = untypy.checker(lambda ty=list[DummyDelayedType]: ty, dummy_caller)
+        checker = untypy.checker(lambda ty=list[DummyDelayedType]: ty, dummy_caller, DummyExecutionContext())
         lst = checker([1])
 
         res = lst[0]
@@ -47,11 +47,8 @@ class TestList(unittest.TestCase):
             var = self.faulty_wrapped_list[2]
 
         (t, i) = cm.exception.next_type_and_indicator()
-        i = i.rstrip()
 
         self.assertEqual(t, "list[int]")
-        self.assertEqual(i, "     ^^^")
-
         self.assertEqual(cm.exception.last_responsable().file, "dummy")
 
     def test_wrapping_resp_by_side_effects(self):
@@ -64,11 +61,8 @@ class TestList(unittest.TestCase):
             var = self.wrapped_list[4]
 
         (t, i) = cm.exception.next_type_and_indicator()
-        i = i.rstrip()
 
         self.assertEqual(t, "list[int]")
-        self.assertEqual(i, "     ^^^")
-
         self.assertEqual(cm.exception.last_responsable().file, "dummy")
 
     def test_self_resp(self):
@@ -81,14 +75,14 @@ class TestList(unittest.TestCase):
         (t, i) = cm.exception.next_type_and_indicator()
         i = i.rstrip()
 
-        self.assertEqual(t, "list[int]")
-        self.assertEqual(i, "     ^^^")
+        self.assertEqual(t, "append(self: Self, object: ~I=int) -> None")
+        self.assertEqual(i, "                           ^^^^^^")
 
         self.assertEqual(cm.exception.last_responsable().file, __file__)
 
     def test_not_a_list(self):
         with self.assertRaises(UntypyTypeError) as cm:
-            self.checker.check_and_wrap("Hello", DummyExecutionContext())
+            self.checker("Hello")
 
         (t, i) = cm.exception.next_type_and_indicator()
         i = i.rstrip()

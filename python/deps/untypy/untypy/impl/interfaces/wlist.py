@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Iterable, Optional, Union, Any
+from typing import TypeVar, Generic, Iterable, Optional, Union, Any, Iterator
 
 from untypy.impl.interfaces.util import overwrite
 from untypy.interfaces import CreationContext
@@ -105,6 +105,9 @@ class WList(Generic[I], list):
         pass
 
     def __setitem__(self, key: Union[int, slice], value: Any) -> None:
+        pass
+
+    def __iter__(self) -> Iterator[I]:
         pass
 
     @overwrite("simple")

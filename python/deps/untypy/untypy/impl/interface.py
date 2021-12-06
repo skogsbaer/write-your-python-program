@@ -216,6 +216,7 @@ class InterfaceFactory(TypeCheckerFactory):
 
             bindings = dict(zip(bindings, annotation.__args__))
             ctx = ctx.with_typevars(bindings)
+
             if type(origin) == type:
                 template = WrappedType(protocol, ctx.with_typevars(bindings), name=name, implementation_template=origin,
                                        declared=ctx.declared_location(), overwrites=protocol)
