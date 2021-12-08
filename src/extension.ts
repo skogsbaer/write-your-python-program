@@ -133,12 +133,12 @@ function fileToCommandArgument(s: string): string {
 }
 
 function commandListToArgument(arr: string[]): string {
-    if (arr.length == 1) {
+    if (arr.length === 1) {
         return fileToCommandArgument(arr[0]);
     } else {
         var result = "";
-        for (let i = 0; i < arr.length; i++) { 
-            if (i == 0) {
+        for (let i = 0; i < arr.length; i++) {
+            if (i === 0) {
                 result = fileToCommandArgument(arr[i]);
             } else {
                 result = result + " " + toCommandArgument(arr[i]);
