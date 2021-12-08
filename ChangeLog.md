@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.14.3
+  * Fix bug with spaces in python commands
 * 0.14.2
   * Allow forwards refs in generic types
   * Explictly require Python 3.9.2 or greater in setup.py
