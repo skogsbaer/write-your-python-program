@@ -297,12 +297,13 @@ def deepEq(v1, v2, **flags):
             return True
         else:
             return False
-    ty1 = type(v1)
-    if ty1 == list or ty1 == tuple:
-        return ty1 == type(v2) and _seqEq(v1, v2, flags)
-    if ty1 == dict:
-        return ty1 == type(v2) and _dictEq(v1, v2, flags)
-    if ty1 == str:
+    if isinstance(v1, list):
+        return isinstance(v2, list) and _seqEq(v1, v2, flags)
+    if isinstance(v1, tuple):
+        return isinstance(v2, tuple) and _seqEq(v1, v2, flags)
+    if isinstance(v1, dict):
+        return isinstance(v2, dict) and _dictEq(v1, v2, flags)
+    if type(v1) == str:
         return False
     if hasattr(v1, '__class__'):
         if _useStructuralObjEq(flags):
