@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.14.4
+  * Fix bug for deep equality in check function
 * 0.14.3
   * Fix bug with spaces in python commands
 * 0.14.2
