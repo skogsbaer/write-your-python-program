@@ -71,7 +71,7 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
                         checkers[key] = AnyChecker()
                 checkers['return'] = AnyChecker()
             else:
-                annotations = get_type_hints(member)
+                annotations = get_type_hints(member, ctx)
                 for key in signature.parameters:
                     if key == 'self':
                         checkers[key] = SelfChecker()
