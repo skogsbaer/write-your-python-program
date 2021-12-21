@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "test-data/testHintParentheses1.py", line 5, in <module>
+  File "test-data/testHintParentheses1.py", line 4, in <module>
     def foo(l: list(int)) -> int:
 WyppAttributeError: Type annotation of function 'foo' could not be resolved:
 'type' object is not iterable
@@ -7,4 +7,4 @@ WyppAttributeError: Type annotation of function 'foo' could not be resolved:
 def foo(l: list(int)) -> int:                    
     return ^^^^^^^^^ - Did you mean: 'list[int]'?
 
-declared at: test-data/testHintParentheses1.py:5
+declared at: test-data/testHintParentheses1.py:4
