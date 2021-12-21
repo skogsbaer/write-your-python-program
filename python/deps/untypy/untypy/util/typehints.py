@@ -65,8 +65,8 @@ def map_str_to_ast(nodes):
             try:
                 for inode in ast.walk(ast.parse(node.value, mode='eval').body):
                     inode.lineno += node.lineno - 1
-                    inode.col_offset += node.col_offset
-                    inode.end_col_offset += node.col_offset
+                    inode.col_offset += node.col_offset + 1
+                    inode.end_col_offset += node.col_offset + 1
                     yield inode
             except SyntaxError:
                 # may not a forward ref
