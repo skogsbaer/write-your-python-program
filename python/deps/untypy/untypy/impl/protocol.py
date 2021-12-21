@@ -3,13 +3,13 @@ import sys
 import typing
 from typing import Protocol, Any, Optional, Callable, Union, TypeVar, Dict, Tuple
 
-from untypy.util.display import format_argument_values
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, ResponsibilityType
 from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, ExecutionContext, \
     WrappedFunctionContextProvider
 from untypy.util import WrappedFunction, ArgumentExecutionContext, ReturnExecutionContext
 from untypy.util.condition import FunctionCondition
+from untypy.util.typehints import get_type_hints
 
 
 class ProtocolFactory(TypeCheckerFactory):
@@ -71,7 +71,7 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
                         checkers[key] = AnyChecker()
                 checkers['return'] = AnyChecker()
             else:
-                annotations = typing.get_type_hints(member, include_extras=True)
+                annotations = get_type_hints(member)
                 for key in signature.parameters:
                     if key == 'self':
                         checkers[key] = SelfChecker()
