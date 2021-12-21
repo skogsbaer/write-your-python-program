@@ -37,7 +37,7 @@ def analyse(item, ctx: CreationContext, e) -> UntypyAttributeError:
     source = inspect.getsource(item)
     fn_ast = ast.parse(source)
 
-    for node in map_str_to_ast(fn_ast.body[0].args):
+    for node in map_str_to_ast(fn_ast.body[0].args, fn_ast.body[0].returns):
         for rule in RULES:
             rule_result = rule(node)
             if rule_result:
@@ -58,26 +58,28 @@ def analyse(item, ctx: CreationContext, e) -> UntypyAttributeError:
 
 
 # some type annotations may repr. as strings
-def map_str_to_ast(nodes):
-    for node in ast.walk(nodes):
-        yield node
-        if isinstance(node, ast.Constant) and isinstance(node.value, str):
-            try:
-                for inode in ast.walk(ast.parse(node.value, mode='eval').body):
-                    inode.lineno += node.lineno - 1
-                    inode.col_offset += node.col_offset + 1
-                    inode.end_col_offset += node.col_offset + 1
-                    yield inode
-            except SyntaxError:
-                # may not a forward ref
-                pass
+def map_str_to_ast(*nodes):
+    for outer_node in nodes:
+        for node in ast.walk(outer_node):
+            yield node
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                try:
+                    for inode in ast.walk(ast.parse(node.value, mode='eval').body):
+                        if hasattr(inode, 'lineno'):
+                            inode.lineno += node.lineno - 1
+                            inode.col_offset += node.col_offset + 1
+                            inode.end_col_offset += node.col_offset + 1
+                        yield inode
+                except SyntaxError:
+                    # may not a forward ref
+                    pass
 
 
 # Rules
 # For Ast-Nodes see: https://docs.python.org/3/library/ast.html
 def rule_wrong_parentheses(item):
     if isinstance(item, ast.Call) and _traverse(item, 'func.id') and _traverse(item, 'args.0'):
-        inner = ast.unparse(_traverse(item, 'args.0'))
+        inner = ", ".join(map(ast.unparse, _traverse(item, 'args')))
         return (item, f"Did you mean: '{_traverse(item, 'func.id')}[{inner}]'?")
 
 
