@@ -106,7 +106,7 @@ def _traverse(item, path):
     elif isinstance(item, list):
         try:
             idx = int(head)
-            if len(item) > idx and idx >= 0:
+            if len(item) > idx >= 0:
                 return _traverse(item[idx], tail)
         except ValueError:
             return None
