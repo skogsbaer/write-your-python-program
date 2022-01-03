@@ -1,6 +1,5 @@
 import inspect
 import sys
-import typing
 from typing import Callable, Dict, Optional
 
 from untypy.error import UntypyAttributeError, UntypyNameError, UntypyTypeError
@@ -8,6 +7,7 @@ from untypy.impl.any import SelfChecker
 from untypy.interfaces import WrappedFunction, TypeChecker, CreationContext, WrappedFunctionContextProvider, \
     ExecutionContext
 from untypy.util import ArgumentExecutionContext, ReturnExecutionContext
+from untypy.util.typehints import get_type_hints
 
 
 class TypedFunctionBuilder(WrappedFunction):
@@ -40,19 +40,7 @@ class TypedFunctionBuilder(WrappedFunction):
         if self._checkers is not None:
             return self._checkers
 
-            # SEE: https://www.python.org/dev/peps/pep-0563/#id7
-        try:
-            annotations = typing.get_type_hints(self.inner, include_extras=True)
-        except NameError as ne:
-            org = WrappedFunction.find_original(self.inner)
-            if inspect.isclass(org):
-                raise self.ctx.wrap(UntypyNameError(
-                    f"{ne}.\nType annotation inside of class '{org.__qualname__}' could not be resolved."
-                ))
-            else:
-                raise self.ctx.wrap(UntypyNameError(
-                    f"{ne}.\nType annotation of function '{org.__qualname__}' could not be resolved."
-                ))
+        annotations = get_type_hints(self.inner, self.ctx)
 
         checkers = {}
         checked_keys = list(self.signature.parameters)
