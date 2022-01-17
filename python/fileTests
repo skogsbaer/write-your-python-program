@@ -137,11 +137,13 @@ checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py
 checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py
 checkWithOutputAux yes 1 test-data/testRecordSetTypes.py
 checkWithOutputAux yes 1 test-data/testRecordSetTypeForwardRef.py
+checkWithOutputAux yes 0 test-data/testForwardRef.py
 checkWithOutputAux yes 0 test-data/testForwardRef1.py
 checkWithOutputAux yes 1 test-data/testForwardRef2.py
 checkWithOutputAux yes 0 test-data/testForwardRef3.py
 checkWithOutputAux yes 1 test-data/testForwardRef4.py
 checkWithOutputAux yes 1 test-data/testForwardRef5.py
+# checkWithOutputAux yes 1 test-data/testForwardRef6.py
 checkWithOutputAux yes 1 test-data/testHintParentheses1.py
 checkWithOutputAux yes 1 test-data/testHintParentheses2.py
 checkWithOutputAux yes 1 test-data/testHintParentheses3.py
@@ -171,4 +173,3 @@ checkWithOutputAux yes 0 test-data/testUnionLiteral.py
 checkWithOutputAux yes 0 test-data/testCheck.py
 checkWithOutputAux yes 1 test-data/testNameErrorBug.py
 checkWithOutputAux yes 0 test-data/testDeepEqBug.py
-checkWithOutputAux yes 0 test-data/testForwardRef.py
