@@ -94,10 +94,9 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
                         checkers[key] = checker
 
                 if signature.return_annotation is inspect.Parameter.empty:
-                    raise ctx.wrap(UntypyAttributeError(
-                        f"Missing annotation for return value of function {member.__name__} "
-                        f"in protocol {proto.__name__}. Use 'None' if there is no return value.\n"))
-                return_annotation = annotations['return']
+                    return_annotation = None
+                else:
+                    return_annotation = annotations['return']
                 if return_annotation is proto:  # Self as Return Type would led to endless recursion
                     return_checker = SimpleInstanceOfChecker(proto, None)
                 else:
