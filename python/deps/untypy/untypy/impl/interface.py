@@ -251,6 +251,10 @@ class InterfaceChecker(TypeChecker):
         if not issubclass(type(arg), self.origin):
             raise ctx.wrap(UntypyTypeError(arg, self.describe()))
 
+        if hasattr(arg, '_WrappedClassFunction__inner'):
+            # Prevent Double Wrapping
+            arg = arg._WrappedClassFunction__inner
+
         instance = self.template.__new__(self.template)
         instance._WrappedClassFunction__inner = arg
         instance._WrappedClassFunction__return_ctx = ReplaceTypeExecutionContext(ctx, self.name)
