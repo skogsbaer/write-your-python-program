@@ -1,5 +1,11 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.15.0 (2022-01-20)
+  * Assume None if no return type is given
+  * Improve error messages when types are writting like "list(int)" #61
+  * Fix bug with dictionary types #68
+  * Fix bug with forward refs #67
+  * Fix bug with relpath under Windows
 * 0.14.4
   * Fix bug for deep equality in check function
 * 0.14.3
