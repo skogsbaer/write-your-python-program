@@ -21,11 +21,11 @@ def get_type_hints(item, ctx: CreationContext, resolver=_default_resolver):
         org = WrappedFunction.find_original(item)
         if inspect.isclass(org):
             raise ctx.wrap(UntypyNameError(
-                f"{ne}.\nType annotation inside of class '{org.__qualname__}' could not be resolved."
+                f"{ne}.\nType annotation inside of class '{qualname(org)}' could not be resolved."
             ))
         else:
             raise ctx.wrap(UntypyNameError(
-                f"{ne}.\nType annotation of function '{org.__qualname__}' could not be resolved."
+                f"{ne}.\nType annotation of function '{qualname(org)}' could not be resolved."
             ))
     except Exception as e:
         # Try to find better cause in analyse
@@ -47,13 +47,13 @@ def analyse(item, ctx: CreationContext, e) -> UntypyAttributeError:
                 display.write((n.col_offset - 1, n.lineno),
                               " " + "^" * (n.end_col_offset - n.col_offset) + " - " + message)
                 return ctx.wrap(
-                    UntypyAttributeError(f"Type annotation of function '{org.__qualname__}' could not be resolved:\n"
+                    UntypyAttributeError(f"Type annotation of function '{qualname(org)}' could not be resolved:\n"
                                          f"{e}\n"
                                          f"\n{display}")
                 )
 
     return ctx.wrap(
-        UntypyAttributeError(f"Type annotation of function '{org.__qualname__}' could not be resolved:\n"
+        UntypyAttributeError(f"Type annotation of function '{qualname(org)}' could not be resolved:\n"
                              f"{e}\n"))
 
 
@@ -114,3 +114,12 @@ def _traverse(item, path):
             return None
     else:
         return None
+
+
+def qualname(typ):
+    if hasattr(typ, '__qualname__'):
+        return typ.__qualname__
+    elif hasattr(typ, '__name__'):
+        return typ.__name__
+    else:
+        return str(typ)
