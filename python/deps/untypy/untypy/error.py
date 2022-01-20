@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from enum import Enum
-from os.path import relpath
+import os
 from typing import Any, Optional, Tuple, Iterable
 
 
@@ -14,6 +14,12 @@ def readFile(path):
         with open(path) as f:
             return f.read()
 
+def relpath(p):
+    # relpath might throw an exception, at least on windows
+    try:
+        return os.path.relpath(p)
+    except:
+        return p
 
 class Location:
     file: str
