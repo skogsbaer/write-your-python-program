@@ -231,7 +231,13 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__getattr__'] = __getattr__  # allow access of attributes
     list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
     name = f"{protocolchecker.proto.__name__}For{original.__name__}"
-    return type(name, (), list_of_attr)
+    t = type(name, (), list_of_attr)
+
+    # Copy attributes for print right name
+    for attr in ['__module__', '__name__', '__qualname__']:
+        if hasattr(original, attr):
+            setattr(t, attr, getattr(original, attr))
+    return t
 
 
 class ProtocolWrappedFunction(WrappedFunction):
