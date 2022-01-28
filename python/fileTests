@@ -123,6 +123,7 @@ checkWithOutput 0 test-data/printModuleName.py
 checkWithOutput 0 test-data/printModuleNameImport.py
 checkWithOutput 1 test-data/testTypes1.py
 checkWithOutput 1:0 test-data/testTypes2.py
+checkWithOutputAux yes 1 test-data/testABCMeta.py
 checkWithOutputAux yes 1 test-data/testTypesCollections1.py
 checkWithOutputAux yes 1 test-data/testTypesCollections2.py
 # checkWithOutputAux yes 1 test-data/testTypesCollections3.py  See #5
