@@ -99,6 +99,13 @@ class TypedFunctionBuilder(WrappedFunction):
         setattr(w, '__name__', self.inner.__name__)
         setattr(w, '__signature__', self.signature)
         setattr(w, '__wf', self)
+
+        # Copy useful attributes
+        # This is need for the detection of abstract classes
+        for attr in ['__isabstractmethod__']:
+            if hasattr(self.inner, attr):
+                setattr(w, attr, getattr(self.inner, attr))
+
         return w
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
