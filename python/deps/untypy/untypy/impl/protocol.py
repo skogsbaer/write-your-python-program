@@ -231,7 +231,13 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__getattr__'] = __getattr__  # allow access of attributes
     list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
     name = f"{protocolchecker.proto.__name__}For{original.__name__}"
-    return type(name, (), list_of_attr)
+
+    if type(original) == type:
+        # This class does not have any metaclass that may have unexpected side effects
+        return type(name, (original,), list_of_attr)
+    else:
+        # Fall back to no inheritance, this should be an edge case.
+        return type(name, (), list_of_attr)
 
 
 class ProtocolWrappedFunction(WrappedFunction):
