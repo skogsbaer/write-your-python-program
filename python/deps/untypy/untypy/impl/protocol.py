@@ -232,8 +232,10 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
     name = f"{protocolchecker.proto.__name__}For{original.__name__}"
 
-    if type(original) == type:
-        # This class does not have any metaclass that may have unexpected side effects
+    if type(original) == type and original.__flags__ & 0x0400:
+        # This class does not have any metaclass that may have unexpected side effects.
+        # Also the Py_TPFLAGS_BASETYPE=0x0400 must be set to inheritable, as some classes like C-Based classes
+        # like`dict_items` can not be inherited from.
         return type(name, (original,), list_of_attr)
     else:
         # Fall back to no inheritance, this should be an edge case.
