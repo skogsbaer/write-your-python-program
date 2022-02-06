@@ -123,6 +123,7 @@ checkWithOutput 0 test-data/printModuleName.py
 checkWithOutput 0 test-data/printModuleNameImport.py
 checkWithOutput 1 test-data/testTypes1.py
 checkWithOutput 1:0 test-data/testTypes2.py
+checkWithOutputAux yes 1 test-data/testABCMeta.py
 checkWithOutputAux yes 1 test-data/testTypesCollections1.py
 checkWithOutputAux yes 1 test-data/testTypesCollections2.py
 # checkWithOutputAux yes 1 test-data/testTypesCollections3.py  See #5
@@ -162,6 +163,7 @@ checkWithOutputAux yes 1 test-data/testTypesDict1.py
 checkWithOutputAux yes 1 test-data/testTypesDict2.py
 checkWithOutputAux yes 1 test-data/testTypesDict3.py
 checkWithOutputAux yes 1 test-data/testTypesDict4.py
+checkWithOutputAux yes 1 test-data/testIterableImplicitAny.py
 checkWithOutputAux yes 0 test-data/testDoubleWrappingDicts.py
 checkWithOutputAux yes 0 test-data/testClassRecursion.py
 checkWithOutputAux yes 1 test-data/testWrongNumOfArguments.py
