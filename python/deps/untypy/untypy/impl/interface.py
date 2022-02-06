@@ -1,8 +1,8 @@
-from collections.abc import Iterable, Sequence as ABCSequence
 import typing
-from typing import Optional, Any, Dict, List, Set, Sequence as TypingSequence
-from collections.abc import Iterator, Iterable
-from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
+from collections.abc import Iterable
+from collections.abc import Sequence as ABCSequence
+from typing import Optional, Any, Dict, List, Set
+from typing import Sequence as TypingSequence
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
 from untypy.impl.interfaces.iterable import WIterable
