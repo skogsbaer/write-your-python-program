@@ -140,11 +140,18 @@ class ProtocolChecker(TypeChecker):
             arg = getattr(arg, '_ProtocolWrappedFunction__inner')
 
         if type(arg) in self.wrapper_types:
-            return self.wrapper_types[type(arg)](arg, ctx)
+            wrapped_type = self.wrapper_types[type(arg)]
         else:
             wrapped_type = ProtocolWrapper(self, arg, self.members, ctx)
             self.wrapper_types[type(arg)] = wrapped_type
-            return wrapped_type(arg, ctx)
+        # On wrappers some built-in classes like tuple, the constructor can not
+        # be called directly, because it will trigger the original one.
+        # To me this looks like a bug in the interpreter.
+        # return wrapped_type(arg, ctx)
+        w = wrapped_type.__new__(wrapped_type)
+        w.__init__(arg, ctx)
+        return w
+
 
     def base_type(self) -> list[Any]:
         # Prevent Classes implementing multiple Protocols in one Union by accident.
@@ -232,10 +239,11 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
     name = f"{protocolchecker.proto.__name__}For{original.__name__}"
 
-    if type(original) == type and original.__flags__ & 0x0400:
+    if type(original) == type and original.__flags__ & 0x0400 and original not in [dict, list, set, tuple]:
         # This class does not have any metaclass that may have unexpected side effects.
         # Also the Py_TPFLAGS_BASETYPE=0x0400 must be set to inheritable, as some classes like C-Based classes
         # like`dict_items` can not be inherited from.
+        # Also some other built-in types have bugs when inherited from.
         return type(name, (original,), list_of_attr)
     else:
         # Fall back to no inheritance, this should be an edge case.
