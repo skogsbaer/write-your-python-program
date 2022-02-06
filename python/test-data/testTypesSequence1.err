@@ -5,10 +5,10 @@ WyppTypeError: int does not meet the requirements of protocol Sequence.
 It is missing the function '__contains__'.
 
 given:    1
-expected: value of type Sequence
+expected: value of type Sequence[Any]
 
-context: foo(seq: Sequence) -> None
-                  ^^^^^^^^
+context: foo(seq: Sequence[Any]) -> None
+                  ^^^^^^^^^^^^^
 declared at: test-data/testTypesSequence1.py:3
 caused by: test-data/testTypesSequence1.py:10
   | foo(1) # should fail
