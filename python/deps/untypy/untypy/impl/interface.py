@@ -1,5 +1,8 @@
 from collections.abc import Iterable, Sequence as ABCSequence
+import typing
 from typing import Optional, Any, Dict, List, Set, Sequence as TypingSequence
+from collections.abc import Iterator, Iterable
+from typing import TypeVar, Optional, Any, Generic, Dict, List, Set, Tuple, Protocol
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
 from untypy.impl.interfaces.iterable import WIterable
@@ -21,6 +24,7 @@ InterfaceMapping = {
     set: (WSet,),
     Set: (WSet,),
     Iterable: (WIterable,),
+    typing.Iterable: (WIterable,),
     ABCSequence: (Sequence,),
     TypingSequence: (Sequence,)
 }
@@ -28,9 +32,22 @@ InterfaceMapping = {
 class InterfaceFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
-        # Generics
-        if hasattr(annotation, '__origin__') and hasattr(annotation,
-                                                         '__args__') and annotation.__origin__ in InterfaceMapping:
+        if annotation in InterfaceMapping:
+            # Assume Any if no parameters are given
+            (protocol,) = InterfaceMapping[annotation]
+            bindings = protocol.__parameters__
+
+            if len(bindings) == 0:
+                raise AssertionError(f"This is a BUG. {annotation} has no generic params.")
+
+            # handle Python inconsistency
+            if hasattr(annotation, '__class_getitem__'):
+                return self.create_from(annotation.__class_getitem__(*([Any] * len(bindings))), ctx)
+            elif hasattr(annotation, '__getitem__'):
+                return self.create_from(annotation.__getitem__(*([Any] * len(bindings))), ctx)
+
+        elif hasattr(annotation, '__origin__') and hasattr(annotation,
+                                                           '__args__') and annotation.__origin__ in InterfaceMapping:
             (protocol,) = InterfaceMapping[annotation.__origin__]
             bindings = protocol.__parameters__  # args of Generic super class
             origin = annotation.__origin__
@@ -92,6 +109,10 @@ class InterfaceChecker(TypeChecker):
     def check_and_wrap(self, arg: Any, ctx: ExecutionContext) -> Any:
         if not issubclass(type(arg), self.origin):
             raise ctx.wrap(UntypyTypeError(arg, self.describe()))
+
+        if hasattr(arg, '_WrappedClassFunction__inner'):
+            # Prevent Double Wrapping
+            arg = arg._WrappedClassFunction__inner
 
         instance = self.template.__new__(self.template)
         instance._WrappedClassFunction__inner = arg

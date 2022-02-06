@@ -485,7 +485,8 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
         globals['__file__'] = fileToRun
         runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
                        useUntypy=args.checkTypes)
-    except:
+    except Exception as e:
+        verbose(e)
         handleCurrentException()
 
     performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes)

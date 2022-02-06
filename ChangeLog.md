@@ -1,5 +1,18 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.15.0 (2022-01-20)
+  * Assume None if no return type is given
+  * Improve error messages when types are writting like "list(int)" #61
+  * Fix bug with dictionary types #68
+  * Fix bug with forward refs #67
+  * Fix bug with relpath under Windows
+* 0.14.4
+  * Fix bug for deep equality in check function
+* 0.14.3
+  * Fix bug with spaces in python commands
+* 0.14.2
+  * Allow forwards refs in generic types
+  * Explictly require Python 3.9.2 or greater in setup.py
 * 0.14.1 (2021-11-10)
   * Fix hashable for literals
   * Document that Python 3.9.0 and 3.9.1 are not working

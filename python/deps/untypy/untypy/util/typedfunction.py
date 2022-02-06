@@ -1,6 +1,5 @@
 import inspect
 import sys
-import typing
 from typing import Callable, Dict, Optional
 
 from untypy.error import UntypyAttributeError, UntypyNameError, UntypyTypeError
@@ -8,6 +7,7 @@ from untypy.impl.any import SelfChecker
 from untypy.interfaces import WrappedFunction, TypeChecker, CreationContext, WrappedFunctionContextProvider, \
     ExecutionContext
 from untypy.util import ArgumentExecutionContext, ReturnExecutionContext
+from untypy.util.typehints import get_type_hints
 
 
 class TypedFunctionBuilder(WrappedFunction):
@@ -40,19 +40,7 @@ class TypedFunctionBuilder(WrappedFunction):
         if self._checkers is not None:
             return self._checkers
 
-            # SEE: https://www.python.org/dev/peps/pep-0563/#id7
-        try:
-            annotations = typing.get_type_hints(self.inner, include_extras=True)
-        except NameError as ne:
-            org = WrappedFunction.find_original(self.inner)
-            if inspect.isclass(org):
-                raise self.ctx.wrap(UntypyNameError(
-                    f"{ne}.\nType annotation inside of class '{org.__qualname__}' could not be resolved."
-                ))
-            else:
-                raise self.ctx.wrap(UntypyNameError(
-                    f"{ne}.\nType annotation of function '{org.__qualname__}' could not be resolved."
-                ))
+        annotations = get_type_hints(self.inner, self.ctx)
 
         checkers = {}
         checked_keys = list(self.signature.parameters)
@@ -79,11 +67,9 @@ class TypedFunctionBuilder(WrappedFunction):
             checkers['return'] = SelfChecker()
         else:
             if not 'return' in annotations:
-                raise self.ctx.wrap(
-                    UntypyAttributeError(f"Missing annotation for return value of function {self.inner.__name__}\n"
-                                         "Partial annotation are not supported. Use 'None' or 'NoReturn' "
-                                         "for specifying no return value."))
-            annotation = annotations['return']
+                annotation = None
+            else:
+                annotation = annotations['return']
             return_checker = self.ctx.find_checker(annotation)
             if return_checker is None:
                 raise self.ctx.wrap(UntypyAttributeError(f"\n\tUnsupported type annotation: {annotation}\n"
@@ -113,6 +99,13 @@ class TypedFunctionBuilder(WrappedFunction):
         setattr(w, '__name__', self.inner.__name__)
         setattr(w, '__signature__', self.signature)
         setattr(w, '__wf', self)
+
+        # Copy useful attributes
+        # This is need for the detection of abstract classes
+        for attr in ['__isabstractmethod__']:
+            if hasattr(self.inner, attr):
+                setattr(w, attr, getattr(self.inner, attr))
+
         return w
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):

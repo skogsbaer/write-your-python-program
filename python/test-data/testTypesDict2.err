@@ -18,6 +18,10 @@ expected: value of type str
 
 context: __iter__(self: Self) -> Iterator[tuple[~K=str, Callable[[], str]]]
                                                                      ^^^
+<<<<<<< HEAD
 declared at: site-lib/untypy/impl/interfaces/iterable.py:7
+=======
+declared at: site-lib/untypy/impl/interface.py:189
+>>>>>>> master
 caused by: test-data/testTypesDict2.py:10
   | foo({'x': lambda: "1", 'y': lambda: 42}) # error because the 2nd functions returns an int

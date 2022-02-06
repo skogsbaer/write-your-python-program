@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "test-data/testHintParentheses2.py", line 5, in <module>
+    def foo(a: 'int', b: 'dict[1, list(int)]') -> int:
+WyppAttributeError: Type annotation of function 'foo' could not be resolved:
+'type' object is not iterable
+
+def foo(a: 'int', b: 'dict[1, list(int)]') -> int:                  
+    return len(l)             ^^^^^^^^^ - Did you mean: 'list[int]'?
+
+declared at: test-data/testHintParentheses2.py:5

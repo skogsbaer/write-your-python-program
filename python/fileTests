@@ -123,6 +123,7 @@ checkWithOutput 0 test-data/printModuleName.py
 checkWithOutput 0 test-data/printModuleNameImport.py
 checkWithOutput 1 test-data/testTypes1.py
 checkWithOutput 1:0 test-data/testTypes2.py
+checkWithOutputAux yes 1 test-data/testABCMeta.py
 checkWithOutputAux yes 1 test-data/testTypesCollections1.py
 checkWithOutputAux yes 1 test-data/testTypesCollections2.py
 # checkWithOutputAux yes 1 test-data/testTypesCollections3.py  See #5
@@ -137,11 +138,16 @@ checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py
 checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py
 checkWithOutputAux yes 1 test-data/testRecordSetTypes.py
 checkWithOutputAux yes 1 test-data/testRecordSetTypeForwardRef.py
+checkWithOutputAux yes 0 test-data/testForwardRef.py
 checkWithOutputAux yes 0 test-data/testForwardRef1.py
 checkWithOutputAux yes 1 test-data/testForwardRef2.py
 checkWithOutputAux yes 0 test-data/testForwardRef3.py
 checkWithOutputAux yes 1 test-data/testForwardRef4.py
 checkWithOutputAux yes 1 test-data/testForwardRef5.py
+checkWithOutputAux yes 0 test-data/testForwardRef6.py
+checkWithOutputAux yes 1 test-data/testHintParentheses1.py
+checkWithOutputAux yes 1 test-data/testHintParentheses2.py
+checkWithOutputAux yes 1 test-data/testHintParentheses3.py
 checkWithOutputAux yes 1 test-data/testTypesReturn.py
 checkWithOutputAux yes 1 test-data/testMissingReturn.py
 checkWithOutputAux yes 1 test-data/testTypesSequence1.py
@@ -157,6 +163,8 @@ checkWithOutputAux yes 1 test-data/testTypesDict1.py
 checkWithOutputAux yes 1 test-data/testTypesDict2.py
 checkWithOutputAux yes 1 test-data/testTypesDict3.py
 checkWithOutputAux yes 1 test-data/testTypesDict4.py
+checkWithOutputAux yes 1 test-data/testIterableImplicitAny.py
+checkWithOutputAux yes 0 test-data/testDoubleWrappingDicts.py
 checkWithOutputAux yes 0 test-data/testClassRecursion.py
 checkWithOutputAux yes 1 test-data/testWrongNumOfArguments.py
 checkWithOutputAux yes 1 test-data/testWrongNumOfArguments2.py
@@ -166,4 +174,5 @@ checkWithOutputAux yes 1 test-data/testWrongKeywordArg2.py
 checkWithOutputAux yes 0 test-data/testComplex.py
 checkWithOutputAux yes 0 test-data/testUnionLiteral.py
 checkWithOutputAux yes 0 test-data/testCheck.py
-checkWithOutputAux yes 1 test-data/testNameErrorBug.py
+checkWithOutputAux yes 0 test-data/testNameErrorBug.py
+checkWithOutputAux yes 0 test-data/testDeepEqBug.py

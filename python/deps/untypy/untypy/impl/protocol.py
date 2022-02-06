@@ -9,6 +9,7 @@ from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, 
     WrappedFunctionContextProvider
 from untypy.util import WrappedFunction, ArgumentExecutionContext, ReturnExecutionContext
 from untypy.util.condition import FunctionCondition
+from untypy.util.typehints import get_type_hints
 
 
 class ProtocolFactory(TypeCheckerFactory):
@@ -70,7 +71,7 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
                         checkers[key] = AnyChecker()
                 checkers['return'] = AnyChecker()
             else:
-                annotations = typing.get_type_hints(member, include_extras=True)
+                annotations = get_type_hints(member, ctx)
                 for key in signature.parameters:
                     if key == 'self':
                         checkers[key] = SelfChecker()
@@ -93,10 +94,9 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
                         checkers[key] = checker
 
                 if signature.return_annotation is inspect.Parameter.empty:
-                    raise ctx.wrap(UntypyAttributeError(
-                        f"Missing annotation for return value of function {member.__name__} "
-                        f"in protocol {proto.__name__}. Use 'None' if there is no return value.\n"))
-                return_annotation = annotations['return']
+                    return_annotation = None
+                else:
+                    return_annotation = annotations['return']
                 if return_annotation is proto:  # Self as Return Type would led to endless recursion
                     return_checker = SimpleInstanceOfChecker(proto, None)
                 else:

@@ -18,6 +18,10 @@ expected: value of type str
 
 context: __iter__(self: Self) -> Iterator[tuple[~K=str, Callable[[], str]]]
                                                                      ^^^
+<<<<<<< HEAD
 declared at: site-lib/untypy/impl/interfaces/iterable.py:7
+=======
+declared at: site-lib/untypy/impl/interface.py:189
+>>>>>>> master
 caused by: test-data/testTypesDict4.py:10
   | func = lambda: 42

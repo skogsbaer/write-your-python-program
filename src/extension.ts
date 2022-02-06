@@ -132,6 +132,22 @@ function fileToCommandArgument(s: string): string {
     return toCommandArgument(s).replace(/\\/g, '/');
 }
 
+function commandListToArgument(arr: string[]): string {
+    if (arr.length === 1) {
+        return fileToCommandArgument(arr[0]);
+    } else {
+        var result = "";
+        for (let i = 0; i < arr.length; i++) {
+            if (i === 0) {
+                result = fileToCommandArgument(arr[i]);
+            } else {
+                result = result + " " + toCommandArgument(arr[i]);
+            }
+        }
+        return result;
+    }
+}
+
 function showHideButtons(textEditor: vscode.TextEditor | undefined) {
     if (!textEditor) {
         hideButtons();
@@ -159,11 +175,11 @@ function installCmd(
 }
 
 type PythonCmdResult = {
-    kind: "success", cmd: string
+    kind: "success", cmd: string[]
 } | {
     kind: "error", msg: string
 } | {
-    kind: "warning", msg: string, cmd: string
+    kind: "warning", msg: string, cmd: string[]
 };
 
 function getPythonCmd(ext: PythonExtension): PythonCmdResult {
@@ -181,7 +197,7 @@ function getPythonCmd(ext: PythonExtension): PythonCmdResult {
             if (fs.existsSync(configCmd)) {
                 return {
                     kind: "success",
-                    cmd: configCmd
+                    cmd: [configCmd]
                 };
             } else {
                 return {
@@ -190,7 +206,7 @@ function getPythonCmd(ext: PythonExtension): PythonCmdResult {
                 };
             }
         } else {
-            return { kind: 'success', cmd: configCmd };
+            return { kind: 'success', cmd: [configCmd] };
         }
     } else {
         const cmd = ext.getPythonCommand();
@@ -209,14 +225,14 @@ function getPythonCmd(ext: PythonExtension): PythonCmdResult {
             console.log("Using python command from pythonPath setting (deprecated): " + pyExtPyPath);
             return {
                 kind: 'success',
-                cmd: pyExtPyPath
+                cmd: [pyExtPyPath]
             };
         } else {
             const pythonCmd = isWindows ? ('python' + exeExt) : 'python3';
             console.log("Using the default python command: " + pythonCmd);
             return {
                 kind: 'success',
-                cmd: pythonCmd
+                cmd: [pythonCmd]
             };
         }
     }
@@ -337,7 +353,7 @@ class PythonExtension {
         this.pyApi = pyExt?.exports;
     }
 
-    getPythonCommand(): string | undefined {
+    getPythonCommand(): string[] | undefined {
         return this.pyApi?.settings?.getExecutionDetails()?.execCommand;
     }
 }
@@ -381,7 +397,7 @@ export function activate(context: vscode.ExtensionContext) {
             const verboseOpt = beVerbose(context) ? " --verbose --no-clear" : "";
             const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
-                const pythonCmd = fileToCommandArgument(pyCmd.cmd);
+                const pythonCmd = commandListToArgument(pyCmd.cmd);
                 const cmdTerm = await startTerminal(
                     terminals[cmdId]?.terminal,
                     "WYPP - RUN",
