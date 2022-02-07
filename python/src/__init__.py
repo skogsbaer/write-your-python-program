@@ -10,6 +10,7 @@ Literal = w.Literal
 Mapping = w.Mapping
 Optional = w.Optional
 Sequence = w.Sequence
+Protocol = w.Protocol
 Union = w.Union
 check = w.check
 dataclass = w.dataclass
@@ -24,6 +25,8 @@ intPositive = w.intPositive
 math = w.math
 nat = w.nat
 record = w.record
+LockLike = w.LockLike
+LockFactory = w.LockFactory
 T = w.T
 U = w.U
 unchecked = w.unchecked
@@ -39,6 +42,7 @@ __all__ = [
     'Mapping',
     'Optional',
     'Sequence',
+    'Protocol',
     'Union',
     'check',
     'dataclass',
@@ -53,6 +57,8 @@ __all__ = [
     'math',
     'nat',
     'record',
+    'LockLike',
+    'LockFactory',
     'T',
     'U',
     'unchecked',
