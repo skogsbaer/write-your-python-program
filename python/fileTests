@@ -124,6 +124,7 @@ checkWithOutput 0 test-data/printModuleNameImport.py
 checkWithOutput 1 test-data/testTypes1.py
 checkWithOutput 1:0 test-data/testTypes2.py
 checkWithOutputAux yes 1 test-data/testABCMeta.py
+checkWithOutputAux yes 0 test-data/testClassHierarchy.py
 checkWithOutputAux yes 1 test-data/testTypesCollections1.py
 checkWithOutputAux yes 1 test-data/testTypesCollections2.py
 # checkWithOutputAux yes 1 test-data/testTypesCollections3.py  See #5
@@ -177,3 +178,4 @@ checkWithOutputAux yes 0 test-data/testCheck.py
 checkWithOutputAux yes 0 test-data/testNameErrorBug.py
 checkWithOutputAux yes 0 test-data/testOriginalTypeNames.py 
 checkWithOutputAux yes 0 test-data/testDeepEqBug.py
+checkWithOutputAux yes 1 test-data/testLockFactory.py

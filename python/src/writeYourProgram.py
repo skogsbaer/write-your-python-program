@@ -19,6 +19,7 @@ Iterator = typing.Iterator
 Sequence = typing.Sequence
 Generator = typing.Generator
 ForwardRef = typing.ForwardRef
+Protocol = typing.Protocol
 
 Mapping = typing.Mapping
 
@@ -38,6 +39,18 @@ floatPositive = typing.Annotated[float, lambda x: x > 0, 'floatPositive']
 floatNonNegative = typing.Annotated[float, lambda x: x >= 0, 'floatNonNegative']
 floatNegative = typing.Annotated[float, lambda x: x < 0, 'floatNegative']
 floatNonPositive = typing.Annotated[float, lambda x: x <= 0, 'floatNonPositive']
+
+class LockLike(Protocol):
+    def acquire(self, blocking: bool = True, timeout:int = -1) -> Any:
+       pass
+
+    def release(self) -> Any:
+        pass
+
+    def locked(self) -> Any:
+        pass
+
+LockFactory = typing.Annotated[Callable[[], LockLike], 'LockFactory']
 
 T = typing.TypeVar('T')
 U = typing.TypeVar('U')
