@@ -239,18 +239,18 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
 
     name = f"WyppTypeCheck({original.__name__})"
-  
+
     if type(original) == type and original.__flags__ & 0x0400 and original not in [dict, list, set, tuple]:
         # This class does not have any metaclass that may have unexpected side effects.
         # Also the Py_TPFLAGS_BASETYPE=0x0400 must be set to inheritable, as some classes like C-Based classes
         # like`dict_items` can not be inherited from.
         # Also some other built-in types have bugs when inherited from.
-        orig_tuple = (original,)  
+        orig_tuple = (original,)
     else:
         # Fall back to no inheritance, this should be an edge case.
-        orig_tuple = ()       
-        
-    t = type(name, origTuple, list_of_attr)
+        orig_tuple = ()
+
+    t = type(name, orig_tuple, list_of_attr)
 
     if hasattr(original, '__module__'):
         t.__module__ = original.__module__
