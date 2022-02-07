@@ -1,7 +1,7 @@
 from typing import Optional, Any, Iterator
 
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame
-from untypy.interfaces import TypeCheckerFactory, TypeChecker, ExecutionContext, CreationContext, WrappedFunction
+from untypy.interfaces import TypeCheckerFactory, TypeChecker, ExecutionContext, CreationContext
 
 
 class AnnotatedChecker:
@@ -124,6 +124,8 @@ class AnnotatedCheckerExecutionContext(ExecutionContext):
         offset = self.ch.describe().find("[") + 1
 
         (t, i) = err.next_type_and_indicator()
+        if self.ch.name is not None:
+            i = "^" * len(self.ch.describe())
 
         err = err.with_frame(Frame(
             type_declared=self.ch.describe(),
