@@ -244,7 +244,7 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
 
     name = f"WyppTypeCheck({original.__name__})"
 
-    if type(original) == type and original.__flags__ & 0x0400 and original not in [dict, list, set, tuple]:
+    if type(original) == type and original.__flags__ & 0x0400 and original not in [dict, list, set, tuple, str]:
         # This class does not have any metaclass that may have unexpected side effects.
         # Also the Py_TPFLAGS_BASETYPE=0x0400 must be set to inheritable, as some classes like C-Based classes
         # like`dict_items` can not be inherited from.
