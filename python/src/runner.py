@@ -48,7 +48,7 @@ UNTYPY_MODULE_NAME = 'untypy'
 
 def verbose(s):
     if VERBOSE or DEBUG:
-        printStderr('[V] ' + s)
+        printStderr('[V] ' + str(s))
 
 def printStderr(s=''):
     sys.stderr.write(s + '\n')
