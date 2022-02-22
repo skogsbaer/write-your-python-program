@@ -80,6 +80,9 @@ def parseCmdlineArgs(argList):
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
+    parser.add_argument('--debug', dest='debug', action='store_const',
+                        const=True, default=False,
+                        help='Enable debugging')
     parser.add_argument('--quiet', dest='quiet', action='store_const',
                         const=True, default=False, help='Be extra quiet')
     parser.add_argument('--no-clear', dest='noClear', action='store_const',
@@ -470,6 +473,9 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
     global VERBOSE
     if args.verbose:
         VERBOSE = True
+    global DEBUG
+    if args.debug:
+        DEBUG = True
 
     installLib(args.installMode)
     if site.USER_SITE not in sys.path:
