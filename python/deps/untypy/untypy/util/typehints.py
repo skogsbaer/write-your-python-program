@@ -34,7 +34,15 @@ def get_type_hints(item, ctx: CreationContext, resolver=_default_resolver):
 
 def analyse(item, ctx: CreationContext, e) -> UntypyAttributeError:
     org = WrappedFunction.find_original(item)
-    source = inspect.getsource(item)
+    what = 'function'
+    if inspect.isclass(org):
+        what = 'class'
+    try:
+        source = inspect.getsource(item)
+    except OSError:
+        return ctx.wrap(
+            UntypyAttributeError(f"Type annotation of {what} '{qualname(org)}' could not be resolved.")
+        )
     fn_ast = ast.parse(source)
 
     for node in map_str_to_ast(fn_ast.body[0].args, fn_ast.body[0].returns):
@@ -47,13 +55,13 @@ def analyse(item, ctx: CreationContext, e) -> UntypyAttributeError:
                 display.write((n.col_offset - 1, n.lineno),
                               " " + "^" * (n.end_col_offset - n.col_offset) + " - " + message)
                 return ctx.wrap(
-                    UntypyAttributeError(f"Type annotation of function '{qualname(org)}' could not be resolved:\n"
+                    UntypyAttributeError(f"Type annotation of {what} '{qualname(org)}' could not be resolved:\n"
                                          f"{e}\n"
                                          f"\n{display}")
                 )
 
     return ctx.wrap(
-        UntypyAttributeError(f"Type annotation of function '{qualname(org)}' could not be resolved:\n"
+        UntypyAttributeError(f"Type annotation of {what} '{qualname(org)}' could not be resolved:\n"
                              f"{e}\n"))
 
 
