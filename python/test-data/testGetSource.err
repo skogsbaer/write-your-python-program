@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "test-data/testGetSource.py", line 11, in <module>
+    Art = Literal('klein','mittag')  # <= problem is here
+TypeError: Cannot instantiate Literal. Did you mean Literal[klein, mittag]?
