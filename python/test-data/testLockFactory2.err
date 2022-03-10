@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "test-data/testLockFactory2.py", line 14, in <module>
+    foo("not a lock")
+WyppTypeError: str does not implement protocol Lock
+given:    'not a lock'
+expected: value of type Lock
+
+context: foo(l: Lock) -> None
+                ^^^^
+declared at: test-data/testLockFactory2.py:6
+caused by: test-data/testLockFactory2.py:14
+  | foo("not a lock")
