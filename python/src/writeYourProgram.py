@@ -14,6 +14,7 @@ def _debug(s):
 Any = typing.Any
 Optional = typing.Optional
 Union = typing.Union
+Literal = typing.Literal
 Iterable = typing.Iterable
 Iterator = typing.Iterator
 Sequence = typing.Sequence
@@ -56,60 +57,34 @@ T = typing.TypeVar('T')
 U = typing.TypeVar('U')
 V = typing.TypeVar('V')
 
+def _literalInstanceOf(self, value):
+    for p in self.__args__:
+        # typing.Literal checks for type(value) == type(arg),
+        # however this does not work well with untypy.
+        if isinstance(value, type(p)) and p == value:
+            return True
+    return False
 
-class Literal(types.GenericAlias):
-    """
-    Behaves like typing.Literal, but allows isinstance checks.
-    """
-    # Note: Cannot subclass Literal
-    # It is also not possible to overwrite '__instancecheck__'
-    # We musst inherit from GenericAlias, or else this can not be used
-    # as part of other types.
+def _invalidCall(self, *args, **kwds):
+    argStr = ', '.join([untypy.util.typehints.qualname(x) for x in args])
+    if hasattr(self, '__name__'):
+        name = self.__name__
+    else:
+        name = str(self)
+        typingPrefix = 'typing.'
+        if name.startswith(typingPrefix):
+            name = name[len(typingPrefix):]
+    raise TypeError(f"Cannot instantiate {name}. Did you mean {name}[{argStr}]?")
 
-    def __class_getitem__(cls, items):
-        # Multiple __class_getitem__ are given as a tuple,
-        # but if there is only a single argument, it is not wrapped.
-        if not isinstance(items, tuple):
-            items = (items,)
-        # flattening
-        # cannot reuse typing.Literal for flattening,
-        # as it does not recognize this type
-        args_set = []
-        for i in items:
-            if hasattr(i, '__origin__') and hasattr(i, '__args__') and i.__origin__ in [typing.Literal]:
-                for arg in i.__args__:
-                    if arg not in args_set:
-                        args_set.append(arg)
-            elif i not in args_set:
-                args_set.append(i)
+# Dirty hack ahead: we patch some methods of internal class of the typing module.
 
-        return Literal(cls, tuple(args_set))
+# This patch is needed to be able to use a literal L to check whether a value x
+# is an instance of this literal: instanceof(x, L)
+setattr(typing._LiteralGenericAlias, '__instancecheck__', _literalInstanceOf)
 
-    def __instancecheck__(self, value):
-        for arg in self.__args__:
-            # typing.Literal checks for type(value) == type(arg),
-            # however this does not work well with untypy.
-            if isinstance(value, type(arg)) and arg == value:
-                return True
-        return False
-
-    def __getattribute__(self, item):
-        # types.GenericAlias does some undocumented subclassing magic,
-        # we cannot set '__origin__', so we use __getattribute__
-        # __origin__ should be typing.Literal, so it is recognize by untypy
-        if item == '__origin__':
-            return typing.Literal
-        else:
-            return types.GenericAlias.__getattribute__(self, item)
-
-    def __eq__(self, other):
-        if hasattr(other, '__origin__') and hasattr(other, '__args__') and other.__origin__ in [typing.Literal]:
-            return set(self.__args__) == set(other.__args__)
-        else:
-            return False
-
-    def __hash__(self):
-        return hash(frozenset(self.__args__))
+# This patch is needed to provide better error messages if a student passes type arguments
+# with paranthesis instead of square brackets
+setattr(typing._SpecialForm, '__call__', _invalidCall)
 
 def _collectDataClassAttributes(cls):
     result = dict()

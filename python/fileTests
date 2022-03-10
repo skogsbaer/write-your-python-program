@@ -179,4 +179,5 @@ checkWithOutputAux yes 0 test-data/testNameErrorBug.py
 checkWithOutputAux yes 0 test-data/testOriginalTypeNames.py
 checkWithOutputAux yes 0 test-data/testDeepEqBug.py
 checkWithOutputAux yes 1 test-data/testLockFactory.py
-checkWithOutputAux yes 0 test-data/testDict.py
+checkWithOutputAux yes 1 test-data/testGetSource.py
+# checkWithOutputAux yes 0 test-data/testDict.py #87

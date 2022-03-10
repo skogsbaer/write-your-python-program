@@ -80,6 +80,9 @@ def parseCmdlineArgs(argList):
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
+    parser.add_argument('--debug', dest='debug', action='store_const',
+                        const=True, default=False,
+                        help='Enable debugging')
     parser.add_argument('--quiet', dest='quiet', action='store_const',
                         const=True, default=False, help='Be extra quiet')
     parser.add_argument('--no-clear', dest='noClear', action='store_const',
@@ -120,14 +123,17 @@ def readFile(path):
             return f.read()
 
 def readGitVersion():
-    if os.path.isdir(os.path.join(LIB_DIR, '..', '..', '.git')):
+    thisDir = os.path.basename(LIB_DIR)
+    baseDir = os.path.join(LIB_DIR, '..', '..')
+    if thisDir == 'src' and os.path.isdir(os.path.join(baseDir, '.git')):
         try:
-            h = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
+            h = subprocess.check_output(['git', '-C', baseDir, 'rev-parse', '--short', 'HEAD'],
                 encoding='UTF-8').strip()
-            changes = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'],
-                encoding='UTF-8').strip()
+            changes = subprocess.check_output(
+                    ['git', '-C', baseDir, 'status', '--porcelain', '--untracked-files=no'],
+                    encoding='UTF-8').strip()
             if changes:
-                return f'git-{h} (dirty)'
+                return f'git-{h}-dirty'
             else:
                 return f'git-{h}'
         except subprocess.CalledProcessError:
@@ -470,6 +476,9 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
     global VERBOSE
     if args.verbose:
         VERBOSE = True
+    global DEBUG
+    if args.debug:
+        DEBUG = True
 
     installLib(args.installMode)
     if site.USER_SITE not in sys.path:
@@ -492,7 +501,7 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
 
     if fileToRun is None:
         return
-    if not args.checkRunnable and not args.quiet:
+    if not args.checkRunnable and (not args.quiet or args.verbose):
         printWelcomeString(fileToRun, version, useUntypy=args.checkTypes)
 
     libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable)
