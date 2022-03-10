@@ -3,7 +3,7 @@ Traceback (most recent call last):
     feedAnimal(dog)
   File "test-data/testTypesSubclassing1.py", line 26, in feedAnimal
     a.feed(AnimalFood('some cat food'))
-WyppTypeError: Dog does not implement parent Animal correctly.
+WyppTypeError: Dog does not implement parent Animal
 given:    <Dog>
 expected: value of type Animal
 

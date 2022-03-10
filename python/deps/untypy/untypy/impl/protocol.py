@@ -2,7 +2,7 @@ import inspect
 import sys
 import typing
 from typing import Protocol, Any, Optional, Callable, Union, TypeVar, Dict, Tuple
-
+import untypy.util.display as display
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, ResponsibilityType
 from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, ExecutionContext, \
@@ -24,7 +24,7 @@ class ProtocolFactory(TypeCheckerFactory):
             return None
 
 
-def _find_bound_typevars(clas: type) -> (type, Dict[TypeVar, Any]):
+def _find_bound_typevars(clas: type) -> Tuple[type, Dict[TypeVar, Any]]:
     if not hasattr(clas, '__args__') or not hasattr(clas, '__origin__'):
         return (clas, dict())
     if not hasattr(clas.__origin__, '__parameters__'):
@@ -116,7 +116,8 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
 
 
 class ProtocolChecker(TypeChecker):
-    def __init__(self, annotation: type, ctx: CreationContext, *, altname : Optional[str] = None):
+    def __init__(self, annotation: type, ctx: CreationContext, *, altname : Optional[str] = None,
+            omit_tyargs=False):
         (proto, typevars) = _find_bound_typevars(annotation)
         self.ctx = ctx.with_typevars(typevars)
         self.proto = proto
@@ -124,6 +125,7 @@ class ProtocolChecker(TypeChecker):
         self.typevars = typevars
         self.wrapper_types = dict()
         self.altname = altname
+        self.omit_tyargs = omit_tyargs
 
     @property
     def members(self):
@@ -162,14 +164,16 @@ class ProtocolChecker(TypeChecker):
             return self.altname
 
         desc = set([])
-        for name in self.members:
-            (sig, binds, cond) = self.members[name]
-            for argname in sig.parameters:
-                if isinstance(sig.parameters[argname].annotation, TypeVar):
-                    desc.add(binds[argname].describe())
-            if isinstance(sig.return_annotation, TypeVar):
-                desc.add(binds['return'].describe())
+        if not self.omit_tyargs:
+            for name in self.members:
+                (sig, binds, cond) = self.members[name]
+                for argname in sig.parameters:
+                    if isinstance(sig.parameters[argname].annotation, TypeVar):
+                        desc.add(binds[argname].describe())
+                if isinstance(sig.return_annotation, TypeVar):
+                    desc.add(binds['return'].describe())
         if len(desc) > 0:
+            # FIXME: what about the ordering of tyvars?
             return f"{self.proto.__name__}[" + (', '.join(desc)) + "]"
         else:
             return f"{self.proto.__name__}"
@@ -180,6 +184,28 @@ class ProtocolChecker(TypeChecker):
     def protoname(self):
         return self.describe()
 
+def isInternalProtocol(p: Any):
+    if isinstance(p, ProtocolChecker):
+        p = p.proto
+    if hasattr(p, '__module__'):
+        return 'untypy.' in p.__module__
+    else:
+        return False
+
+def protoMismatchErrorMessage(what: str, proto: Any):
+    if isinstance(proto, ProtocolChecker):
+        kind = proto.protocol_type()
+        name = proto.protoname()
+    else:
+        kind = 'protocol'
+        name = proto.__name__
+    isUserDefined = True
+    if isInternalProtocol(proto):
+        isUserDefined = False
+    if isUserDefined:
+        return f"{what} does not implement {kind} {name}"
+    else:
+        return f"{what} is not {display.withIndefiniteArticle(name)}"
 
 def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
                     members: dict[str, Tuple[inspect.Signature, dict[str, TypeChecker], FunctionCondition]],
@@ -188,12 +214,21 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     original = type(originalValue)
     for fnname in members:
         if not hasattr(original, fnname):
-            raise ctx.wrap(UntypyTypeError(
+            err = ctx.wrap(UntypyTypeError(
                 expected=protocolchecker.describe(),
                 given=originalValue
             )).with_header(
-                f"{original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}."
-            ).with_note(f"It is missing the function '{fnname}'.")
+                protoMismatchErrorMessage(original.__name__, protocolchecker.proto)
+            )
+            missing = []
+            for fnname in members:
+                if not hasattr(original, fnname):
+                    missing.append(fnname)
+            if len(missing) == 2:
+                err = err.with_note(f"It is missing the functions '{missing[0]}' and '{missing[1]}'")
+            elif len(missing) == 1:
+                err = err.with_note(f"It is missing the function '{missing[0]}'")
+            raise err
 
         original_fn = getattr(original, fnname)
         try:
@@ -212,14 +247,20 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
                     expected=protocolchecker.describe(),
                     given=originalValue
                 )).with_header(
-                    f"{original.__name__} does not meet the requirements of protocol {protocolchecker.proto.__name__}."
-                 ).with_note(f"The signature of '{fnname}' does not match. Missing required parameter {param}.")
+                    protoMismatchErrorMessage(original.__name__, protocolchecker.proto)
+                ).with_note(f"The signature of '{fnname}' does not match. Missing required parameter {param}.")
 
         list_of_attr[fnname] = ProtocolWrappedFunction(original_fn, sig, argdict, protocolchecker, fc).build()
 
     def constructor(me, inner, ctx):
         me._ProtocolWrappedFunction__inner = inner
         me._ProtocolWrappedFunction__ctx = ctx
+
+    def __repr__(me):
+        return me._ProtocolWrappedFunction__inner.__repr__()
+
+    def __str__(me):
+        return me._ProtocolWrappedFunction__inner.__str__()
 
     def __getattr__(me, name):
         return getattr(me._ProtocolWrappedFunction__inner, name)
@@ -237,10 +278,12 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__init__'] = constructor
     list_of_attr['__getattr__'] = __getattr__  # allow access of attributes
     list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
+    list_of_attr['__repr__'] = __repr__
+    list_of_attr['__str__'] = __str__
 
     name = f"WyppTypeCheck({original.__name__})"
 
-    if type(original) == type and original.__flags__ & 0x0400 and original not in [dict, list, set, tuple]:
+    if type(original) == type and original.__flags__ & 0x0400 and original not in [dict, list, set, tuple, str]:
         # This class does not have any metaclass that may have unexpected side effects.
         # Also the Py_TPFLAGS_BASETYPE=0x0400 must be set to inheritable, as some classes like C-Based classes
         # like`dict_items` can not be inherited from.
@@ -364,7 +407,6 @@ class ProtocolReturnExecutionContext(ExecutionContext):
 
         if err.responsibility_type is self.invert:
             return err
-
         responsable = WrappedFunction.find_location(self.wf)
         (decl, ind) = err.next_type_and_indicator()
         err = err.with_inverted_responsibility_type()
@@ -386,10 +428,15 @@ class ProtocolReturnExecutionContext(ExecutionContext):
             self.me,
             f"{self.wf.protocol.protoname()}"
         ).with_header(
-            f"{type(self.me).__name__} does not implement {self.wf.protocol.protocol_type()} {self.wf.protocol.protoname()} correctly.")
+            protoMismatchErrorMessage(type(self.me).__name__, self.wf.protocol)
+        )
 
         previous_chain = self.ctx.wrap(previous_chain)
-        return err.with_previous_chain(previous_chain)
+        if isInternalProtocol(self.wf.protocol):
+            return previous_chain
+        else:
+            return err.with_previous_chain(previous_chain)
+
 
 
 class ProtocolArgumentExecutionContext(ExecutionContext):
@@ -422,12 +469,13 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
             self.me,
             f"{self.wf.protocol.protoname()}"
         ).with_header(
-            f"{type(self.me).__name__} does not implement {self.wf.protocol.protocol_type()} {self.wf.protocol.protoname()} correctly.")
-
+            protoMismatchErrorMessage(type(self.me).__name__, self.wf.protocol)
+        )
         previous_chain = self.ctx.wrap(previous_chain)
-        # err = err.with_inverted_responsibility_type()
-
-        return err.with_previous_chain(previous_chain)
+        if isInternalProtocol(self.wf.protocol):
+            return previous_chain
+        else:
+            return err.with_previous_chain(previous_chain)
 
 
 class SimpleInstanceOfChecker(TypeChecker):

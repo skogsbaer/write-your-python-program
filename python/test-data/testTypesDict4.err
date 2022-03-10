@@ -1,23 +1,16 @@
 Traceback (most recent call last):
-  File "test-data/testTypesDict4.py", line 11, in <module>
-    foo({'y': func})  # error
+  File "test-data/testTypesDict4.py", line 14, in <module>
+    bar({'y': func})  # error
+  File "test-data/testTypesDict4.py", line 11, in bar
+    return foo(d)
   File "test-data/testTypesDict4.py", line 7, in foo
     res.append(f())
-WyppTypeError: dict_items does not implement protocol Iterable[tuple[~K=str, ~V=Callable[[], str]]] correctly.
+WyppTypeError: dict_items is not an Iterable[tuple[str, Callable[[], str]]]
 given:    dict_items([('y', <function <lambda> at 0x00>), ('x', <untypy.impl.callable.TypedCallable object at 0x00>)])
-expected: value of type Iterable[tuple[~K=str, ~V=Callable[[], str]]]
+expected: value of type Iterable[tuple[str, Callable[[], str]]]
 
 context: foo(d: dict[str, Callable[[], str]]) -> list[str]
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 declared at: test-data/testTypesDict4.py:3
 caused by: test-data/testTypesDict4.py:11
-  | foo({'y': func})  # error
-
-given:    42
-expected: value of type str
-
-context: __iter__(self: Self) -> Iterator[tuple[~K=str, Callable[[], str]]]
-                                                                     ^^^
-declared at: site-lib/untypy/impl/interface.py:189
-caused by: test-data/testTypesDict4.py:10
-  | func = lambda: 42
+  |     return foo(d)

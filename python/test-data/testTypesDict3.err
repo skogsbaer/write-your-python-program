@@ -7,8 +7,8 @@ WyppTypeError: got value of wrong type
 given:    42
 expected: value of type str
 
-context: __iter__(self: Self) -> Iterator[tuple[~K=str, Callable[[], str]]]
-                                                                     ^^^
+context: __iter__(self: Self) -> Iterator[tuple[str, Callable[[], str]]]
+                                                                  ^^^
 declared at: test-data/testTypesDict3.py:4
 caused by: test-data/testTypesDict3.py:4
   |     d['x'] = lambda: 42 # error

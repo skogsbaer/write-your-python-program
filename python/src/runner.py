@@ -13,6 +13,7 @@ import code
 import ast
 from modulefinder import ModuleFinder
 from pathlib import Path
+import subprocess
 
 __wypp_runYourProgram = 1
 
@@ -47,7 +48,7 @@ UNTYPY_MODULE_NAME = 'untypy'
 
 def verbose(s):
     if VERBOSE or DEBUG:
-        printStderr('[V] ' + s)
+        printStderr('[V] ' + str(s))
 
 def printStderr(s=''):
     sys.stderr.write(s + '\n')
@@ -118,8 +119,26 @@ def readFile(path):
         with open(path) as f:
             return f.read()
 
+def readGitVersion():
+    if os.path.isdir(os.path.join(LIB_DIR, '..', '..', '.git')):
+        try:
+            h = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
+                encoding='UTF-8').strip()
+            changes = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'],
+                encoding='UTF-8').strip()
+            if changes:
+                return f'git-{h} (dirty)'
+            else:
+                return f'git-{h}'
+        except subprocess.CalledProcessError:
+            return 'git-?'
+    else:
+        return None
+
 def readVersion():
-    version = None
+    version = readGitVersion()
+    if version is not None:
+        return version
     try:
         content = readFile(os.path.join(LIB_DIR, '..', '..', 'package.json'))
         d = json.loads(content)
