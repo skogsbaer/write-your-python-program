@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "test-data/testTypesHigherOrderFuns3.py", line 41, in <module>
+    check(homePoints(game1), 0)
+  File "test-data/testTypesHigherOrderFuns3.py", line 36, in <lambda>
+    return lambda game: gamePoints(game, cmp)
+  File "test-data/testTypesHigherOrderFuns3.py", line 30, in gamePoints
+    elif cmp(h, g):
+WyppTypeError: got value of wrong type
+given:    'foo'
+expected: value of type bool
+
+context: gamePoints(game: GameResult, cmp: Callable[[int, int], bool]) -> int
+                                                                ^^^^
+declared at: test-data/testTypesHigherOrderFuns3.py:38
+declared at: test-data/testTypesHigherOrderFuns3.py:25
+caused by: test-data/testTypesHigherOrderFuns3.py:38
+  | homePoints: Callable[[GameResult], int] = mkGamePoints(lambda g, h: "foo")
