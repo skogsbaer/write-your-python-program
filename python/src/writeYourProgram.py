@@ -41,7 +41,7 @@ floatNonNegative = typing.Annotated[float, lambda x: x >= 0, 'floatNonNegative']
 floatNegative = typing.Annotated[float, lambda x: x < 0, 'floatNegative']
 floatNonPositive = typing.Annotated[float, lambda x: x <= 0, 'floatNonPositive']
 
-class LockLike(Protocol):
+class Lock(Protocol):
     def acquire(self, blocking: bool = True, timeout:int = -1) -> Any:
        pass
 
@@ -51,7 +51,7 @@ class LockLike(Protocol):
     def locked(self) -> Any:
         pass
 
-LockFactory = typing.Annotated[Callable[[], LockLike], 'LockFactory']
+LockFactory = typing.Annotated[Callable[[], Lock], 'LockFactory']
 
 T = typing.TypeVar('T')
 U = typing.TypeVar('U')

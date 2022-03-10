@@ -1,9 +1,9 @@
 from wypp import *
-
+import wypp
 import threading
 # See: https://github.com/skogsbaer/write-your-python-program/issues/77
 
-def foo(lock: LockFactory) -> None:
+def foo(lock: wypp.LockFactory) -> None:
     l = lock()
     l.acquire()
     # ...
