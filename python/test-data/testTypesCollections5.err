@@ -8,7 +8,7 @@ given:    42
 expected: value of type str
 
 context: foo(l: list[Callable[[], str]]) -> list[str]
-                                  ^^^
+                ^^^^^^^^^^^^^^^^^^^^^^^
 declared at: test-data/testTypesCollections5.py:3
 caused by: test-data/testTypesCollections5.py:10
   | func = lambda: 42
