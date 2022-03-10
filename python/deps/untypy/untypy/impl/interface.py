@@ -38,16 +38,17 @@ class InterfaceFactory(TypeCheckerFactory):
             if len(bindings) == 0:
                 raise AssertionError(f"This is a BUG. {annotation} has no generic params.")
 
+            anys = (Any, ) * len(bindings)
             # handle Python inconsistency
             if hasattr(annotation, '__class_getitem__'):
                 return self.create_from(
-                    annotation.__class_getitem__(*([Any] * len(bindings))),
+                    annotation.__class_getitem__(anys),
                     ctx,
                     omit_tyargs=True
                 )
             elif hasattr(annotation, '__getitem__'):
                 return self.create_from(
-                    annotation.__getitem__(*([Any] * len(bindings))),
+                    annotation.__getitem__(anys),
                     ctx,
                     omit_tyargs=True
                 )
