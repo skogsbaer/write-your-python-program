@@ -87,7 +87,7 @@ class InterfaceFactory(TypeCheckerFactory):
             (protocol,) = InterfaceMapping[annotation]
 
             # Edge-Case `TypingSequence has no __name__, like every other class`
-            if annotation == TypingSequence:
+            if annotation == typing.Sequence:
                 name = 'Sequence'
             else:
                 name = annotation.__name__

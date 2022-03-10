@@ -164,7 +164,7 @@ class ProtocolChecker(TypeChecker):
             return self.altname
 
         desc = set([])
-        if self.omit_tyargs:
+        if not self.omit_tyargs:
             for name in self.members:
                 (sig, binds, cond) = self.members[name]
                 for argname in sig.parameters:
@@ -173,6 +173,7 @@ class ProtocolChecker(TypeChecker):
                 if isinstance(sig.return_annotation, TypeVar):
                     desc.add(binds['return'].describe())
         if len(desc) > 0:
+            # FIXME: what about the ordering of tyvars?
             return f"{self.proto.__name__}[" + (', '.join(desc)) + "]"
         else:
             return f"{self.proto.__name__}"

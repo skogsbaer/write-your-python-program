@@ -12,10 +12,10 @@ caused by: test-data/testTypesCollections1.py:7
   | appendSomething(l)
 
 given:    'foo'
-expected: value of type ~I=int
+expected: value of type int
 
-context: append(self: Self, object: ~I=int) -> None
-                                    ^^^^^^
+context: append(self: Self, object: int) -> None
+                                    ^^^
 declared at: test-data/testTypesCollections1.py:3
 caused by: test-data/testTypesCollections1.py:4
   |     l.append("foo")

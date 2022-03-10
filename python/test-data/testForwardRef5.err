@@ -3,7 +3,7 @@ Traceback (most recent call last):
     for car in garage.cars:
 WyppTypeError: got value of wrong type
 given:    'Not A Car'
-expected: value of type ~I=Car
+expected: value of type Car
 
 context: record constructor Garage(cars: list[Car]) -> Self
                                          ^^^^^^^^^

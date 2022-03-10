@@ -12,10 +12,10 @@ caused by: test-data/testTypesDict1.py:7
   | appendSomething(d)
 
 given:    'foo'
-expected: value of type ~V=int
+expected: value of type int
 
-context: __setitem__(self: Self, key: ~K=str, value: ~V=int) -> None
-                                                     ^^^^^^
+context: __setitem__(self: Self, key: str, value: int) -> None
+                                                  ^^^
 declared at: test-data/testTypesDict1.py:3
 caused by: test-data/testTypesDict1.py:4
   |     d['x'] = "foo"
