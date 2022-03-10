@@ -46,7 +46,7 @@ class BoundTypeVar(TypeChecker):
         self.typevar = typevar
 
     def describe(self) -> str:
-        return f"{self.typevar}={self.inner.describe()}"
+        return self.inner.describe()
 
     def may_be_wrapped(self) -> bool:
         return self.inner.may_be_wrapped()

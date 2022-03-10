@@ -3,7 +3,7 @@ Traceback (most recent call last):
     foo(Dog())
   File "test-data/testInferReturnType4.py", line 15, in foo
     animal.makeSound(1.0)
-WyppTypeError: Dog does not implement protocol Animal correctly.
+WyppTypeError: Dog does not implement protocol Animal
 given:    <__wypp__.Dog object at 0x10b81e710>
 expected: value of type Animal
 

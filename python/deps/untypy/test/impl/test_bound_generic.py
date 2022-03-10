@@ -58,8 +58,8 @@ class TestBoundGeneric(unittest.TestCase):
         (t, i) = cm.exception.next_type_and_indicator()
         i = i.rstrip()
 
-        self.assertEqual(t, "insert(self: Self, elm: ~T=str) -> None")
-        self.assertEqual(i, "                        ^^^^^^")
+        self.assertEqual(t, "insert(self: Self, elm: str) -> None")
+        self.assertEqual(i, "                        ^^^")
 
     def test_bound_generic_protocol_style_wrong_class(self):
         @untypy.patch
@@ -91,8 +91,8 @@ class TestBoundGeneric(unittest.TestCase):
 
         (t, i) = cm.exception.next_type_and_indicator()
         i = i.rstrip()
-        self.assertEqual(t, "target(a: A[~T=int]) -> None")
-        self.assertEqual(i, "          ^^^^^^^^^")
+        self.assertEqual(t, "target(a: A[int]) -> None")
+        self.assertEqual(i, "          ^^^^^^")
 
     def test_bound_generic_return_error(self):
         instance = Aint()

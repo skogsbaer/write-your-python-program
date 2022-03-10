@@ -31,3 +31,14 @@ def format_argument_values(args, kwargs):
         allargs.append(k + "=" + v.__repr__())
 
     return "(" + ", ".join(allargs) + ")"
+
+
+def withIndefiniteArticle(s):
+    if s:
+        first = s[0]
+        if first in "aeiouyAEIOUY":
+            return 'an ' + s
+        else:
+            return 'a ' + s
+    else:
+        return s

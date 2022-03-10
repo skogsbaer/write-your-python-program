@@ -7,5 +7,8 @@ def foo(d: dict[str, Callable[[], str]]) -> list[str]:
         res.append(f())
     return res
 
+def bar(d: dict[str, Callable[[], str]]) -> list[str]:
+    return foo(d)
+
 func = lambda: 42
-foo({'y': func})  # error
+bar({'y': func})  # error

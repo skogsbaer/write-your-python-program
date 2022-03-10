@@ -163,13 +163,16 @@ class Frame:
         self.declared = declared
         self.responsable = responsable
 
+    def __repr__(self):
+        return f'Frame({self.type_declared}, {self.declared}, {self.responsable}, {self.responsibility_type})'
+
     def __str__(self):
         buf = f"in: {self.type_declared}\n" \
               f"    {self.indicator_line}\n"
 
         if self.responsable is not None:
             buf += f"{self.responsable.file}:{self.responsable.line_no}:\n" \
-                   f"{self.responsable.source_line}\n" \
+                   f"{self.responsable.source_lines}\n" \
                    f"\n"
         return buf
 

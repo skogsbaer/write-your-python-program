@@ -3,7 +3,7 @@ Traceback (most recent call last):
     doSomething(Dog())
   File "test-data/testTypesProtos1.py", line 19, in doSomething
     print(a.makeSound(3.14))
-WyppTypeError: Dog does not implement protocol Animal correctly.
+WyppTypeError: Dog does not implement protocol Animal
 given:    <Dog object>
 expected: value of type Animal
 

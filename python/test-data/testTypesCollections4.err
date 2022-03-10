@@ -8,7 +8,7 @@ given:    42
 expected: value of type str
 
 context: foo(l: list[Callable[[], str]]) -> list[str]
-                                  ^^^
+                ^^^^^^^^^^^^^^^^^^^^^^^
 declared at: test-data/testTypesCollections4.py:4
 declared at: test-data/testTypesCollections4.py:3
 caused by: test-data/testTypesCollections4.py:4
