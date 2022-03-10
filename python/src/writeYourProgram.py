@@ -249,7 +249,7 @@ def _objToDict(o):
             continue
         x = getattr(o, n)
         d[n] = x
-    #print(d)
+    #print(f'_objToDict: {d}')
     return d
 
 def _objEq(o1, o2, flags):
@@ -276,7 +276,7 @@ def deepEq(v1, v2, **flags):
     by __eq__. Otherwise, objects are compared attribute-wise, only those attributes
     returned by dir that do not start with an underscore are compared.
     """
-    # print(f'deepEq: v1={v1}, v2={v2}, flags={flags}')
+    #print(f'deepEq: v1={v1}, v2={v2}, flags={flags}')
     if v1 == v2:
         return True
     if _isNumber(v1) and _isNumber(v2) and _useFloatEqWithDelta(flags):
@@ -291,11 +291,14 @@ def deepEq(v1, v2, **flags):
         return isinstance(v2, tuple) and _seqEq(v1, v2, flags)
     if isinstance(v1, dict):
         return isinstance(v2, dict) and _dictEq(v1, v2, flags)
+    if callable(v1):
+        return False
     if type(v1) == str:
         return False
     if hasattr(v1, '__class__'):
         if _useStructuralObjEq(flags):
-            return _objEq(v1, v2, flags)
+            res = _objEq(v1, v2, flags)
+            return res
         else:
             return False # v1 == v2 already checked
     return False

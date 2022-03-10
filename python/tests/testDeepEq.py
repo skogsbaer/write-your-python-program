@@ -92,3 +92,13 @@ class TestDeepEq(unittest.TestCase):
         ))
         self.assertTrue(deepEq(A(2), A(2), structuralObjEq=True, floatEqWithDelta=True))
         self.assertFalse(deepEq(A(2), A(2), structuralObjEq=False, floatEqWithDelta=True))
+        self.assertTrue(deepEq(foo, foo))
+        self.assertTrue(deepEq(foo, foo, structuralObjEq=True))
+        self.assertFalse(deepEq(foo, bar))
+        self.assertFalse(deepEq(foo, bar, structuralObjEq=True))
+
+def foo():
+    pass
+
+def bar():
+    return 1
