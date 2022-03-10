@@ -75,8 +75,8 @@ class TestList(unittest.TestCase):
         (t, i) = cm.exception.next_type_and_indicator()
         i = i.rstrip()
 
-        self.assertEqual(t, "append(self: Self, object: ~I=int) -> None")
-        self.assertEqual(i, "                           ^^^^^^")
+        self.assertEqual(t, "append(self: Self, object: int) -> None")
+        self.assertEqual(i, "                           ^^^")
 
         self.assertEqual(cm.exception.last_responsable().file, __file__)
 
