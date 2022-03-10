@@ -25,8 +25,6 @@ intPositive = w.intPositive
 math = w.math
 nat = w.nat
 record = w.record
-LockLike = w.LockLike
-LockFactory = w.LockFactory
 T = w.T
 U = w.U
 unchecked = w.unchecked
@@ -57,8 +55,6 @@ __all__ = [
     'math',
     'nat',
     'record',
-    'LockLike',
-    'LockFactory',
     'T',
     'U',
     'unchecked',
@@ -66,6 +62,8 @@ __all__ = [
 ]
 
 # Exported names not available for star imports (in alphabetic order)
+Lock = w.Lock
+LockFactory = w.LockFactory
 initModule = w.initModule
 printTestResults = w.printTestResults
 resetTestCount = w.resetTestCount

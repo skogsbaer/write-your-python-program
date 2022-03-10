@@ -3,7 +3,7 @@ Traceback (most recent call last):
     foo("not a lock")
 WyppTypeError: got value of wrong type
 given:    'not a lock'
-expected: value of type Callable[[], LockLike]
+expected: value of type Callable[[], Lock]
 
 context: foo(lock: LockFactory) -> None
                    ^^^^^^^^^^^
