@@ -4,7 +4,7 @@ A = TypeVar("A")
 B = TypeVar("B")
 
 
-class WDictLike(Protocol[A, B]):
+class DictLike(Protocol[A, B]):
     """
     This protocol implements a subset of dict.
     It exists solly to prevent an recursion issue
@@ -23,7 +23,7 @@ V = TypeVar("V")
 
 
 # See: https://docs.python.org/3/library/stdtypes.html#typesmapping
-class WDict(Generic[K, V], dict):
+class Dict(Generic[K, V], dict):
     def clear(self) -> None:
         pass
 
@@ -50,7 +50,7 @@ class WDict(Generic[K, V], dict):
     def setdefault(self, key: K, default: V) -> V:
         pass
 
-    def update(self, *E: Iterable[WDictLike[K, V]], **F: Optional[WDictLike[K, V]]) -> Any:
+    def update(self, *E: Iterable[DictLike[K, V]], **F: Optional[DictLike[K, V]]) -> Any:
         pass
 
     def values(self) -> Iterable[V]:

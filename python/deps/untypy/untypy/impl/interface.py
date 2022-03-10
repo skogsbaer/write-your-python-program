@@ -1,50 +1,56 @@
 import typing
-from collections.abc import Iterable
+from collections.abc import Iterable as ABCIterable
 from collections.abc import Sequence as ABCSequence
-from typing import Optional, Any, Dict, List, Set
-from typing import Sequence as TypingSequence
+from typing import Optional, Any
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
-from untypy.impl.interfaces.iterable import WIterable
+from untypy.impl.interfaces.iterable import Iterable
 from untypy.impl.interfaces.sequence import Sequence
-from untypy.impl.interfaces.wdict import WDict, WDictLike
-from untypy.impl.interfaces.wlist import WList
-from untypy.impl.interfaces.wset import WSet
+from untypy.impl.interfaces.dict import Dict, DictLike
+from untypy.impl.interfaces.list import List
+from untypy.impl.interfaces.set import Set
 from untypy.impl.protocol import ProtocolChecker
 from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, ExecutionContext
 from untypy.util import ReplaceTypeExecutionContext
 
 InterfaceMapping = {
-    dict: (WDict,),
-    Dict: (WDict,),
-    WDictLike: (WDictLike,),
-    list: (WList,),
-    List: (WList,),
-    set: (WSet,),
-    Set: (WSet,),
-    Iterable: (WIterable,),
-    typing.Iterable: (WIterable,),
+    dict: (Dict,),
+    typing.Dict: (Dict,),
+    DictLike: (DictLike,),
+    list: (List,),
+    typing.List: (List,),
+    set: (Set,),
+    typing.Set: (Set,),
+    ABCIterable: (Iterable,),
+    typing.Iterable: (Iterable,),
     ABCSequence: (Sequence,),
-    TypingSequence: (Sequence,)
+    typing.Sequence: (Sequence,)
 }
 
 class InterfaceFactory(TypeCheckerFactory):
 
-    def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
+    def create_from(self, annotation: Any, ctx: CreationContext, omit_tyargs=False) -> Optional[TypeChecker]:
         if annotation in InterfaceMapping:
             # Assume Any if no parameters are given
             (protocol,) = InterfaceMapping[annotation]
             bindings = protocol.__parameters__
-
             if len(bindings) == 0:
                 raise AssertionError(f"This is a BUG. {annotation} has no generic params.")
 
             # handle Python inconsistency
             if hasattr(annotation, '__class_getitem__'):
-                return self.create_from(annotation.__class_getitem__(*([Any] * len(bindings))), ctx)
+                return self.create_from(
+                    annotation.__class_getitem__(*([Any] * len(bindings))),
+                    ctx,
+                    omit_tyargs=True
+                )
             elif hasattr(annotation, '__getitem__'):
-                return self.create_from(annotation.__getitem__(*([Any] * len(bindings))), ctx)
+                return self.create_from(
+                    annotation.__getitem__(*([Any] * len(bindings))),
+                    ctx,
+                    omit_tyargs=True
+                )
 
         elif hasattr(annotation, '__origin__') and hasattr(annotation,
                                                            '__args__') and annotation.__origin__ in InterfaceMapping:
@@ -60,7 +66,10 @@ class InterfaceFactory(TypeCheckerFactory):
             if len(inner_checkers) != len(bindings):
                 raise UntypyAttributeError(f"Expected {len(bindings)} type arguments inside of {annotation}")
 
-            name = f"{origin.__name__}[" + (', '.join(map(lambda t: t.describe(), inner_checkers))) + "]"
+            if omit_tyargs:
+                name = f"{origin.__name__}"
+            else:
+                name = f"{origin.__name__}[" + (', '.join(map(lambda t: t.describe(), inner_checkers))) + "]"
 
             bindings = dict(zip(bindings, annotation.__args__))
             ctx = ctx.with_typevars(bindings)
@@ -71,7 +80,7 @@ class InterfaceFactory(TypeCheckerFactory):
                 return InterfaceChecker(origin, template, name, ctx.declared_location())
             else:
                 # type(origin) == collection.abc.ABCMeta
-                return ProtocolChecker(protocol, ctx, altname=name)
+                return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
 
         # Non Generic
         elif annotation in InterfaceMapping:
@@ -89,7 +98,7 @@ class InterfaceFactory(TypeCheckerFactory):
                 return InterfaceChecker(annotation, template, name, ctx.declared_location())
             else:
                 # type(origin) == collection.abc.ABCMeta
-                return ProtocolChecker(protocol, ctx, altname=name)
+                return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
         else:
             return None
 

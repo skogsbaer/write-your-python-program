@@ -1,9 +1,10 @@
 from wypp import *
 
 def foo(seq: Sequence[int]) -> None:
-    for item in seq:
-        print(item)
-    pass
+    print(repr(seq))
+    print(seq)
+    for x in seq:
+        print(x)
 
 foo([1,2,3])
 foo( (4,5)  )

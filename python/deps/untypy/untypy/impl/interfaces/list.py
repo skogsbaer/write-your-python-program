@@ -21,7 +21,7 @@ def cast_wlist(lst) -> list:
         return lst
 
 
-class WList(Generic[I], list):
+class List(Generic[I], list):
     # doc @ https://docs.python.org/3/tutorial/datastructures.html
     # and https://docs.python.org/3/library/stdtypes.html#common-sequence-operations
     # Exact signatures are undocumented :/

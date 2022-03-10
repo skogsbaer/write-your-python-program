@@ -1,14 +1,12 @@
 Traceback (most recent call last):
   File "test-data/testTypesSequence1.py", line 10, in <module>
     foo(1) # should fail
-WyppTypeError: int does not meet the requirements of protocol Sequence.
-It is missing the function '__contains__'.
-
+WyppTypeError: int is not a Sequence
 given:    1
-expected: value of type Sequence[Any]
+expected: value of type Sequence
 
-context: foo(seq: Sequence[Any]) -> None
-                  ^^^^^^^^^^^^^
+context: foo(seq: Sequence) -> None
+                  ^^^^^^^^
 declared at: test-data/testTypesSequence1.py:3
 caused by: test-data/testTypesSequence1.py:10
   | foo(1) # should fail

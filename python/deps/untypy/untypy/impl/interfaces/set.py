@@ -3,7 +3,7 @@ from typing import Generic, TypeVar, Optional, Tuple, Iterable, Any, Iterator
 I = TypeVar("I")
 
 
-class WSet(Generic[I], set):
+class Set(Generic[I], set):
 
     def add(self, other: I) -> None:
         pass
