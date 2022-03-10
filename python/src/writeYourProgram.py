@@ -67,7 +67,14 @@ def _literalInstanceOf(self, value):
 
 def _invalidCall(self, *args, **kwds):
     argStr = ', '.join([untypy.util.typehints.qualname(x) for x in args])
-    raise TypeError(f"Cannot instantiate {self.__name__}. Did you mean {self.__name__}[{argStr}]?")
+    if hasattr(self, '__name__'):
+        name = self.__name__
+    else:
+        name = str(self)
+        typingPrefix = 'typing.'
+        if name.startswith(typingPrefix):
+            name = name[len(typingPrefix):]
+    raise TypeError(f"Cannot instantiate {name}. Did you mean {name}[{argStr}]?")
 
 # Dirty hack ahead: we patch some methods of internal class of the typing module.
 
