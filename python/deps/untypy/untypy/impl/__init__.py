@@ -10,12 +10,10 @@ from .generator import GeneratorFactory
 from .generic import GenericFactory
 from .interface import InterfaceFactory
 from .iterator import IteratorFactory
-from .list import ListFactory
 from .literal import LiteralFactory
 from .none import NoneFactory
 from .optional import OptionalFactory
 from .protocol import ProtocolFactory
-from .sequence import SequenceFactory
 from .simple import SimpleFactory
 from .string_forward_refs import StringForwardRefFactory
 from .tuple import TupleFactory
@@ -30,12 +28,10 @@ _FactoryList = [
     ProtocolFactory(),  # must be higher then Generic
     GenericFactory(),
     CallableFactory(),
-    ListFactory(),
     LiteralFactory(),
     OptionalFactory(),  # must be higher then Union
     UnionFactory(),
     TupleFactory(),
-    SequenceFactory(),
     DummyDelayedFactory(),
     GeneratorFactory(),
     IteratorFactory(),

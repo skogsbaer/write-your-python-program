@@ -3,7 +3,6 @@ import sys
 from types import ModuleType
 from typing import Any, Callable, Union, Optional
 
-from untypy.util.display import format_argument_values
 from untypy.error import Location, UntypyAttributeError, UntypyTypeError
 from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeChecker, CreationContext, ExecutionContext, WrappedFunction, \
@@ -56,7 +55,8 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
                 implementation_template: Union[type, ModuleType, None] = None,
                 create_type: Optional[type] = None,
                 name: Optional[str] = None,
-                declared: Optional[Location] = None):
+                declared: Optional[Location] = None,
+                overwrites: Optional[type] = None):
     blacklist = ['__class__', '__delattr__', '__dict__', '__dir__',
                  '__doc__', '__getattribute__', '__getattr__', '__init_subclass__',
                  '__new__', '__setattr__', '__subclasshook__', '__weakref__']
@@ -78,9 +78,16 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
         create_fn = raise_err
 
     list_of_attr = dict()
+
     for attr in dir(template):
         if attr in blacklist:
             continue
+
+        if overwrites is not None and hasattr(overwrites, attr):
+            a = getattr(overwrites, attr)
+            if hasattr(a, '__overwrite') and getattr(a, '__overwrite') == 'simple':
+                list_of_attr[attr] = getattr(overwrites, attr)
+                continue
 
         original = getattr(template, attr)
         if type(original) == type:  # Note: Order matters, types are also callable
@@ -92,8 +99,16 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
                 (signature, checker) = find_signature(original, ctx)
                 implementation_fn = getattr(implementation_template, attr)
                 if implementation_fn is not None:
-                    list_of_attr[attr] = WrappedClassFunction(implementation_fn, signature, checker,
-                                                              create_fn=create_fn, declared=declared).build()
+                    if overwrites is not None and hasattr(overwrites, attr) and hasattr(getattr(overwrites, attr),
+                                                                                        '__overwrite') and getattr(
+                            getattr(overwrites, attr), '__overwrite') == 'advanced':
+                        list_of_attr[attr] = WrappedClassFunction(implementation_fn, signature, checker,
+                                                                  create_fn=create_fn,
+                                                                  declared=declared).build_overwrite(
+                            getattr(overwrites, attr), ctx)
+                    else:
+                        list_of_attr[attr] = WrappedClassFunction(implementation_fn, signature, checker,
+                                                                  create_fn=create_fn, declared=declared).build()
             except ValueError as e:
                 # this fails sometimes on built-ins.
                 # "ValueError: no signature found for builtin"
@@ -125,6 +140,17 @@ class WrappedClassFunction(WrappedFunction):
         if hasattr(self.inner, "__fc"):
             self.fc = getattr(self.inner, "__fc")
 
+    def build_overwrite(self, f, ctx: CreationContext):
+        fn = self.inner
+
+        w = f(self, ctx)
+
+        setattr(w, '__wrapped__', fn)
+        setattr(w, '__name__', fn.__name__)
+        setattr(w, '__signature__', self.signature)
+        setattr(w, '__wf', self)
+        return w
+
     def build(self):
         fn = self.inner
         name = fn.__name__
@@ -140,10 +166,11 @@ class WrappedClassFunction(WrappedFunction):
         def wrapper_self(me, *args, **kwargs):
             if name == '__init__':
                 me.__return_ctx = None
+                me.__ctx = None
                 me.__inner = self.create_fn()
             caller = sys._getframe(1)
             (args, kwargs, bindings) = self.wrap_arguments(
-                lambda n: ArgumentExecutionContext(wrapper_self, caller, n, declared=self.declared()),
+                lambda n: ArgumentExecutionContext(wrapper_self, caller, n, declared=self.declared(), upper=me.__ctx),
                 (me.__inner, *args), kwargs)
             ret = fn(*args, **kwargs)
             if me.__return_ctx is None:

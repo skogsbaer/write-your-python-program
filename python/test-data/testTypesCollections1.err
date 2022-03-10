@@ -4,11 +4,18 @@ Traceback (most recent call last):
   File "test-data/testTypesCollections1.py", line 4, in appendSomething
     l.append("foo")
 WyppTypeError: got value of wrong type
+
+context: appendSomething(l: list[int]) -> None
+                            ^^^^^^^^^
+declared at: test-data/testTypesCollections1.py:3
+caused by: test-data/testTypesCollections1.py:7
+  | appendSomething(l)
+
 given:    'foo'
 expected: value of type int
 
-context: list[int]
-              ^^^
+context: append(self: Self, object: int) -> None
+                                    ^^^
 declared at: test-data/testTypesCollections1.py:3
 caused by: test-data/testTypesCollections1.py:4
   |     l.append("foo")

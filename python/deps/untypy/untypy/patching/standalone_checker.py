@@ -7,11 +7,12 @@ from untypy.interfaces import ExecutionContext
 
 
 class StandaloneChecker:
-    def __init__(self, annotation: Callable[[], Any], declared: Any, cfg):
+    def __init__(self, annotation: Callable[[], Any], declared: Any, cfg, ctx=None):
         self._checker = None
         self.annotation = annotation
         self.declared = declared
         self.cfg = cfg
+        self.ctx = ctx
 
     def get_checker(self):
         if self._checker:
@@ -37,7 +38,7 @@ class StandaloneChecker:
     def __call__(self, val):
         frame = sys._getframe(2)
         checker = self.get_checker()
-        ctx = StandaloneCheckerContext(frame, self.declared)
+        ctx = self.ctx or StandaloneCheckerContext(frame, self.declared)
         return checker.check_and_wrap(val, ctx)
 
     def __repr__(self):

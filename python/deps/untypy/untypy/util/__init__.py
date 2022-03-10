@@ -163,11 +163,13 @@ class ArgumentExecutionContext(ExecutionContext):
                  fn: Union[WrappedFunction, types.FunctionType],
                  stack: Optional[inspect.FrameInfo],
                  argument_name: str,
-                 declared: Optional[Location] = None):
+                 declared: Optional[Location] = None,
+                 upper: ExecutionContext = None):
         self.fn = fn
         self.stack = stack
         self.argument_name = argument_name
         self.declared = declared
+        self.upper = upper
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
         (next_ty, indicator) = err.next_type_and_indicator()
@@ -219,6 +221,8 @@ class ArgumentExecutionContext(ExecutionContext):
             declared=declared,
             responsable=responsable
         )
+        if self.upper:
+            err = self.upper.wrap(err)
         return err.with_frame(frame)
 
 
