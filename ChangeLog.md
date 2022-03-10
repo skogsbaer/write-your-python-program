@@ -1,5 +1,9 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.16.0 (2022-03-10)
+  * Unify code dealing with lists, sets and dicts
+  * Fix equality bug fur functions #78
+  * Several smaller bugfixes and improvements
 * 0.15.0 (2022-01-20)
   * Assume None if no return type is given
   * Improve error messages when types are writting like "list(int)" #61
