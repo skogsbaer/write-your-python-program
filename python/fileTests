@@ -85,12 +85,14 @@ function checkWithOutputAux()
     local out=$t.out
     local err=$t.err
     local errtemp=$t.errtemp
+    local outtemp=$t.outtemp
     set +e
     echo "Checking $file (typecheck: $tycheck)"
-    PYTHONPATH=$d/site-lib python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$errtemp" > "$out"
+    PYTHONPATH=$d/site-lib python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$errtemp" > "$outtemp"
     ecode=$?
     set -e
     cat "$errtemp" | sed 's/at 0x[0-9a-f][0-9a-f]*>/at 0x00>/g' > "$err"
+    cat "$outtemp" | sed 's/at 0x[0-9a-f][0-9a-f]*>/at 0x00>/g' > "$out"
     if [ $ecode != $expectedEcode ]; then
         echo "Expected exit code $expectedEcode got $ecode for test $file"
         exit 1
@@ -183,3 +185,4 @@ checkWithOutputAux yes 1 test-data/testLockFactory.py
 checkWithOutputAux yes 1 test-data/testLockFactory2.py
 checkWithOutputAux yes 1 test-data/testGetSource.py
 checkWithOutputAux yes 0 test-data/testDict.py #see #87
+checkWithOutputAux yes 0 test-data/testFunEq.py #see #78
