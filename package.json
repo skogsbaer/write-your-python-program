@@ -55,6 +55,11 @@
 					"required": false,
 					"description": "Output some more diagnostic messages."
 				},
+				"write-your-python-program.debug": {
+					"type": "boolean",
+					"required": false,
+					"description": "Output debug messages."
+				},
 				"write-your-python-program.disableTypechecking": {
 					"type": "boolean",
 					"required": false,

@@ -480,6 +480,8 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
     if args.debug:
         DEBUG = True
 
+    verbose(f'VERBOSE={VERBOSE}, DEBUG={DEBUG}')
+
     installLib(args.installMode)
     if site.USER_SITE not in sys.path:
         if not site.ENABLE_USER_SITE:

@@ -9,6 +9,7 @@ import { Uri } from 'vscode';
 const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
 const verboseConfigKey = 'verbose';
+const debugConfigKey = 'debug';
 const disableTypecheckingConfigKey = 'disableTypechecking';
 const isWindows = process.platform === "win32";
 const exeExt = isWindows ? ".exe" : "";
@@ -243,6 +244,11 @@ function beVerbose(context: vscode.ExtensionContext): boolean {
     return !!config[verboseConfigKey];
 }
 
+function isDebug(context: vscode.ExtensionContext): boolean {
+    const config = vscode.workspace.getConfiguration(extensionId);
+    return !!config[debugConfigKey];
+}
+
 function disableTypechecking(context: vscode.ExtensionContext): boolean {
     const config = vscode.workspace.getConfiguration(extensionId);
     return !!config[disableTypecheckingConfigKey];
@@ -394,7 +400,15 @@ export function activate(context: vscode.ExtensionContext) {
             }
             vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd(pyExt);
-            const verboseOpt = beVerbose(context) ? " --verbose --no-clear" : "";
+            let verboseOpt = "";
+            if (isDebug(context)) {
+                verboseOpt = "--debug";
+            } else if (beVerbose(context)) {
+                verboseOpt = "--verbose";
+            }
+            if (verboseOpt !== "") {
+                verboseOpt = " " + verboseOpt + " --no-clear";
+            }
             const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
                 const pythonCmd = commandListToArgument(pyCmd.cmd);
