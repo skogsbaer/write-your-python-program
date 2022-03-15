@@ -38,6 +38,9 @@ check test-data/fileWithoutImport.py
 check test-data/fileWithBothImports.py
 check test-data/fileWithRecursiveTypes.py
 
+version=$(python3 -V | sed 's/Python //g' | sed 's/\.[^.]*$//g')
+fullVersion=$(python3 -V | sed 's/Python //g')
+
 # First argument: whether to do type checking or not
 # Second argument: expected exit code. If given as X:Y, then X is the exit code with active
 #   type checking, and Y is the exit code without type checking.
@@ -50,8 +53,7 @@ function checkWithOutputAux()
     echo "Checking $file"
     shift 3
     tycheckOpt=""
-    local version=$(python3 -V | sed 's/Python //g' | sed 's/\.[^.]*$//g')
-    suffixes="${version}"
+    suffixes="${version} ${fullVerson}"
     if [ "$tycheck" == "no" ]; then
         tycheckOpt="--no-typechecking"
         suffixes="${version}-notypes ${version} notypes"
