@@ -9,10 +9,29 @@ cd $(dirname $0)
 d=$(pwd)
 t=$(mktemp)
 
+if [ "$1" == "--help" ]; then
+    echo "USAGE: $0 [FILE]"
+    exit 1
+fi
+
+FILE="$1"
+
+function skip()
+{
+    if [ ! -z "$FILE" -a "$FILE" != "$1" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 echo "Running file tests, siteDir=$siteDir ..."
 echo "Writing logs to $t"
 function check()
 {
+    if skip "$1"; then
+        return
+    fi
     echo "Checking with $1"
     pushd /tmp > /dev/null
     dir=$(mktemp -d)
@@ -50,13 +69,16 @@ function checkWithOutputAux()
     local tycheck="$1"
     local expectedEcode=$2
     local file="$3"
+    if skip "$file"; then
+        return
+    fi
     echo "Checking $file"
     shift 3
     tycheckOpt=""
-    suffixes="${version} ${fullVerson}"
+    suffixes="${fullVersion} ${version}"
     if [ "$tycheck" == "no" ]; then
         tycheckOpt="--no-typechecking"
-        suffixes="${version}-notypes ${version} notypes"
+        suffixes="${fullVersion}-notypes ${fullVersion} ${version}-notypes ${version} notypes"
     fi
     if echo "$expectedEcode" | grep ':' > /dev/null; then
         if [ "$tycheck" == "no" ]; then
