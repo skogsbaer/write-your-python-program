@@ -14,7 +14,7 @@ def install_import_hook(should_patch_predicate: Callable[[str, str], bool],
     if already_patched is not None:
         return
 
-    original_finder = next(f for f in sys.meta_path if f.__name__ == 'PathFinder' and hasattr(f, 'find_spec'))
+    original_finder = next(f for f in sys.meta_path if hasattr(f, '__name__') and f.__name__ == 'PathFinder' and hasattr(f, 'find_spec'))
     sys.meta_path.insert(0, UntypyFinder(original_finder, should_patch_predicate, transformer))
 
 

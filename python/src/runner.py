@@ -256,7 +256,7 @@ def prepareLib(onlyCheckRunnable):
     verbose('Attempting to import ' + mod)
     wypp = importlib.import_module(mod)
     libDefs = Lib(wypp, True)
-    verbose('Successfully imported module ' + mod)
+    verbose('Successfully imported module ' + mod + ' from file ' + wypp.__file__)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
                        quiet=onlyCheckRunnable)
     return libDefs
