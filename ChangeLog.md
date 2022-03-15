@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.16.1 (2022-03-15)
+  * Bugfix: AttributeError: 'DistutilsMetaFinder' object has no attribute '__name__'
+  * Setting for --debug option
 * 0.16.0 (2022-03-10)
   * Unify code dealing with lists, sets and dicts
   * Fix equality bug fur functions #78
