@@ -210,3 +210,4 @@ checkWithOutputAux yes 1 test-data/testLockFactory2.py
 checkWithOutputAux yes 1 test-data/testGetSource.py
 checkWithOutputAux yes 0 test-data/testDict.py #see #87
 checkWithOutputAux yes 0 test-data/testFunEq.py #see #78
+checkWithOutputAux yes 0 test-data/testBugSliceIndices.py #see #92
