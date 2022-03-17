@@ -256,7 +256,7 @@ def prepareLib(onlyCheckRunnable):
     verbose('Attempting to import ' + mod)
     wypp = importlib.import_module(mod)
     libDefs = Lib(wypp, True)
-    verbose('Successfully imported module ' + mod)
+    verbose('Successfully imported module ' + mod + ' from file ' + wypp.__file__)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
                        quiet=onlyCheckRunnable)
     return libDefs
@@ -479,6 +479,8 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
     global DEBUG
     if args.debug:
         DEBUG = True
+
+    verbose(f'VERBOSE={VERBOSE}, DEBUG={DEBUG}')
 
     installLib(args.installMode)
     if site.USER_SITE not in sys.path:
