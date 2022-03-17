@@ -45,7 +45,7 @@ class List(Generic[I], list):
     def clear(self) -> None:
         pass
 
-    def index(self, value: I, start: Optional[int] = None, stop: Optional[int] = None) -> int:
+    def index(self, value: I, start: Optional[int] = 0, stop: Optional[int] = 9223372036854775807) -> int:
         # get index of list
         pass
 

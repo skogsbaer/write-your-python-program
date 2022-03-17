@@ -107,6 +107,13 @@ class TestList(unittest.TestCase):
         self.assertEqual(self.wrapped_list[1], 1)
         self.assertEqual(self.wrapped_list[:], [0, 1, 2, 3])
         self.assertEqual(self.wrapped_list[1:], [1, 2, 3])
+
+        # Index
+        self.assertEqual(self.wrapped_list.index(1), 1)
+        self.assertEqual(self.wrapped_list.index(1, 0, 2), 1)
+        self.assertRaises(ValueError, lambda: self.wrapped_list.index(2, start=3))  # Value Error '2' not in list
+        self.assertRaises(UntypyTypeError, lambda: self.wrapped_list.index("hello"))  # Wrong Argument Type
+
         self.wrapped_list.append(4)
         self.assertEqual(self.wrapped_list, [0, 1, 2, 3, 4])
 
