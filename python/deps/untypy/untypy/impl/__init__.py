@@ -1,5 +1,6 @@
 import inspect
 from typing import Any, Optional, TypeVar, List, Dict
+import typing
 
 from untypy.interfaces import CreationContext, TypeChecker
 from .annotated import AnnotatedFactory
@@ -64,7 +65,7 @@ class DefaultCreationContext(CreationContext):
     def wrap(self, err: UntypyAttributeError) -> UntypyAttributeError:
         return err.with_location(self.declared)
 
-    def resolve_typevar(self, var: TypeVar) -> (bool, Any):
+    def resolve_typevar(self, var: TypeVar) -> typing.Tuple[bool, Any]:
         # Not result may be None
         if var in self.typevars:
             return True, self.typevars[var]

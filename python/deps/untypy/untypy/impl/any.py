@@ -6,7 +6,7 @@ from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, 
 class AnyFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
-        if annotation is Any:
+        if annotation is Any or annotation is any:
             return AnyChecker()
         else:
             return None
