@@ -72,7 +72,11 @@ class SimpleChecker(TypeChecker):
             raise ctx.wrap(UntypyTypeError(arg, self.describe()))
 
     def describe(self) -> str:
-        return self.annotation.__name__
+        a = self.annotation
+        if hasattr(a, '__name__'):
+            return a.__name__
+        else:
+            return str(a)
 
     def base_type(self) -> Any:
         return [self.annotation]
