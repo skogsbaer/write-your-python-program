@@ -163,6 +163,8 @@ checkWithOutputAux yes 1 test-data/testTypesSubclassing1.py
 checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns.py
 checkWithOutputAux yes 0 test-data/testTypesHigherOrderFuns2.py # see #6
 checkWithOutputAux yes 1 test-data/testTypesHigherOrderFuns3.py
+checkWithOutputAux yes 0 test-data/testTypesHigherOrderFuns4.py
+checkWithOutputAux yes 0 test-data/testTypesHigherOrderFuns5.py
 checkWithOutputAux yes 1 test-data/testTypesRecordInheritance.py
 checkWithOutputAux yes 1 test-data/testRecordSetTypes.py
 checkWithOutputAux yes 1 test-data/testRecordSetTypeForwardRef.py

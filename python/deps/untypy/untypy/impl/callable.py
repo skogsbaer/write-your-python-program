@@ -130,7 +130,20 @@ class TypedCallable(Callable, WrappedFunction):
         return f"Callable[[{arguments}], {self.return_checker.describe()}]"
 
     def checker_for(self, name: str) -> TypeChecker:
-        raise NotImplementedError
+        if name == 'return':
+            return self.return_checker
+        spec = inspect.getfullargspec(self.fn)
+        try:
+            ix = spec.args.index(name)
+        except ValueError:
+            raise self.ctx.wrap(UntypyAttributeError(
+                f"No annotation found for argument {name}"
+            ))
+        if ix >= len(self.argument_checker):
+            raise self.ctx.wrap(UntypyAttributeError(
+                f"No annotation found for argument {name}"
+            ))
+        return self.argument_checker[ix]
 
 
 class TypedCallableIncompatibleSingature(ExecutionContext):
