@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+
+* 0.16.4 (2022-04-22)
+  * Bugfix for classes inheriting from ABC
 * 0.16.3 (2022-03-18)
   * Bugfix for callable type
 * 0.16.2 (2022-03-17)
