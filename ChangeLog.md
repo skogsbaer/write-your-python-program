@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.16.3 (2022-03-18)
+  * Bugfix for callable type
 * 0.16.2 (2022-03-17)
   * Bugfix for index method of lists #92
 * 0.16.1 (2022-03-15)
