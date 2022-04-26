@@ -495,6 +495,7 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
             responsable=responsable
         ))
 
+        base_expected = self.wf.checker_for(self.this_arg).describe()
         if self.base_arg == self.this_arg:
             err = err.with_note(
                 f"Argument {self.this_arg} of method {WrappedFunction.find_original(self.wf).__name__} "
@@ -508,7 +509,7 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
         err = err.with_note(
             f"Annotation {original_expected} is incompatible with the "
             f"{self.wf.protocol.protocol_type()}'s annotation "
-            f"{self.wf.checker_for(self.this_arg).describe()}.")
+            f"{base_expected}.")
 
         previous_chain = UntypyTypeError(
             self.me,

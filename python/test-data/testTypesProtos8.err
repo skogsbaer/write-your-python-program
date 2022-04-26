@@ -4,7 +4,7 @@ Traceback (most recent call last):
   File "test-data/testTypesProtos8.py", line 10, in bar
     b.foo(1, "foo")
 WyppTypeError: Sub does not implement parent Base
-given:    <__wypp__.Sub object at 0x105771540>
+given:    <__wypp__.Sub object at 0x00>
 expected: value of type Base
 
 context: bar(b: Base) -> None

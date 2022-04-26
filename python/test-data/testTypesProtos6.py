@@ -1,23 +1,10 @@
-from abc import ABC, abstractmethod
 from wypp import *
 
-class FileSystemEntry(ABC):
+class FileSystemEntry:
     def __init__(self, name: str):
         self.__name = name
-    def getName(self) -> str:
-        return self.__name
-    def getContent(self) -> str:
-        raise Exception('No content')
     def getChildren(self) -> list[FileSystemEntry]:
         return []
-    def findChild(self, name: str) -> FileSystemEntry:
-        for c in self.getChildren():
-            if c.getName() == name:
-                return c
-        raise Exception('No child with name ' + name)
-    def addChild(self, child: FileSystemEntry):
-        raise Exception('Cannot add child to ' + repr(self))
-    @abstractmethod
     def accept(self, visitor: FileSystemVisitor):
         pass
 
@@ -27,10 +14,6 @@ class Directory(FileSystemEntry):
         self.__children = children
     def getChildren(self) -> list[FileSystemEntry]:
         return self.__children[:]
-    def addChild(self, child: FileSystemEntry):
-        self.__children.append(child)
-    def __repr__(self):
-        return 'Directory(' + repr(self.getName()) + ')'
     def accept(self, visitor: FileSystemVisitor):
         visitor.visitDirectory(self)
 
@@ -40,8 +23,6 @@ class File(FileSystemEntry):
         self.__content = content
     def getContent(self) -> str:
         return self.__content
-    def __repr__(self):
-        return 'File(' + repr(self.getName()) + ')'
     def accept(self, visitor: FileSystemVisitor):
         visitor.visitFile(self)
 
