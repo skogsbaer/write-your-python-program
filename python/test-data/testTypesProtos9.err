@@ -1,0 +1,26 @@
+Traceback (most recent call last):
+  File "test-data/testTypesProtos9.py", line 12, in <module>
+    bar(Sub())
+  File "test-data/testTypesProtos9.py", line 10, in bar
+    b.foo(1, "foo")
+WyppTypeError: Sub does not implement parent Base
+given:    <__wypp__.Sub object at 0x1044c94e0>
+expected: value of type Base
+
+context: bar(b: Base) -> None
+                ^^^^
+declared at: test-data/testTypesProtos9.py:9
+caused by: test-data/testTypesProtos9.py:12
+  | bar(Sub())
+
+Argument subY of method foo violates the type declared for y in parent Base.
+Annotation float is incompatible with the parent's annotation str.
+
+given:    'foo'
+expected: value of type float
+
+context: foo(self: Self, subX: int, subY: str) -> None
+declared at: test-data/testTypesProtos9.py:6
+declared at: test-data/testTypesProtos9.py:2
+caused by: test-data/testTypesProtos9.py:6
+  |     def foo(self, subX: int, subY: float):
