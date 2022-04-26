@@ -214,3 +214,9 @@ checkWithOutputAux yes 0 test-data/testDict.py #see #87
 checkWithOutputAux yes 0 test-data/testFunEq.py #see #78
 checkWithOutputAux yes 0 test-data/testBugSliceIndices.py #see #92
 checkWithOutputAux yes 0 test-data/testABC.py
+checkWithOutputAux yes 0 test-data/testTypesWrapperEq.py
+checkWithOutputAux yes 0 test-data/testTypesProtos5.py
+checkWithOutputAux yes 1 test-data/testTypesProtos6.py
+checkWithOutputAux yes 1 test-data/testTypesProtos7.py
+checkWithOutputAux yes 1 test-data/testTypesProtos8.py
+checkWithOutputAux yes 1 test-data/testTypesProtos9.py

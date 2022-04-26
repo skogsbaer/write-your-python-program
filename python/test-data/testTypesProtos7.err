@@ -1,0 +1,46 @@
+Traceback (most recent call last):
+  File "test-data/testTypesProtos7.py", line 75, in <module>
+    print(computeTotalSize(root))
+  File "test-data/testTypesProtos7.py", line 68, in computeTotalSize
+    fs.accept(visitor)
+  File "test-data/testTypesProtos7.py", line 35, in accept
+    visitor.visitDirectory(self)
+  File "test-data/testTypesProtos7.py", line 59, in visitDirectory
+    c.accept(self)
+  File "test-data/testTypesProtos7.py", line 46, in accept
+    visitor.visitFile(self)
+WyppTypeError: File does not implement parent FileSystemEntry
+given:    File('notes.txt')
+expected: value of type FileSystemEntry
+
+context: getChildren(self: Self) -> list[FileSystemEntry]
+                                    ^^^^^^^^^^^^^^^^^^^^^
+declared at: test-data/testTypesProtos7.py:28
+caused by: test-data/testTypesProtos7.py:29
+  |         return self.__children[:]
+
+TotalSizeVisitor does not implement parent FileSystemVisitor
+Argument visitor of method accept violates the type declared by the parent FileSystemEntry.
+Annotation FileSystemVisitor is incompatible with the parent's annotation FileSystemVisitor.
+
+given:    <__wypp__.TotalSizeVisitor object at 0x00>
+expected: value of type FileSystemVisitor
+
+context: accept(self: Self, visitor: FileSystemVisitor) -> None
+                                     ^^^^^^^^^^^^^^^^^
+declared at: test-data/testTypesProtos7.py:45
+declared at: test-data/testTypesProtos7.py:21
+caused by: test-data/testTypesProtos7.py:45
+  |     def accept(self, visitor: FileSystemVisitor):
+
+Argument f of method visitFile violates the type declared for file in parent FileSystemVisitor.
+Annotation str is incompatible with the parent's annotation File.
+
+given:    File('notes.txt')
+expected: value of type str
+
+context: visitFile(self: Self, f: File) -> None
+declared at: test-data/testTypesProtos7.py:60
+declared at: test-data/testTypesProtos7.py:51
+caused by: test-data/testTypesProtos7.py:60
+  |     def visitFile(self, f: str):
