@@ -265,6 +265,16 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     def __getattr__(me, name):
         return getattr(me._ProtocolWrappedFunction__inner, name)
 
+    def __eq__(me, other):
+        try:
+            other = getattr(other, '_ProtocolWrappedFunction__inner')
+        except AttributeError:
+            pass
+        return me._ProtocolWrappedFunction__inner.__eq__(other)
+
+    def __hash__(me):
+        return me._ProtocolWrappedFunction__inner.__hash__()
+
     def __setattr__(me, name, value):
         if name == '_ProtocolWrappedFunction__inner':
             super(type(me), me).__setattr__('_ProtocolWrappedFunction__inner', value)
@@ -280,6 +290,8 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
     list_of_attr['__repr__'] = __repr__
     list_of_attr['__str__'] = __str__
+    list_of_attr['__eq__'] = __eq__
+    list_of_attr['__hash__'] = __hash__
 
     name = f"WyppTypeCheck({original.__name__})"
 
