@@ -1,7 +1,9 @@
+import abc
 import inspect
 import sys
 import typing
 from typing import Protocol, Any, Optional, Callable, Union, TypeVar, Dict, Tuple
+
 import untypy.util.display as display
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, ResponsibilityType
 from untypy.impl.any import SelfChecker, AnyChecker
@@ -10,7 +12,7 @@ from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, 
 from untypy.util import WrappedFunction, ArgumentExecutionContext, ReturnExecutionContext
 from untypy.util.condition import FunctionCondition
 from untypy.util.typehints import get_type_hints
-import abc
+
 
 class ProtocolFactory(TypeCheckerFactory):
 
@@ -482,6 +484,8 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
         self.ctx = ctx
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
+        protocol = self.wf.protocol.proto
+
         (original_expected, _ind) = err.next_type_and_indicator()
         err = ArgumentExecutionContext(self.wf, None, self.base_arg).wrap(err)
 
@@ -517,7 +521,26 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
         ).with_header(
             protoMismatchErrorMessage(type(self.me).__name__, self.wf.protocol)
         )
-        previous_chain = self.ctx.wrap(previous_chain)
+
+        # Protocols can either be declared explicit or implicit.
+        if protocol in type(self.me).__mro__:
+            # If it is declared explicit (e.g. Inheritance) the
+            # declaration of the inheritance has to be blamed.
+            previous_chain = previous_chain.with_frame(Frame(
+                # /- Could also be `self.wf.describe()`, which would put "right" signature as "context:".
+                # v  But this info may be better suited in the note.
+                *previous_chain.next_type_and_indicator(),
+                declared=Location.from_code(type(self.me)),
+                responsable=Location.from_code(type(self.me))
+            )).with_frame(Frame(
+                *previous_chain.next_type_and_indicator(),
+                declared=self.wf.declared(),
+                responsable=responsable
+            ))
+        else:
+            # Else: We need to explain how this protocol was declared.
+            previous_chain = self.ctx.wrap(previous_chain)
+
         if isInternalProtocol(self.wf.protocol):
             return previous_chain
         else:
