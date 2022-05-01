@@ -1,7 +1,9 @@
+import abc
 import inspect
 import sys
 import typing
 from typing import Protocol, Any, Optional, Callable, Union, TypeVar, Dict, Tuple
+
 import untypy.util.display as display
 from untypy.error import UntypyTypeError, UntypyAttributeError, Frame, Location, ResponsibilityType
 from untypy.impl.any import SelfChecker, AnyChecker
@@ -10,7 +12,7 @@ from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, 
 from untypy.util import WrappedFunction, ArgumentExecutionContext, ReturnExecutionContext
 from untypy.util.condition import FunctionCondition
 from untypy.util.typehints import get_type_hints
-import abc
+
 
 class ProtocolFactory(TypeCheckerFactory):
 
@@ -358,8 +360,7 @@ class ProtocolWrappedFunction(WrappedFunction):
             if isinstance(self.inner, WrappedFunction):
                 (args, kwargs, bind2) = self.inner.wrap_arguments(
                     lambda n: ProtocolArgumentExecutionContext(self, self.baseArgs[n], n,
-                                                               inner_object,
-                                                               inner_ctx),
+                                                               inner_object),
                     args, kwargs)
             ret = fn(*args, **kwargs)
             if isinstance(self.inner, WrappedFunction):
@@ -474,12 +475,11 @@ class ProtocolReturnExecutionContext(ExecutionContext):
 
 class ProtocolArgumentExecutionContext(ExecutionContext):
     def __init__(self, wf: ProtocolWrappedFunction,
-                 base_arg: str, this_arg: str, me: Any, ctx: ExecutionContext):
+                 base_arg: str, this_arg: str, me: Any):
         self.wf = wf
         self.base_arg = base_arg
         self.this_arg = this_arg
         self.me = me
-        self.ctx = ctx
 
     def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
         (original_expected, _ind) = err.next_type_and_indicator()
@@ -516,8 +516,13 @@ class ProtocolArgumentExecutionContext(ExecutionContext):
             f"{self.wf.protocol.protoname()}"
         ).with_header(
             protoMismatchErrorMessage(type(self.me).__name__, self.wf.protocol)
-        )
-        previous_chain = self.ctx.wrap(previous_chain)
+        ).with_frame(Frame(
+            self.wf.describe(),
+            None,
+            declared=self.wf.declared(),
+            responsable=responsable
+        ))
+
         if isInternalProtocol(self.wf.protocol):
             return previous_chain
         else:
