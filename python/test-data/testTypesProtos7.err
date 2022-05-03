@@ -9,29 +9,16 @@ Traceback (most recent call last):
     c.accept(self)
   File "test-data/testTypesProtos7.py", line 46, in accept
     visitor.visitFile(self)
-WyppTypeError: File does not implement parent FileSystemEntry
-given:    File('notes.txt')
-expected: value of type FileSystemEntry
-
-context: getChildren(self: Self) -> list[FileSystemEntry]
-                                    ^^^^^^^^^^^^^^^^^^^^^
-declared at: test-data/testTypesProtos7.py:28
-caused by: test-data/testTypesProtos7.py:29
-  |         return self.__children[:]
-
-TotalSizeVisitor does not implement parent FileSystemVisitor
-Argument visitor of method accept violates the type declared by the parent FileSystemEntry.
-Annotation FileSystemVisitor is incompatible with the parent's annotation FileSystemVisitor.
-
+WyppTypeError: TotalSizeVisitor does not implement parent FileSystemVisitor
 given:    <__wypp__.TotalSizeVisitor object at 0x00>
 expected: value of type FileSystemVisitor
 
-context: accept(self: Self, visitor: FileSystemVisitor) -> None
-                                     ^^^^^^^^^^^^^^^^^
-declared at: test-data/testTypesProtos7.py:45
-declared at: test-data/testTypesProtos7.py:21
-caused by: test-data/testTypesProtos7.py:45
-  |     def accept(self, visitor: FileSystemVisitor):
+declared at: test-data/testTypesProtos7.py:54
+declared at: test-data/testTypesProtos7.py:51
+caused by: test-data/testTypesProtos7.py:54
+  | class TotalSizeVisitor(FileSystemVisitor):
+caused by: test-data/testTypesProtos7.py:60
+  |     def visitFile(self, f: str):
 
 Argument f of method visitFile violates the type declared for file in parent FileSystemVisitor.
 Annotation str is incompatible with the parent's annotation File.

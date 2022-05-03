@@ -7,11 +7,12 @@ WyppTypeError: Dog does not implement parent Animal
 given:    <Dog>
 expected: value of type Animal
 
-context: feedAnimal(a: Animal) -> None
-                       ^^^^^^
-declared at: test-data/testTypesSubclassing1.py:25
-caused by: test-data/testTypesSubclassing1.py:29
-  | feedAnimal(dog)
+declared at: test-data/testTypesSubclassing1.py:20
+declared at: test-data/testTypesSubclassing1.py:10
+caused by: test-data/testTypesSubclassing1.py:20
+  | class Dog(Animal):
+caused by: test-data/testTypesSubclassing1.py:22
+  |     def feed(self, food: DogFood) -> None:
 
 Argument food of method feed violates the type declared by the parent Animal.
 Annotation DogFood is incompatible with the parent's annotation AnimalFood.
