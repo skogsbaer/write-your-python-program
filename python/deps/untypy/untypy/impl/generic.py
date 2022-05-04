@@ -33,9 +33,9 @@ class GenericFactory(TypeCheckerFactory):
                     return None
             else:
                 return UnboundTypeVar(annotation)
-        elif hasattr(annotation, '__args__') and hasattr(annotation.__origin__,
-                                                         '__mro__') and typing.Generic in annotation.__origin__.__mro__:
-            return ctx.find_checker(annotation)
+        elif hasattr(annotation, '__args__') and hasattr(annotation.__origin__, '__mro__') and \
+            typing.Generic in annotation.__origin__.__mro__:
+            return GenericProtocolChecker(annotation, ctx)
         else:
             return None
 

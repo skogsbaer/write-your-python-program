@@ -1,26 +1,28 @@
 import collections.abc
 import inspect
-from collections.abc import Iterator
+from collections.abc import Iterator as ABCIterator
 from typing import Any, Optional
-from typing import Iterator as OtherIterator
+from typing import Iterator as Iterator
 
 from untypy.error import UntypyTypeError, UntypyAttributeError, Location
 from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext
 from untypy.util import CompoundTypeExecutionContext
+from untypy.impl.any import AnyChecker
 
-IteratorTypeA = type(Iterator[int])
-IteratorTypeB = type(OtherIterator[int])
-
+_iteratorTypes = [type(Iterator[int]), type(Iterator), type(ABCIterator[int]), type(ABCIterator)]
 
 class IteratorFactory(TypeCheckerFactory):
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
-        if type(annotation) in [IteratorTypeA, IteratorTypeB] and annotation.__origin__ == collections.abc.Iterator:
-            if len(annotation.__args__) != 1:
-                raise ctx.wrap(UntypyAttributeError(f"Expected 1 type arguments for iterator."))
-
-            inner = ctx.find_checker(annotation.__args__[0])
-            if inner is None:
-                raise ctx.wrap(UntypyAttributeError(f"The inner type of the iterator could not be resolved."))
+        if type(annotation) in _iteratorTypes and hasattr(annotation, '__origin__') and \
+            annotation.__origin__ == collections.abc.Iterator:
+            if hasattr(annotation, '__args__'):
+                if len(annotation.__args__) != 1:
+                    raise ctx.wrap(UntypyAttributeError(f"Expected 1 type arguments for iterator."))
+                inner = ctx.find_checker(annotation.__args__[0])
+                if inner is None:
+                    raise ctx.wrap(UntypyAttributeError(f"The inner type of the iterator could not be resolved."))
+            else:
+                inner = AnyChecker()
             return IteratorChecker(inner)
         else:
             return None
