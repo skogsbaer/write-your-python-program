@@ -1,5 +1,6 @@
 import typing
 from collections.abc import Iterable as ABCIterable
+from collections.abc import Iterator as ABCIterator
 from collections.abc import Sequence as ABCSequence
 from typing import Optional, Any
 
