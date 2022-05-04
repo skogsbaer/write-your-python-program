@@ -1,10 +1,11 @@
 import typing
 from collections.abc import Iterable as ABCIterable
+from collections.abc import Iterator as ABCIterator
 from collections.abc import Sequence as ABCSequence
 from typing import Optional, Any
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
-from untypy.impl.interfaces.iterable import Iterable
+from untypy.impl.interfaces.iterable import Iterable, Iterator
 from untypy.impl.interfaces.sequence import Sequence
 from untypy.impl.interfaces.dict import Dict, DictLike
 from untypy.impl.interfaces.list import List
@@ -24,6 +25,8 @@ InterfaceMapping = {
     typing.Set: (Set,),
     ABCIterable: (Iterable,),
     typing.Iterable: (Iterable,),
+    ABCIterator: (Iterator,),
+    typing.Iterator: (Iterator,),
     ABCSequence: (Sequence,),
     typing.Sequence: (Sequence,)
 }
