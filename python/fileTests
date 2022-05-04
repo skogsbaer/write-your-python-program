@@ -220,3 +220,10 @@ checkWithOutputAux yes 1 test-data/testTypesProtos6.py
 checkWithOutputAux yes 1 test-data/testTypesProtos7.py
 checkWithOutputAux yes 1 test-data/testTypesProtos8.py
 checkWithOutputAux yes 1 test-data/testTypesProtos9.py
+checkWithOutputAux yes 0 test-data/testIterable1.py
+checkWithOutputAux yes 0 test-data/testIterable2.py
+checkWithOutputAux yes 0 test-data/testIterable3.py
+checkWithOutputAux yes 0 test-data/testIterator.py
+checkWithOutputAux yes 0 test-data/testIterator2.py
+checkWithOutputAux yes 0 test-data/testIterator3.py
+checkWithOutputAux yes 0 test-data/testIterator4.py

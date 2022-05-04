@@ -5,18 +5,18 @@ from untypy.error import UntypyTypeError
 from untypy.impl.protocol import ProtocolChecker
 from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, ExecutionContext
 
-
 class GenericProtocolChecker(ProtocolChecker):
     def protocol_type(self) -> str:
         return "generic"
 
     def check_and_wrap(self, arg: Any, ctx: ExecutionContext) -> Any:
-        if not isinstance(arg, self.proto):
+        if isinstance(arg, self.proto):
+            return super().check_and_wrap(arg, ctx)
+        else:
             raise ctx.wrap(UntypyTypeError(
                 expected=self.describe(),
                 given=arg
             )).with_note(f"Type '{type(arg).__name__}' does not inherit from '{self.proto.__name__}'")
-        return super().check_and_wrap(arg, ctx)
 
 
 class GenericFactory(TypeCheckerFactory):
@@ -35,7 +35,7 @@ class GenericFactory(TypeCheckerFactory):
                 return UnboundTypeVar(annotation)
         elif hasattr(annotation, '__args__') and hasattr(annotation.__origin__,
                                                          '__mro__') and typing.Generic in annotation.__origin__.__mro__:
-            return GenericProtocolChecker(annotation, ctx)
+            return ctx.find_checker(annotation)
         else:
             return None
 

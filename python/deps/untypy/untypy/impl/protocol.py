@@ -289,6 +289,9 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     def __hash__(me):
         return me._ProtocolWrappedFunction__inner.__hash__()
 
+    def __next__(me):
+        return me._ProtocolWrappedFunction__inner.__next__()
+
     def __setattr__(me, name, value):
         if name == '_ProtocolWrappedFunction__inner':
             super(type(me), me).__setattr__('_ProtocolWrappedFunction__inner', value)
@@ -306,8 +309,10 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
     list_of_attr['__str__'] = __str__
     list_of_attr['__eq__'] = __eq__
     list_of_attr['__hash__'] = __hash__
+    if hasattr(originalValue, '__next__'):
+        list_of_attr['__next__'] = __next__
 
-    name = f"WyppTypeCheck({original.__name__})"
+    name = f"WyppTypeCheck({original.__name__}, {protocolchecker.proto.__name__})"
 
     if type(original) in [type, abc.ABCMeta] and original.__flags__ & 0x0400 and \
         original not in [dict, list, set, tuple, str]:
