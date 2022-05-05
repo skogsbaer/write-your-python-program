@@ -1,6 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
-* 0.16.5 (2022-04026)
+* 0.16.6 (2022-05-04)
+  * Fix several iterator bugs
+* 0.16.5 (2022-04-26)
   * Bugfix for equality for wrapped classes
 * 0.16.4 (2022-04-22)
   * Bugfix for classes inheriting from ABC
