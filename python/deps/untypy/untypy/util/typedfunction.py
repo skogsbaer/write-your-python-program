@@ -9,6 +9,8 @@ from untypy.interfaces import WrappedFunction, TypeChecker, CreationContext, Wra
 from untypy.util import ArgumentExecutionContext, ReturnExecutionContext
 from untypy.util.typehints import get_type_hints
 
+class FastTypeError(TypeError):
+    pass
 
 class TypedFunctionBuilder(WrappedFunction):
     inner: Callable
@@ -21,6 +23,7 @@ class TypedFunctionBuilder(WrappedFunction):
     def __init__(self, inner: Callable, ctx: CreationContext):
         self.inner = inner
         self.signature = inspect.signature(inner)
+        self.parameters = list(self.signature.parameters.values())
         self.ctx = ctx
         self.fc = None
         self._checkers = None
@@ -33,8 +36,23 @@ class TypedFunctionBuilder(WrappedFunction):
         except UntypyNameError:
             pass
 
+        # The self.fast_sig flags tells wether the signature supports fast matching of arguments.
+        # We identified (2022-05-05) that self.wrap_arguments is a performence bottleneck.
+        # With type annotations, the performance was factor 8.8 slower than without type
+        # annotations
+        # So we now have a fastlane for the common case where there are no kw and no variable
+        # arguments. For the fastlane, performance is only factor 3.7 slower.
         if hasattr(self.inner, "__fc"):
             self.fc = getattr(self.inner, "__fc")
+            self.fast_sig = False
+        else:
+            self.fast_sig = True
+            for p in self.parameters:
+                # See https://docs.python.org/3/glossary.html#term-parameter for the
+                # different kinds of parameters
+                if p.kind != inspect._POSITIONAL_ONLY and p.kind != inspect._POSITIONAL_OR_KEYWORD:
+                    self.fast_sig = False
+                    break
 
     def checkers(self) -> Dict[str, TypeChecker]:
         if self._checkers is not None:
@@ -108,7 +126,40 @@ class TypedFunctionBuilder(WrappedFunction):
 
         return w
 
+    def wrap_arguments_fast(self, ctxprv: WrappedFunctionContextProvider, args):
+        # Fast case: no kwargs, no rest args, self.fc is None.
+        # (self.fc is used for pre- and postconditions, a rarely used feature.)
+        # In this case, the order parameter names in args and self.parameters is the
+        # same, so we can simply match them by position. As self.fc is None, we do not
+        # need to build a inspect.BoundArguments object.
+        params = self.parameters
+        n = len(params)
+        n_args = len(args)
+        wrapped_args = [None] * n
+        checkers = self.checkers()
+        for i in range(n):
+            p = params[i]
+            name = params[i].name
+            if i < n_args:
+                a = args[i]
+            else:
+                a = p.default
+                if a == inspect._empty:
+                    raise FastTypeError(f"missing a required argument: {name!r}") from None
+            check = checkers[name]
+            ctx = ctxprv(name)
+            wrapped = check.check_and_wrap(a, ctx)
+            wrapped_args[i] = wrapped
+        return (wrapped_args, {}, None)
+
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
+        if not kwargs and self.fast_sig:
+            try:
+                return self.wrap_arguments_fast(ctxprv, args)
+            except FastTypeError as e:
+                err = UntypyTypeError(header=str(e))
+                raise ctxprv("").wrap(err)
+
         try:
             bindings = self.signature.bind(*args, **kwargs)
         except TypeError as e:
