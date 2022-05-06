@@ -112,7 +112,6 @@ class InterfaceChecker(TypeChecker):
         self.template = template
         self.name = name
         self.declared = declared
-        pass
 
     def may_change_identity(self) -> bool:
         return True
