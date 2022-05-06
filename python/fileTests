@@ -27,6 +27,10 @@ function skip()
 
 echo "Running file tests, siteDir=$siteDir ..."
 echo "Writing logs to $t"
+
+#PY="coverage run --append"
+PY=python3
+
 function check()
 {
     if skip "$1"; then
@@ -37,18 +41,18 @@ function check()
     dir=$(mktemp -d)
     echo "Installing into $dir ..."
     echo "Run 1"
-    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir $PY $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
     rm -rf "$dir"
     mkdir "$dir"
     echo "Run 2"
-    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir $PY $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
     echo "Run 3"
-    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --check --install-mode assertInstall --quiet $d/"$1" >> "$t"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir $PY $d/src/runYourProgram.py --check --install-mode assertInstall --quiet $d/"$1" >> "$t"
     rm -f "$dir/untypy/__init__.py"
     echo "Run 4"
-    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir $PY $d/src/runYourProgram.py --install-mode install --quiet --check $d/"$1" >> "$t"
     echo "Run 5"
-    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir python3 $d/src/runYourProgram.py --check --install-mode assertInstall --quiet $d/"$1" >> "$t"
+    PYTHONPATH=$dir WYPP_INSTALL_DIR=$dir $PY $d/src/runYourProgram.py --check --install-mode assertInstall --quiet $d/"$1" >> "$t"
     popd > /dev/null
     rm -rf "$dir"
 }
@@ -112,7 +116,7 @@ function checkWithOutputAux()
     local outtemp=$t.outtemp
     set +e
     echo "Checking $file (typecheck: $tycheck)"
-    PYTHONPATH=$d/site-lib python3 $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$errtemp" > "$outtemp"
+    PYTHONPATH=$d/site-lib $PY $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$errtemp" > "$outtemp"
     ecode=$?
     set -e
     cat "$errtemp" | sed 's/at 0x[0-9a-f][0-9a-f]*>/at 0x00>/g' > "$err"
