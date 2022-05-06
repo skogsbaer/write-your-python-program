@@ -12,6 +12,7 @@ from .patching.standalone_checker import StandaloneChecker
 from .util.condition import FunctionCondition
 from .util.return_traces import ReturnTracesTransformer, before_return, GlobalReturnTraceManager
 from .util.tranformer_combinator import TransformerCombinator
+from .util import debug
 
 GlobalConfig = DefaultConfig
 
@@ -207,3 +208,6 @@ def checker(annotation: Callable[[], Any], location: Any, ctx=None) -> Callable[
     :return: A type checker function
     """
     return StandaloneChecker(annotation, location, DefaultConfig, ctx)
+
+def enableDebug(debug: bool):
+    debug.enableDebug(debug)

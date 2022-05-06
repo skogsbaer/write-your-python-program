@@ -228,3 +228,4 @@ checkWithOutputAux yes 0 test-data/testIterator.py
 checkWithOutputAux yes 0 test-data/testIterator2.py
 checkWithOutputAux yes 0 test-data/testIterator3.py
 checkWithOutputAux yes 0 test-data/testIterator4.py
+checkWithOutputAux yes 0 test-data/testConcat.py

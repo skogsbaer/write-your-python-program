@@ -20,6 +20,7 @@ from .string_forward_refs import StringForwardRefFactory
 from .tuple import TupleFactory
 from .union import UnionFactory
 from ..error import Location, UntypyAttributeError
+from ..util.debug import debug
 
 # More Specific Ones First
 _FactoryList = [
@@ -59,6 +60,7 @@ class DefaultCreationContext(CreationContext):
         for fac in _FactoryList:
             res = fac.create_from(annotation=annotation, ctx=self)
             if res is not None:
+                debug(f'Created type annotation for {annotation} from factory {fac}')
                 return res
         return None
 

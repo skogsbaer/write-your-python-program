@@ -368,3 +368,4 @@ class UntypyAttributeError(AttributeError, UntypyError):
 class UntypyNameError(UntypyAttributeError, UntypyError):
     def simpleName(self):
         return 'NameError'
+

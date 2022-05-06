@@ -12,15 +12,16 @@ from untypy.interfaces import TypeCheckerFactory, CreationContext, TypeChecker, 
 from untypy.util import WrappedFunction, ArgumentExecutionContext, ReturnExecutionContext
 from untypy.util.condition import FunctionCondition
 from untypy.util.typehints import get_type_hints
-
+import untypy.util.wrapper as wrapper
+import untypy.util.typedfunction as typedfun
 
 class ProtocolFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
         if isinstance(annotation, type) and Protocol in annotation.mro():
             return ProtocolChecker(annotation, ctx)
-        elif hasattr(annotation, '__args__') and hasattr(annotation.__origin__,
-                                                         '__mro__') and typing.Protocol in annotation.__origin__.__mro__:
+        elif hasattr(annotation, '__args__') and hasattr(annotation.__origin__, '__mro__') and \
+            typing.Protocol in annotation.__origin__.__mro__:
             return ProtocolChecker(annotation, ctx)
         else:
             return None
@@ -125,7 +126,6 @@ class ProtocolChecker(TypeChecker):
         self.proto = proto
         self._members = None
         self.typevars = typevars
-        self.wrapper_types = dict()
         self.altname = altname
         self.omit_tyargs = omit_tyargs
 
@@ -139,23 +139,13 @@ class ProtocolChecker(TypeChecker):
         return True
 
     def check_and_wrap(self, arg: Any, ctx: ExecutionContext) -> Any:
-        if hasattr(arg, '_ProtocolWrappedFunction__inner'):
+        if hasattr(arg, '__wrapped__'):
             # no double wrapping
-            arg = getattr(arg, '_ProtocolWrappedFunction__inner')
-
-        if type(arg) in self.wrapper_types:
-            wrapped_type = self.wrapper_types[type(arg)]
-        else:
-            wrapped_type = ProtocolWrapper(self, arg, self.members, ctx)
-            self.wrapper_types[type(arg)] = wrapped_type
-        # On wrappers some built-in classes like tuple, the constructor can not
-        # be called directly, because it will trigger the original one.
-        # To me this looks like a bug in the interpreter.
-        # return wrapped_type(arg, ctx)
-        w = wrapped_type.__new__(wrapped_type)
-        w.__init__(arg, ctx)
-        return w
-
+            arg = getattr(arg, '__wrapped__')
+        simple = False
+        if hasattr(self.proto, '__protocol_only__'):
+            simple = getattr(self.proto, '__protocol_only__')
+        return wrapForProtocol(self, arg, self.members, ctx, simple=simple)
 
     def base_type(self) -> list[Any]:
         # Prevent Classes implementing multiple Protocols in one Union by accident.
@@ -209,9 +199,11 @@ def protoMismatchErrorMessage(what: str, proto: Any):
     else:
         return f"{what} is not {display.withIndefiniteArticle(name)}"
 
-def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
+def wrapForProtocol(protocolchecker: ProtocolChecker,
+                    originalValue: Any,
                     members: dict[str, Tuple[inspect.Signature, dict[str, TypeChecker], FunctionCondition]],
-                    ctx: ExecutionContext):
+                    ctx: ExecutionContext,
+                    simple: bool):
     list_of_attr = dict()
     original = type(originalValue)
     for fnname in members:
@@ -266,71 +258,8 @@ def ProtocolWrapper(protocolchecker: ProtocolChecker, originalValue: Any,
         list_of_attr[fnname] = ProtocolWrappedFunction(original_fn, sig, baseArgDict,
                                                        protocolchecker, paramDict, fc).build()
 
-    def constructor(me, inner, ctx):
-        me._ProtocolWrappedFunction__inner = inner
-        me._ProtocolWrappedFunction__ctx = ctx
-
-    def __repr__(me):
-        return me._ProtocolWrappedFunction__inner.__repr__()
-
-    def __str__(me):
-        return me._ProtocolWrappedFunction__inner.__str__()
-
-    def __getattr__(me, name):
-        return getattr(me._ProtocolWrappedFunction__inner, name)
-
-    def __eq__(me, other):
-        try:
-            other = getattr(other, '_ProtocolWrappedFunction__inner')
-        except AttributeError:
-            pass
-        return me._ProtocolWrappedFunction__inner.__eq__(other)
-
-    def __hash__(me):
-        return me._ProtocolWrappedFunction__inner.__hash__()
-
-    def __next__(me):
-        return me._ProtocolWrappedFunction__inner.__next__()
-
-    def __setattr__(me, name, value):
-        if name == '_ProtocolWrappedFunction__inner':
-            super(type(me), me).__setattr__('_ProtocolWrappedFunction__inner', value)
-            return
-        if name == '_ProtocolWrappedFunction__ctx':
-            super(type(me), me).__setattr__('_ProtocolWrappedFunction__ctx', value)
-            return
-
-        return setattr(me._ProtocolWrappedFunction__inner, name, value)
-
-    list_of_attr['__init__'] = constructor
-    list_of_attr['__getattr__'] = __getattr__  # allow access of attributes
-    list_of_attr['__setattr__'] = __setattr__  # allow access of attributes
-    list_of_attr['__repr__'] = __repr__
-    list_of_attr['__str__'] = __str__
-    list_of_attr['__eq__'] = __eq__
-    list_of_attr['__hash__'] = __hash__
-    if hasattr(originalValue, '__next__'):
-        list_of_attr['__next__'] = __next__
-
     name = f"WyppTypeCheck({original.__name__}, {protocolchecker.proto.__name__})"
-
-    if type(original) in [type, abc.ABCMeta] and original.__flags__ & 0x0400 and \
-        original not in [dict, list, set, tuple, str]:
-        # This class does not have any metaclass that may have unexpected side effects.
-        # Also the Py_TPFLAGS_BASETYPE=0x0400 must be set to inheritable, as some classes like C-Based classes
-        # like`dict_items` can not be inherited from.
-        # Also some other built-in types have bugs when inherited from.
-        orig_tuple = (original,)
-    else:
-        # Fall back to no inheritance, this should be an edge case.
-        orig_tuple = ()
-
-    t = type(name, orig_tuple, list_of_attr)
-
-    if hasattr(original, '__module__'):
-        t.__module__ = original.__module__
-
-    return t
+    return wrapper.wrap(originalValue, list_of_attr, name, extra={'ctx': ctx}, simple=simple)
 
 class ProtocolWrappedFunction(WrappedFunction):
 
@@ -343,10 +272,12 @@ class ProtocolWrappedFunction(WrappedFunction):
                  fc: FunctionCondition):
         self.inner = inner
         self.signature = signature
+        self.parameters = list(self.signature.parameters.values())
         self.checker = checker
         self.baseArgs = baseArgs
         self.protocol = protocol
         self.fc = fc
+        self.fast_sig = typedfun.is_fast_sig(self.parameters, self.fc)
 
     def build(self):
         fn = WrappedFunction.find_original(self.inner)
@@ -356,8 +287,8 @@ class ProtocolWrappedFunction(WrappedFunction):
             fn_of_protocol = getattr(fn_of_protocol, '__wf')
 
         def wrapper(me, *args, **kwargs):
-            inner_object = me.__inner
-            inner_ctx = me.__ctx
+            inner_object = me.__wrapped__
+            inner_ctx = me.__extra__['ctx']
 
             caller = sys._getframe(1)
             (args, kwargs, bind1) = self.wrap_arguments(lambda n: ArgumentExecutionContext(fn_of_protocol, caller, n),
@@ -396,22 +327,8 @@ class ProtocolWrappedFunction(WrappedFunction):
         return self.inner
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
-        try:
-            bindings = self.signature.bind(*args, **kwargs)
-        except TypeError as e:
-            err = UntypyTypeError(header=str(e))
-            if "self" not in self.signature.parameters:
-                err = err.with_note("Hint: 'self'-parameter was omitted in declaration.")
-            raise ctxprv("").wrap(err)
-
-        bindings.apply_defaults()
-        if self.fc is not None:
-            self.fc.prehook(bindings, ctxprv)
-        for name in bindings.arguments:
-            check = self.checker[name]
-            ctx = ctxprv(name)
-            bindings.arguments[name] = check.check_and_wrap(bindings.arguments[name], ctx)
-        return bindings.args, bindings.kwargs, bindings
+        return typedfun.wrap_arguments(self.parameters, self.checker, self.signature,
+            self.fc, self.fast_sig, ctxprv, args, kwargs, expectSelf=True)
 
     def wrap_return(self, ret, bindings, ctx: ExecutionContext):
         check = self.checker['return']

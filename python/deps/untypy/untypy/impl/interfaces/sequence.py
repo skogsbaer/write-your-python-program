@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Optional
+from typing import TypeVar, Generic, Optional, Iterator
 
 I = TypeVar("I")
 
@@ -25,8 +25,6 @@ class Sequence(Generic[I]):
     # This is just an optimization for some types.
     # Maybe for a future feature.
 
-    # def __iter__(self) -> Iterator[I]:
-    #    pass
+    def __iter__(self) -> Iterator[I]:
+       pass
 
-    # def __reversed__(self) -> Iterator[I]:
-    #    pass

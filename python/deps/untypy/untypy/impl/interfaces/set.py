@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar, Optional, Tuple, Iterable, Any, Iterator
+from untypy.impl.interfaces.iterable import OnlyIterable
 
 I = TypeVar("I")
-
 
 class Set(Generic[I], set):
 
@@ -20,11 +20,14 @@ class Set(Generic[I], set):
     def remove(self, elem: I) -> None:
         pass
 
-    def update(self, *others: Tuple[Iterable[I], ...]) -> None:
+    # Using OnlyIterable here makes no other methods than the one provide in Iterable
+    # available. This is required because the implementation of update has shortcuts
+    # bypassing type checks if an element is of type set.
+    def update(self, *others: Tuple[OnlyIterable[I], ...]) -> None:
         pass
 
     # This method returns `NotImplemented`, i don't know why.
-    def __ior__(self, *others: Tuple[Iterable[I], ...]) -> Any:
+    def __ior__(self, *others: Tuple[OnlyIterable[I], ...]) -> Any:
         pass
 
     def __contains__(self, key: I) -> bool:

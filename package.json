@@ -3,7 +3,7 @@
 	"displayName": "Write Your Python Program!",
 	"description": "A user friendly python environment for beginners",
 	"license": "See license in LICENSE",
-	"version": "0.16.6",
+	"version": "0.16.7",
 	"publisher": "StefanWehr",
 	"icon": "icon.png",
 	"engines": {
