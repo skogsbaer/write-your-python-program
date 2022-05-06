@@ -133,6 +133,8 @@ class InterfaceChecker(TypeChecker):
     def describe(self) -> str:
         return self.name
 
+    def base_type(self) -> list[Any]:
+        return [self.origin]
 
 class InterfaceCheckerContext(ExecutionContext):
     def __init__(self, upper: ExecutionContext, arg: Any, name, declared: Location):

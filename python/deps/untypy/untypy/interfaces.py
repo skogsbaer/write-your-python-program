@@ -46,7 +46,7 @@ class TypeChecker:
         return False
 
     def base_type(self) -> list[Any]:
-        raise NotImplementedError
+        raise NotImplementedError(f'base_type({self})')
 
     # Higher Priority => checked first inside Union.
     def base_type_priority(self) -> int:

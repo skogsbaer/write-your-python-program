@@ -87,9 +87,9 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
                 (signature, checker) = find_signature(original, ctx)
                 implementation_fn = getattr(implementation_template, attr)
                 if implementation_fn is not None:
-                    if overwrites is not None and hasattr(overwrites, attr) and hasattr(getattr(overwrites, attr),
-                                                                                        '__overwrite') and getattr(
-                            getattr(overwrites, attr), '__overwrite') == 'advanced':
+                    if overwrites is not None and hasattr(overwrites, attr) and \
+                        hasattr(getattr(overwrites, attr), '__overwrite') and \
+                        getattr(getattr(overwrites, attr), '__overwrite') == 'advanced':
                         list_of_attr[attr] = WrappedClassFunction(implementation_fn, signature, checker,
                                                                   create_fn=create_fn,
                                                                   declared=declared).build_overwrite(
