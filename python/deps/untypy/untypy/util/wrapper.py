@@ -2,6 +2,23 @@ import collections.abc
 import typing
 from untypy.error import UntypyError
 
+def _f():
+    yield 0
+generatorType = type(_f())
+
+def patch(self, ty, extra):
+    self.__extra__ = extra
+    w = self.__wrapped__
+    m = None
+    if hasattr(w, '__module__'):
+        m = getattr(w, '__module__')
+    ty.__module__ = m
+    try:
+        self.__class__ = ty
+    except TypeError as e:
+        raise TypeError(f'Cannot wrap {self.__wrapped__} of type {type(self.__wrapped__)} ' \
+            f'at type {ty}. Original error: {e}')
+
 class WrapperBase:
     def __eq__(self, other):
         if hasattr(other, '__wrapped__'):
@@ -14,8 +31,8 @@ class WrapperBase:
         cls = self.__class__
         if name is None:
             name = cls.__name__
-        self.__class__ = type(name, (cls,), ms)
-        self.__extra__ = extra
+        ty = type(name, (cls,), ms)
+        patch(self, ty, extra)
     def __repr__(self):
         return repr(self.__wrapped__)
     def __str__(self):
@@ -30,12 +47,8 @@ class ObjectWrapper(WrapperBase):
         if name is None:
             name = cls.__name__
         wrappedCls = type(self.__wrapped__)
-        try:
-            self.__class__ = type(name, (wrappedCls, cls), ms)
-        except TypeError as e:
-            raise TypeError(f'Cannot wrap {self.__wrapped__} of type {type(self.__wrapped__)} ' \
-                f'with ObjectWrapper. Original error: {e}')
-        self.__extra__ = extra
+        ty = type(name, (wrappedCls, cls), ms)
+        patch(self, ty, extra)
 
 class ListWrapper(list, WrapperBase):
     def __new__(cls, content):
@@ -67,20 +80,23 @@ class DictWrapper(dict, WrapperBase):
         self.__wrapped__ = content
         return self
 
-# SimpleWrapper is a fallback for types that cannot be used as base types (e.g dict_values)
+_blacklist = ['__class__', '__init__', '__str__', '__repr__', '__hash__', '__eq__', '__patch__',
+    '__init_subclass__', '__class_getitem__', '__getattribute__', '__subclasshook__']
+
+# SimpleWrapper is a fallback for types that cannot be used as base types
 class SimpleWrapper(WrapperBase):
     def __init__(self, baseObject):
-        d = {}
-        for name in dir(baseObject):
-            d[name] = getattr(baseObject, name)
-        self.__dict__ = d
         self.__wrapped__ = baseObject
     def __patch__(self, ms, name=None, extra={}):
         cls = self.__class__
         if name is None:
             name = cls.__name__
-        self.__class__ = type(name, cls.__bases__, ms)
-        self.__extra__ = extra
+        baseObject = self.__wrapped__
+        for name in dir(baseObject):
+            if name not in ms and name not in _blacklist:
+                ms[name] = getattr(baseObject, name)
+        ty = type(name, cls.__bases__, ms)
+        patch(self, ty, extra)
 
 class ValuesViewWrapper(SimpleWrapper):
     pass
@@ -88,11 +104,11 @@ collections.abc.ValuesView.register(ValuesViewWrapper)
 
 class ItemsViewWrapper(SimpleWrapper):
     pass
-collections.abc.ValuesView.register(ItemsViewWrapper)
+collections.abc.ItemsView.register(ItemsViewWrapper)
 
 class KeysViewWrapper(SimpleWrapper):
     pass
-collections.abc.ValuesView.register(KeysViewWrapper)
+collections.abc.KeysView.register(KeysViewWrapper)
 
 def wrap(obj, methods, name=None, extra={}, simple=False):
     if simple:
@@ -114,6 +130,8 @@ def wrap(obj, methods, name=None, extra={}, simple=False):
     elif isinstance(obj, collections.abc.ItemsView):
         w = ItemsViewWrapper(obj)
     elif isinstance(obj, typing.Generic):
+        w = SimpleWrapper(obj)
+    elif isinstance(obj, generatorType):
         w = SimpleWrapper(obj)
     else:
         w = ObjectWrapper(obj)
