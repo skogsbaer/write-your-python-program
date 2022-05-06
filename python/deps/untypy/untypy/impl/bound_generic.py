@@ -12,6 +12,7 @@ class BoundGenericProtocolChecker(ProtocolChecker):
 
 
 def WrappedGenericAlias(alias, ctx: CreationContext):
+    #raise ValueError("dead?")
     typevars = dict(zip(alias.__origin__.__parameters__, alias.__args__))
     for key, value in typevars.items():
         _checktypevar(key, value)

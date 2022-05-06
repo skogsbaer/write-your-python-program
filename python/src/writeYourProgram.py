@@ -219,7 +219,10 @@ def _isNumber(x):
     return (t is int or t is float)
 
 def _seqEq(seq1, seq2, flags):
-    if len(seq1) != len(seq2):
+    print(seq1.__len__)
+    n1 = seq1.__len__()
+    n2 = seq2.__len__()
+    if n1 != n2:
         return False
     for i, x in enumerate(seq1):
         y = seq2[i]

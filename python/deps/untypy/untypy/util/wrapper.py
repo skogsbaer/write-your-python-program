@@ -1,7 +1,8 @@
-import collections.abc
 import typing
 import abc
+import collections
 from untypy.error import UntypyError
+from untypy.util.debug import debug
 
 def _f():
     yield 0
@@ -66,6 +67,8 @@ class ListWrapper(list, WrapperBase):
         self = super().__new__(cls, content)
         self.__wrapped__ = content
         return self
+    #def __len__(self):
+    #    return self.__wrapped__.__len__()
 
 class TupleWrapper(tuple, WrapperBase):
     def __new__(cls, content):
@@ -161,5 +164,7 @@ def wrap(obj, methods, name=None, extra={}, simple=False):
     else:
         w = SimpleWrapper(obj)
     w.__patch__(methods, name, extra)
+    debug(f"Wrapping {obj} at 0x{id(obj):09x} as {name}, simple={simple}, " \
+        f"wrapper=0x{id(w):09x}, wrapped=0x{id(w.__wrapped__):09x}")
     return w
 

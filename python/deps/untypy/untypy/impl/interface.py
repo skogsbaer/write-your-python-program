@@ -4,16 +4,14 @@ from collections.abc import Iterator as ABCIterator
 from collections.abc import Sequence as ABCSequence
 from typing import Optional, Any
 
-from untypy.error import UntypyAttributeError, UntypyTypeError, Location, Frame, NO_GIVEN
+from untypy.error import UntypyAttributeError
 from untypy.impl.interfaces.iterable import Iterable
 from untypy.impl.interfaces.sequence import Sequence
 from untypy.impl.interfaces.dict import Dict, DictLike
 from untypy.impl.interfaces.list import List
 from untypy.impl.interfaces.set import Set
 from untypy.impl.protocol import ProtocolChecker
-from untypy.impl.wrappedclass import WrappedType
-from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, ExecutionContext
-from untypy.util import ReplaceTypeExecutionContext
+from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext
 
 InterfaceMapping = {
     dict: Dict,
@@ -85,54 +83,3 @@ class InterfaceFactory(TypeCheckerFactory):
             return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
         else:
             return None
-
-
-class InterfaceChecker(TypeChecker):
-
-    def __init__(self, origin, template, name, declared):
-        self.origin = origin
-        self.template = template
-        self.name = name
-        self.declared = declared
-
-    def may_change_identity(self) -> bool:
-        return True
-
-    def check_and_wrap(self, arg: Any, ctx: ExecutionContext) -> Any:
-        if not issubclass(type(arg), self.origin):
-            raise ctx.wrap(UntypyTypeError(arg, self.describe()))
-
-        if hasattr(arg, '_WrappedClassFunction__inner'):
-            # Prevent Double Wrapping
-            arg = arg._WrappedClassFunction__inner
-
-        instance = self.template.__new__(self.template)
-        instance._WrappedClassFunction__inner = arg
-        instance._WrappedClassFunction__ctx = InterfaceCheckerContext(ctx, arg, self.name, self.declared)
-        instance._WrappedClassFunction__return_ctx = ReplaceTypeExecutionContext(ctx, self.name)
-        return instance
-
-    def describe(self) -> str:
-        return self.name
-
-    def base_type(self) -> list[Any]:
-        return [self.origin]
-
-class InterfaceCheckerContext(ExecutionContext):
-    def __init__(self, upper: ExecutionContext, arg: Any, name, declared: Location):
-        self.upper = upper
-        self.arg = arg
-        self.name = name
-        self.declared = declared
-
-    def wrap(self, err: UntypyTypeError) -> UntypyTypeError:
-        pv = self.upper.wrap(UntypyTypeError(
-            given=NO_GIVEN,
-        ).with_frame(Frame(
-            type_declared=self.name,
-            indicator_line="^" * len(self.name),
-            responsable=None,
-            declared=self.declared,
-        )))
-
-        return err.with_previous_chain(pv)

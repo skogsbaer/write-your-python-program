@@ -60,7 +60,7 @@ class DefaultCreationContext(CreationContext):
         for fac in _FactoryList:
             res = fac.create_from(annotation=annotation, ctx=self)
             if res is not None:
-                debug(f'Created type annotation for {annotation} from factory {fac}')
+                # debug(f'Created checker for {annotation} from factory {fac}')
                 return res
         return None
 

@@ -40,6 +40,9 @@ class WrapperTests(unittest.TestCase):
         self.assertEqual(l + [4], [1,2,3,4])
         self.assertTrue(l == [1,2,3])
         self.assertTrue([1,2,3] == l)
+        self.assertEqual(3, len(l))
+        l.append(4)
+        self.assertEqual(4, len(l))
 
     def test_wrapTuple(self):
         l = wrap((1,2,3), {'__str__': lambda self: 'XXX'})

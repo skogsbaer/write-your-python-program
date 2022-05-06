@@ -45,6 +45,7 @@ def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
                 name: Optional[str] = None,
                 declared: Optional[Location] = None,
                 overwrites: Optional[type] = None):
+    #raise ValueError("dead?")
     blacklist = ['__class__', '__delattr__', '__dict__', '__dir__',
                  '__doc__', '__getattribute__', '__getattr__', '__init_subclass__',
                  '__new__', '__setattr__', '__subclasshook__', '__weakref__']

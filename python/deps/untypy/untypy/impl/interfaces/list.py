@@ -1,5 +1,5 @@
 from typing import TypeVar, Generic, Iterable, Optional, Union, Any, Iterator
-
+import typing
 from untypy.impl.interfaces.util import overwrite
 from untypy.interfaces import CreationContext
 from untypy.util import ReturnExecutionContext
@@ -64,33 +64,9 @@ class List(Generic[I], list):
 
     #@overwrite("advanced")
     #def __getitem__(self, ctx: CreationContext):
-    def __getitem__(self, i: Union[int, slice]):
-        # self is WrappedClassFunction
-        return
+    def __getitem__(self, i: Union[int, slice]) -> Any:
+        pass
 
-        u_checker = ctx.find_checker(Union[int, slice])
-        inner_checker = ctx.find_checker(I)
-
-        # TODO: implement some kind caching maybe.
-        me_checker = lambda: ctx.find_checker(list[I])
-
-        def inner(me, item):
-            ret_ctx = me._WrappedClassFunction__return_ctx
-            if ret_ctx is None:
-                ret_ctx = ReturnExecutionContext(self)
-
-            if isinstance(item, int):
-                item = me._WrappedClassFunction__inner[item]
-                return inner_checker.check_and_wrap(item, ret_ctx)
-            elif isinstance(item, slice):
-                item = me._WrappedClassFunction__inner[item]
-                return item
-            else:
-                # TODO:
-                raise NotImplementedError()
-
-        setattr(self, '__original', sig_getitem())
-        return inner
 
     #@overwrite("simple")
     def __add__(self, other: Iterable) -> Any:
