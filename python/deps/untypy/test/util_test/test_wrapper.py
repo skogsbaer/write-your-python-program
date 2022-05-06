@@ -82,6 +82,7 @@ class WrapperTests(unittest.TestCase):
         self.assertTrue(d == {'1': 1, '2': 2, '3': 3})
         self.assertTrue({'1': 1, '2': 2, '3': 3} == d)
         self.assertEqual(d.foo(), 11)
+        self.assertEqual(d.copy(), {'1': 1, '2': 2, '3': 3})
 
     def test_name(self):
         l = wrap([1,2,3], {}, "NameOfWrapper")
