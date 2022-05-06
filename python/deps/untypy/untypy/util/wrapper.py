@@ -1,10 +1,14 @@
 import collections.abc
 import typing
+import abc
 from untypy.error import UntypyError
 
 def _f():
     yield 0
 generatorType = type(_f())
+
+class WyppWrapError(Exception):
+    pass
 
 def patch(self, ty, extra):
     self.__extra__ = extra
@@ -16,7 +20,7 @@ def patch(self, ty, extra):
     try:
         self.__class__ = ty
     except TypeError as e:
-        raise TypeError(f'Cannot wrap {self.__wrapped__} of type {type(self.__wrapped__)} ' \
+        raise WyppWrapError(f'Cannot wrap {self.__wrapped__} of type {type(self.__wrapped__)} ' \
             f'at type {ty}. Original error: {e}')
 
 class WrapperBase:
@@ -49,6 +53,13 @@ class ObjectWrapper(WrapperBase):
         wrappedCls = type(self.__wrapped__)
         ty = type(name, (wrappedCls, cls), ms)
         patch(self, ty, extra)
+
+class ABCObjectWrapper(abc.ABC, ObjectWrapper):
+    pass
+
+# Superclasses in reverse order.
+class ABCObjectWrapperRev(ObjectWrapper, abc.ABC):
+    pass
 
 class ListWrapper(list, WrapperBase):
     def __new__(cls, content):
@@ -133,6 +144,14 @@ def wrap(obj, methods, name=None, extra={}, simple=False):
         w = SimpleWrapper(obj)
     elif isinstance(obj, generatorType):
         w = SimpleWrapper(obj)
+    elif isinstance(obj, abc.ABC):
+        try:
+            w = ABCObjectWrapper(obj)
+        except WyppWrapError:
+            try:
+                w = ABCObjectWrapperRev(obj)
+            except WyppWrapError:
+                w = SimpleWrapper(obj)
     else:
         w = ObjectWrapper(obj)
     w.__patch__(methods, name, extra)
