@@ -209,5 +209,5 @@ def checker(annotation: Callable[[], Any], location: Any, ctx=None) -> Callable[
     """
     return StandaloneChecker(annotation, location, DefaultConfig, ctx)
 
-def enableDebug(debug: bool):
-    debug.enableDebug(debug)
+def enableDebug(d: bool):
+    debug.enableDebug(d)
