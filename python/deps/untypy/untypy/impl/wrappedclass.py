@@ -8,7 +8,7 @@ from untypy.impl.any import SelfChecker, AnyChecker
 from untypy.interfaces import TypeChecker, CreationContext, ExecutionContext, WrappedFunction, \
     WrappedFunctionContextProvider
 from untypy.util import ArgumentExecutionContext, ReturnExecutionContext
-
+import untypy.util.typedfunction as typedfun
 
 def find_signature(member, ctx: CreationContext):
     signature = inspect.signature(member)
@@ -38,18 +38,6 @@ def find_signature(member, ctx: CreationContext):
                                                 f"for Return Value of function {member.__name__}\n"))
         checkers['return'] = return_checker
     return signature, checkers
-
-
-def wrap_arguments(signature: inspect.signature, checker: dict[str, TypeChecker],
-                   ctxprv: WrappedFunctionContextProvider, args, kwargs):
-    bindings = signature.bind(*args, **kwargs)
-    bindings.apply_defaults()
-    for name in bindings.arguments:
-        check = checker[name]
-        ctx = ctxprv(name)
-        bindings.arguments[name] = check.check_and_wrap(bindings.arguments[name], ctx)
-    return bindings.args, bindings.kwargs
-
 
 def WrappedType(template: Union[type, ModuleType], ctx: CreationContext, *,
                 implementation_template: Union[type, ModuleType, None] = None,
@@ -133,12 +121,14 @@ class WrappedClassFunction(WrappedFunction):
                  declared: Optional[Location] = None):
         self.inner = inner
         self.signature = signature
+        self.parameters = list(self.signature.parameters.values())
         self.checker = checker
         self.create_fn = create_fn
         self._declared = declared
         self.fc = None
         if hasattr(self.inner, "__fc"):
             self.fc = getattr(self.inner, "__fc")
+        self.fast_sig = typedfun.is_fast_sig(self.parameters, self.fc)
 
     def build_overwrite(self, f, ctx: CreationContext):
         fn = self.inner
@@ -196,21 +186,8 @@ class WrappedClassFunction(WrappedFunction):
         return self.inner
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
-        # FIXME: code duplication with protocol. Might still be slow here
-        try:
-            bindings = self.signature.bind(*args, **kwargs)
-        except TypeError as e:
-            err = UntypyTypeError(header=str(e))
-            raise ctxprv("").wrap(err)
-
-        bindings.apply_defaults()
-        if self.fc is not None:
-            self.fc.prehook(bindings, ctxprv)
-        for name in bindings.arguments:
-            check = self.checker[name]
-            ctx = ctxprv(name)
-            bindings.arguments[name] = check.check_and_wrap(bindings.arguments[name], ctx)
-        return bindings.args, bindings.kwargs, bindings
+        return typedfun.wrap_arguments(self.parameters, self.checker, self.signature,
+            self.fc, self.fast_sig, ctxprv, args, kwargs, expectSelf=True)
 
     def wrap_return(self, ret, bindings, ctx: ExecutionContext):
         check = self.checker['return']

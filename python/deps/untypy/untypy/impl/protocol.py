@@ -13,6 +13,7 @@ from untypy.util import WrappedFunction, ArgumentExecutionContext, ReturnExecuti
 from untypy.util.condition import FunctionCondition
 from untypy.util.typehints import get_type_hints
 import untypy.util.wrapper as wrapper
+import untypy.util.typedfunction as typedfun
 
 class ProtocolFactory(TypeCheckerFactory):
 
@@ -271,10 +272,12 @@ class ProtocolWrappedFunction(WrappedFunction):
                  fc: FunctionCondition):
         self.inner = inner
         self.signature = signature
+        self.parameters = list(self.signature.parameters.values())
         self.checker = checker
         self.baseArgs = baseArgs
         self.protocol = protocol
         self.fc = fc
+        self.fast_sig = typedfun.is_fast_sig(self.parameters, self.fc)
 
     def build(self):
         fn = WrappedFunction.find_original(self.inner)
@@ -324,23 +327,8 @@ class ProtocolWrappedFunction(WrappedFunction):
         return self.inner
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
-        # FIXME: there is no fast path here!
-        try:
-            bindings = self.signature.bind(*args, **kwargs)
-        except TypeError as e:
-            err = UntypyTypeError(header=str(e))
-            if "self" not in self.signature.parameters:
-                err = err.with_note("Hint: 'self'-parameter was omitted in declaration.")
-            raise ctxprv("").wrap(err)
-
-        bindings.apply_defaults()
-        if self.fc is not None:
-            self.fc.prehook(bindings, ctxprv)
-        for name in bindings.arguments:
-            check = self.checker[name]
-            ctx = ctxprv(name)
-            bindings.arguments[name] = check.check_and_wrap(bindings.arguments[name], ctx)
-        return bindings.args, bindings.kwargs, bindings
+        return typedfun.wrap_arguments(self.parameters, self.checker, self.signature,
+            self.fc, self.fast_sig, ctxprv, args, kwargs, expectSelf=True)
 
     def wrap_return(self, ret, bindings, ctx: ExecutionContext):
         check = self.checker['return']
