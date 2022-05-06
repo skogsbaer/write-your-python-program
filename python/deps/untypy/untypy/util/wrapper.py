@@ -94,8 +94,10 @@ class KeysViewWrapper(SimpleWrapper):
     pass
 collections.abc.ValuesView.register(KeysViewWrapper)
 
-def wrap(obj, methods, name=None, extra={}):
-    if isinstance(obj, list):
+def wrap(obj, methods, name=None, extra={}, simple=False):
+    if simple:
+        w = SimpleWrapper(obj)
+    elif isinstance(obj, list):
         w = ListWrapper(obj)
     elif isinstance(obj, tuple):
         w = TupleWrapper(obj)

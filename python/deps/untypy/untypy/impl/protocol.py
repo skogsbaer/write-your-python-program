@@ -141,7 +141,10 @@ class ProtocolChecker(TypeChecker):
         if hasattr(arg, '__wrapped__'):
             # no double wrapping
             arg = getattr(arg, '__wrapped__')
-        return wrapForProtocol(self, arg, self.members, ctx)
+        simple = False
+        if hasattr(self.proto, '__protocol_only__'):
+            simple = getattr(self.proto, '__protocol_only__')
+        return wrapForProtocol(self, arg, self.members, ctx, simple=simple)
 
     def base_type(self) -> list[Any]:
         # Prevent Classes implementing multiple Protocols in one Union by accident.
@@ -198,7 +201,8 @@ def protoMismatchErrorMessage(what: str, proto: Any):
 def wrapForProtocol(protocolchecker: ProtocolChecker,
                     originalValue: Any,
                     members: dict[str, Tuple[inspect.Signature, dict[str, TypeChecker], FunctionCondition]],
-                    ctx: ExecutionContext):
+                    ctx: ExecutionContext,
+                    simple: bool):
     list_of_attr = dict()
     original = type(originalValue)
     for fnname in members:
@@ -254,7 +258,7 @@ def wrapForProtocol(protocolchecker: ProtocolChecker,
                                                        protocolchecker, paramDict, fc).build()
 
     name = f"WyppTypeCheck({original.__name__}, {protocolchecker.proto.__name__})"
-    return wrapper.wrap(originalValue, list_of_attr, name, {'ctx': ctx})
+    return wrapper.wrap(originalValue, list_of_attr, name, extra={'ctx': ctx}, simple=simple)
 
 class ProtocolWrappedFunction(WrappedFunction):
 
