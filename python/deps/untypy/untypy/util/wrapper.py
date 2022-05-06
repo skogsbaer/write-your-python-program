@@ -91,8 +91,12 @@ class DictWrapper(dict, WrapperBase):
         self.__wrapped__ = content
         return self
 
-_blacklist = ['__class__', '__init__', '__str__', '__repr__', '__hash__', '__eq__', '__patch__',
-    '__init_subclass__', '__class_getitem__', '__getattribute__', '__subclasshook__']
+_blacklist = [
+    '__class__', '__delattr__', '__dict__', '__dir__', '__doc__',
+    '__getattribute__', '__get_attr_', '__init_subclass__'
+    '__init__', '__new__', '__repr__', '__setattr__', '__str__',
+    '__hash__', '__eq__', '__patch__',
+    '__class_getitem__',  '__subclasshook__']
 
 # SimpleWrapper is a fallback for types that cannot be used as base types
 class SimpleWrapper(WrapperBase):
