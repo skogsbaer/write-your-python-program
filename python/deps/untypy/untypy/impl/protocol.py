@@ -324,6 +324,7 @@ class ProtocolWrappedFunction(WrappedFunction):
         return self.inner
 
     def wrap_arguments(self, ctxprv: WrappedFunctionContextProvider, args, kwargs):
+        # FIXME: there is no fast path here!
         try:
             bindings = self.signature.bind(*args, **kwargs)
         except TypeError as e:
