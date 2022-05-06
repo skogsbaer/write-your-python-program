@@ -16,17 +16,17 @@ from untypy.interfaces import TypeCheckerFactory, TypeChecker, CreationContext, 
 from untypy.util import ReplaceTypeExecutionContext
 
 InterfaceMapping = {
-    dict: (Dict,),
-    typing.Dict: (Dict,),
-    DictLike: (DictLike,),
-    list: (List,),
-    typing.List: (List,),
-    set: (Set,),
-    typing.Set: (Set,),
-    ABCIterable: (Iterable,),
-    typing.Iterable: (Iterable,),
-    ABCSequence: (Sequence,),
-    typing.Sequence: (Sequence,)
+    dict: Dict,
+    typing.Dict: Dict,
+    DictLike: DictLike,
+    list: List,
+    typing.List: List,
+    set: Set,
+    typing.Set: Set,
+    ABCIterable: Iterable,
+    typing.Iterable: Iterable,
+    ABCSequence: Sequence,
+    typing.Sequence: Sequence
 }
 
 class InterfaceFactory(TypeCheckerFactory):
@@ -34,11 +34,10 @@ class InterfaceFactory(TypeCheckerFactory):
     def create_from(self, annotation: Any, ctx: CreationContext, omit_tyargs=False) -> Optional[TypeChecker]:
         if annotation in InterfaceMapping:
             # Assume Any if no parameters are given
-            (protocol,) = InterfaceMapping[annotation]
+            protocol = InterfaceMapping[annotation]
             bindings = protocol.__parameters__
             if len(bindings) == 0:
                 raise AssertionError(f"This is a BUG. {annotation} has no generic params.")
-
             anys = (Any, ) * len(bindings)
             # handle Python inconsistency
             if hasattr(annotation, '__class_getitem__'):
@@ -56,7 +55,7 @@ class InterfaceFactory(TypeCheckerFactory):
 
         elif hasattr(annotation, '__origin__') and \
             hasattr(annotation, '__args__') and annotation.__origin__ in InterfaceMapping:
-            (protocol,) = InterfaceMapping[annotation.__origin__]
+            protocol = InterfaceMapping[annotation.__origin__]
             bindings = protocol.__parameters__  # args of Generic super class
             origin = annotation.__origin__
             inner_checkers = []
@@ -67,40 +66,23 @@ class InterfaceFactory(TypeCheckerFactory):
                 inner_checkers.append(ch)
             if len(inner_checkers) != len(bindings):
                 raise UntypyAttributeError(f"Expected {len(bindings)} type arguments inside of {annotation}")
-
             if omit_tyargs:
                 name = f"{origin.__name__}"
             else:
                 name = f"{origin.__name__}[" + (', '.join(map(lambda t: t.describe(), inner_checkers))) + "]"
-
             bindings = dict(zip(bindings, annotation.__args__))
             ctx = ctx.with_typevars(bindings)
-
-            if type(origin) == type:
-                template = WrappedType(protocol, ctx.with_typevars(bindings), name=name, implementation_template=origin,
-                                       declared=ctx.declared_location(), overwrites=protocol)
-                return InterfaceChecker(origin, template, name, ctx.declared_location())
-            else:
-                # type(origin) == collection.abc.ABCMeta
-                return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
+            return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
 
         # Non Generic
         elif annotation in InterfaceMapping:
-            (protocol,) = InterfaceMapping[annotation]
-
+            protocol = InterfaceMapping[annotation]
             # Edge-Case `TypingSequence has no __name__, like every other class`
             if annotation == typing.Sequence:
                 name = 'Sequence'
             else:
                 name = annotation.__name__
-
-            if type(annotation) == type:
-                template = WrappedType(protocol, ctx, name=name, implementation_template=annotation,
-                                       declared=ctx.declared_location(), overwrites=protocol)
-                return InterfaceChecker(annotation, template, name, ctx.declared_location())
-            else:
-                # type(origin) == collection.abc.ABCMeta
-                return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
+            return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
         else:
             return None
 

@@ -62,9 +62,11 @@ class List(Generic[I], list):
     def __delitem__(self, i: Union[int, slice]):
         pass
 
-    @overwrite("advanced")
-    def __getitem__(self, ctx: CreationContext):
+    #@overwrite("advanced")
+    #def __getitem__(self, ctx: CreationContext):
+    def __getitem__(self, i: Union[int, slice]):
         # self is WrappedClassFunction
+        return
 
         u_checker = ctx.find_checker(Union[int, slice])
         inner_checker = ctx.find_checker(I)
@@ -90,11 +92,11 @@ class List(Generic[I], list):
         setattr(self, '__original', sig_getitem())
         return inner
 
-    @overwrite("simple")
+    #@overwrite("simple")
     def __add__(self, other: Iterable) -> Any:
         return cast_wlist(self) + other
 
-    @overwrite("simple")
+    #@overwrite("simple")
     def __mul__(self, n: int) -> Any:
         return cast_wlist(self) * n
 
@@ -110,31 +112,31 @@ class List(Generic[I], list):
     def __iter__(self) -> Iterator[I]:
         pass
 
-    @overwrite("simple")
-    def __radd__(self, other):
-        return cast_wlist(other) + cast_wlist(self)
+    #@overwrite("simple")
+    #def __radd__(self, other):
+    #    return cast_wlist(other) + cast_wlist(self)
 
-    @overwrite("simple")
+    #@overwrite("simple")
     def __lt__(self, other):
         return cast_wlist(self).__lt__(cast_wlist(other))
 
-    @overwrite("simple")
+    #@overwrite("simple")
     def __le__(self, other):
         return cast_wlist(self).__le__(cast_wlist(other))
 
-    @overwrite("simple")
+    #@overwrite("simple")
     def __eq__(self, other):
         return cast_wlist(self).__eq__(cast_wlist(other))
 
-    @overwrite("simple")
+    #@overwrite("simple")
     def __ne__(self, other):
         return cast_wlist(self).__ne__(cast_wlist(other))
 
-    @overwrite("simple")
+    #@overwrite("simple")
     def __gt__(self, other):
         return cast_wlist(self).__gt__(cast_wlist(other))
 
-    @overwrite("simple")
+    #@overwrite("simple")
     def __ge__(self, other):
         return cast_wlist(self).__ge__(cast_wlist(other))
 
