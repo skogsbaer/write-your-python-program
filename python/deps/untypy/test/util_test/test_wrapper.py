@@ -85,6 +85,6 @@ class WrapperTests(unittest.TestCase):
 
     def test_name(self):
         l = wrap([1,2,3], {}, "NameOfWrapper")
-        self.assertEqual(str(type(l)), "NameOfWrapper")
+        self.assertEqual(str(type(l)), "<class 'NameOfWrapper'>")
         c = wrap(C(1), {}, "blub")
-        self.assertEqual(str(type(c)), "blub")
+        self.assertEqual(str(type(c)), "<class 'test.util_test.test_wrapper.blub'>")

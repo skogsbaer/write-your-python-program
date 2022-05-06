@@ -54,8 +54,8 @@ class InterfaceFactory(TypeCheckerFactory):
                     omit_tyargs=True
                 )
 
-        elif hasattr(annotation, '__origin__') and hasattr(annotation,
-                                                           '__args__') and annotation.__origin__ in InterfaceMapping:
+        elif hasattr(annotation, '__origin__') and \
+            hasattr(annotation, '__args__') and annotation.__origin__ in InterfaceMapping:
             (protocol,) = InterfaceMapping[annotation.__origin__]
             bindings = protocol.__parameters__  # args of Generic super class
             origin = annotation.__origin__
