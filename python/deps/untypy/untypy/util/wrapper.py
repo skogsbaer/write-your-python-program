@@ -103,9 +103,9 @@ class SimpleWrapper(WrapperBase):
         if name is None:
             name = cls.__name__
         baseObject = self.__wrapped__
-        for name in dir(baseObject):
-            if name not in ms and name not in _blacklist:
-                ms[name] = getattr(baseObject, name)
+        for x in dir(baseObject):
+            if x not in ms and x not in _blacklist:
+                ms[x] = getattr(baseObject, x)
         ty = type(name, cls.__bases__, ms)
         patch(self, ty, extra)
 
@@ -144,7 +144,7 @@ def wrap(obj, methods, name=None, extra={}, simple=False):
         w = SimpleWrapper(obj)
     elif isinstance(obj, generatorType):
         w = SimpleWrapper(obj)
-    elif isinstance(obj, abc.ABC):
+    elif isinstance(obj, abc.ABC) and hasattr(obj, '__dict__'):
         try:
             w = ABCObjectWrapper(obj)
         except WyppWrapError:
@@ -152,8 +152,10 @@ def wrap(obj, methods, name=None, extra={}, simple=False):
                 w = ABCObjectWrapperRev(obj)
             except WyppWrapError:
                 w = SimpleWrapper(obj)
-    else:
+    elif hasattr(obj, '__dict__'):
         w = ObjectWrapper(obj)
+    else:
+        w = SimpleWrapper(obj)
     w.__patch__(methods, name, extra)
     return w
 
