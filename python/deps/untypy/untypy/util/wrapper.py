@@ -101,6 +101,8 @@ _blacklist = [
     '__hash__', '__eq__', '__patch__',
     '__class_getitem__',  '__subclasshook__']
 
+_extra = ['__next__']
+
 # SimpleWrapper is a fallback for types that cannot be used as base types
 class SimpleWrapper(WrapperBase):
     def __init__(self, baseObject):
@@ -110,8 +112,8 @@ class SimpleWrapper(WrapperBase):
         if name is None:
             name = cls.__name__
         baseObject = self.__wrapped__
-        for x in dir(baseObject):
-            if x not in ms and x not in _blacklist:
+        for x in dir(baseObject) + _extra:
+            if x not in ms and x not in _blacklist and hasattr(baseObject, x):
                 ms[x] = getattr(baseObject, x)
         ty = type(name, cls.__bases__, ms)
         patch(self, ty, extra)
