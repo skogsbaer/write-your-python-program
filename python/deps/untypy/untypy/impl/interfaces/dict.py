@@ -47,7 +47,7 @@ class Dict(Generic[K, V], dict):
         pass
 
     # Miss-match See: https://github.com/skogsbaer/write-your-python-program/issues/19
-    def setdefault(self, key: K, default: V) -> V:
+    def setdefault(self, key: K, default: V=None) -> V:
         pass
 
     def update(self, *E: Iterable[DictLike[K, V]], **F: Optional[DictLike[K, V]]) -> Any:
@@ -69,19 +69,15 @@ class Dict(Generic[K, V], dict):
         pass
 
     # Untypy does not support generic functions :/
-    # def __or__(self, other : dict[I, J]) -> dict[Union[K,I], Union[V,J]]:
-    #     pass
+    def __or__(self, other : dict) -> dict:
+         pass
 
     def __reversed__(self) -> Iterator[K]:
         pass
 
     # Untypy does not support generic functions :/
-    # def __ror__(self, other : dict[I, J]) -> dict[Union[K,I], Union[V,J]]:
-    #     """ Return value|self. """
-    #     pass
+    def __ror__(self, other : dict) -> dict: pass
 
-    def __getitem__(self, key: K) -> V:
-        pass
+    def __getitem__(self, key: K) -> V: pass
 
-    def __setitem__(self, key: K, value: V) -> None:
-        pass
+    def __setitem__(self, key: K, value: V) -> None: pass

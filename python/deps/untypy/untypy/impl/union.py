@@ -37,10 +37,10 @@ class UnionChecker(TypeChecker):
                     raise ctx.wrap(UntypyAttributeError(f"{checker.describe()} is in conflict with "
                                                         f"{dups[base_type].describe()} "
                                                         f"in {self.describe()}. "
-                                                        f"Types must be distinguishable inside one Union."
-                                                        f"\nNote: Only one Protocol is allowed inside one Union. "
+                                                        f"Types must be distinguishable inside a Union."
+                                                        f"\nNote: Only one protocol is allowed inside a Union. "
                                                         f"Classes could implement multiple Protocols by accident."
-                                                        f"\nNote: Multiple Callables or Generics inside one Union are also unsupported."))
+                                                        f"\nNote: Multiple callables or generics inside a Union are also unsupported."))
                 else:
                     dups[base_type] = checker
 

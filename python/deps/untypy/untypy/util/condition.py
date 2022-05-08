@@ -4,7 +4,7 @@ from collections.abc import Callable
 from typing import Optional
 
 from untypy.error import UntypyAttributeError, UntypyTypeError, Frame
-from untypy.interfaces import ExecutionContext, WrappedFunction
+from untypy.interfaces import ExecutionContext, WrappedFunction, TypeChecker
 
 WrappedFunctionContextProvider = Callable[[str], ExecutionContext]
 
@@ -51,12 +51,16 @@ class FunctionCondition:
                 ))
                 raise ctx(0).wrap(err)
 
-    def posthook(self, ret, boundargs, ctx: ExecutionContext):
+    def posthook(self, ret, boundargs, ctx: ExecutionContext, checker: TypeChecker):
         for p in self.postcondition:
             bindings = {}
             for name in inspect.signature(p).parameters:
                 if name == "ret":
                     bindings["ret"] = ret
+                elif name == "checker":
+                    bindings["checker"] = checker
+                elif name == "ctx":
+                    bindings["ctx"] = ctx
                 elif name in boundargs.arguments:
                     bindings[name] = boundargs.arguments[name]
                 else:
@@ -99,3 +103,28 @@ def find_lambdasource(fn) -> Optional[str]:
             return m.group(1)
     except:
         return None
+
+def _condgetfc(func):
+    if hasattr(func, "__fc"):
+        return getattr(func, "__fc")
+    else:
+        fc = FunctionCondition()
+        setattr(func, "__fc", fc)
+        fc.func = func
+        return fc
+
+
+def precondition(cond):
+    def decorator(func):
+        fc = _condgetfc(func)
+        fc.precondition.append(cond)
+        return func
+    return decorator
+
+
+def postcondition(cond):
+    def decorator(func):
+        fc = _condgetfc(func)
+        fc.postcondition.append(cond)
+        return func
+    return decorator

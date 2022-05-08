@@ -1,5 +1,6 @@
 from untypy.util.wrapper import wrap
 import unittest
+import collections
 
 class C:
     def __init__(self, content):
@@ -43,6 +44,29 @@ class WrapperTests(unittest.TestCase):
         self.assertEqual(3, len(l))
         l.append(4)
         self.assertEqual(4, len(l))
+        self.assertEqual([1,2,3,4], l)
+        f = l.append
+        flag = False
+        def myAppend(x):
+            nonlocal flag
+            flag = True
+            f(x)
+        setattr(l, 'append', myAppend)
+        l.append(5)
+        self.assertEqual(5, len(l))
+        self.assertEqual([1,2,3,4,5], l)
+        self.assertTrue(flag)
+
+    def test_wrapList2(self):
+        # This is what happens in the protocol checker: the function is called on the original
+        # value
+        orig = [1,2,3]
+        l = wrap(orig, {'append': lambda self, x: orig.append(x)})
+        self.assertTrue([1,2,3] == l)
+        self.assertEqual(3, len(l))
+        l.append(4)
+        self.assertEqual(4, len(l))
+        self.assertEqual([1,2,3,4], l)
 
     def test_wrapTuple(self):
         l = wrap((1,2,3), {'__str__': lambda self: 'XXX'})
@@ -86,6 +110,31 @@ class WrapperTests(unittest.TestCase):
         self.assertTrue({'1': 1, '2': 2, '3': 3} == d)
         self.assertEqual(d.foo(), 11)
         self.assertEqual(d.copy(), {'1': 1, '2': 2, '3': 3})
+
+    def test_wrapViews(self):
+        d = {'1': 1, '2': 2}
+        # keys
+        self.assertTrue(isinstance(d.keys(), collections.abc.KeysView))
+        kv = wrap(d.keys(), {})
+        self.assertTrue(isinstance(kv, collections.abc.KeysView))
+        acc = []
+        for x in kv:
+            acc.append(x)
+        self.assertEqual(['1','2'], acc)
+        # items
+        iv = wrap(d.items(), {})
+        self.assertTrue(isinstance(iv, collections.abc.ItemsView))
+        acc = []
+        for x in iv:
+            acc.append(x)
+        self.assertEqual([('1', 1),('2', 2)], acc)
+        # values
+        vv = wrap(d.values(), {})
+        self.assertTrue(isinstance(vv, collections.abc.ValuesView))
+        acc = []
+        for x in vv:
+            acc.append(x)
+        self.assertEqual([1,2], acc)
 
     def test_name(self):
         l = wrap([1,2,3], {}, "NameOfWrapper")

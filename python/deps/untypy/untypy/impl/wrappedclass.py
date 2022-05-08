@@ -152,7 +152,7 @@ class WrappedClassFunction(WrappedFunction):
                 lambda n: ArgumentExecutionContext(wrapper_cls, caller, n, declared=self.declared()),
                 args, kwargs)
             ret = fn(*args, **kwargs)
-            return self.wrap_return(ret, bindings, ReturnExecutionContext(self))
+            return self.wrap_return(args, kwargs, ret, bindings, ReturnExecutionContext(self))
 
         def wrapper_self(me, *args, **kwargs):
             if name == '__init__':
@@ -165,9 +165,9 @@ class WrappedClassFunction(WrappedFunction):
                 (me.__inner, *args), kwargs)
             ret = fn(*args, **kwargs)
             if me.__return_ctx is None:
-                return self.wrap_return(ret, bindings, ReturnExecutionContext(self))
+                return self.wrap_return(args, kwargs, ret, bindings, ReturnExecutionContext(self))
             else:
-                return self.wrap_return(ret, bindings, me.__return_ctx)
+                return self.wrap_return(args, kwargs, ret, bindings, me.__return_ctx)
 
         if inspect.iscoroutine(self.inner):
             raise UntypyAttributeError("Async Functions are currently not supported.")
@@ -190,11 +190,11 @@ class WrappedClassFunction(WrappedFunction):
         return typedfun.wrap_arguments(self.parameters, self.checker, self.signature,
             self.fc, self.fast_sig, ctxprv, args, kwargs, expectSelf=True)
 
-    def wrap_return(self, ret, bindings, ctx: ExecutionContext):
-        check = self.checker['return']
+    def wrap_return(self, args, kwds, ret, bindings, ctx: ExecutionContext):
+        fc_pair = None
         if self.fc is not None:
-            self.fc.posthook(ret, bindings, ctx)
-        return check.check_and_wrap(ret, ctx)
+            fc_pair = (self.fc, bindings)
+        return typedfun.wrap_return(self.checker['return'], args, kwds, ret, fc_pair, ctx)
 
     def describe(self) -> str:
         fn = WrappedFunction.find_original(self.inner)

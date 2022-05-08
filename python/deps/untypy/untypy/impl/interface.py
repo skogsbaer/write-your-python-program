@@ -70,7 +70,7 @@ class InterfaceFactory(TypeCheckerFactory):
                 name = f"{origin.__name__}[" + (', '.join(map(lambda t: t.describe(), inner_checkers))) + "]"
             bindings = dict(zip(bindings, annotation.__args__))
             ctx = ctx.with_typevars(bindings)
-            return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
+            return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs, ty=origin)
 
         # Non Generic
         elif annotation in InterfaceMapping:
@@ -80,6 +80,6 @@ class InterfaceFactory(TypeCheckerFactory):
                 name = 'Sequence'
             else:
                 name = annotation.__name__
-            return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs)
+            return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs, ty=annotation)
         else:
             return None

@@ -10,6 +10,7 @@ from .dummy_delayed import DummyDelayedFactory
 from .generator import GeneratorFactory
 from .generic import GenericFactory
 from .interface import InterfaceFactory
+from .choice import ChoiceFactory
 from .iterator import IteratorFactory
 from .literal import LiteralFactory
 from .none import NoneFactory
@@ -26,6 +27,7 @@ from ..util.debug import debug
 _FactoryList = [
     AnyFactory(),
     NoneFactory(),
+    DummyDelayedFactory(),
     AnnotatedFactory(),
     ProtocolFactory(),  # must be higher then Generic
     GenericFactory(),
@@ -34,10 +36,10 @@ _FactoryList = [
     OptionalFactory(),  # must be higher then Union
     UnionFactory(),
     TupleFactory(),
-    DummyDelayedFactory(),
     GeneratorFactory(),
     IteratorFactory(),
     InterfaceFactory(),
+    ChoiceFactory(),
     StringForwardRefFactory(),  # resolve types passed as strings
     # must come last
     SimpleFactory()
