@@ -191,6 +191,7 @@ class DictWrapper(WrapperBase, dict):
     def items(self): return self.__wrapped__.items()
     def values(self): return self.__wrapped__.values()
 
+# Tuple and string wrapper are simpler because these types are immutable
 class StringWrapper(str, WrapperBase):
     def __new__(cls, content):
         self = super().__new__(cls, content)

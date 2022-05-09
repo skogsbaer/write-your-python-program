@@ -102,6 +102,7 @@ class TestSet(unittest.TestCase):
         l2 = l1.copy()
         checker = untypy.checker(lambda ty=set[int]: ty, dummy_caller)
         wrapped = checker(l2)
+        self.assertFalse(l2 is wrapped)
         self._check(lambda: f(l1), lambda: f(wrapped), [(l1, wrapped), (l1, l2)])
 
     def checkSym(self, f):

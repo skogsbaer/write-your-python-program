@@ -125,6 +125,7 @@ class TestTuple(unittest.TestCase):
         refRes = f(l1)
         checker = untypy.checker(lambda ty=tuple[int,...]: ty, dummy_caller)
         wrapped = checker(l1)
+        self.assertFalse(l1 is wrapped)
         res = f(wrapped)
         self.assertEqual(l1, wrapped)
         self.assertEqual(refRes, res)
@@ -138,6 +139,7 @@ class TestTuple(unittest.TestCase):
         refRes11 = f(l1, l1)
         checker = untypy.checker(lambda ty=tuple[int,...]: ty, dummy_caller)
         wrapped1 = checker(l1)
+        self.assertFalse(l1 is wrapped1)
         res11 = f(wrapped1, wrapped1)
         self.assertEqual(refRes11, res11)
 
@@ -148,5 +150,7 @@ class TestTuple(unittest.TestCase):
         checker = untypy.checker(lambda ty=tuple[int, ...]: ty, dummy_caller)
         wrapped1 = checker(l1)
         wrapped2 = checker(l2)
+        self.assertFalse(l1 is wrapped1)
+        self.assertFalse(l2 is wrapped2)
         res12 = f(wrapped1, wrapped2)
         self.assertEqual(refRes12, res12)

@@ -70,6 +70,7 @@ class TestDict(unittest.TestCase):
             refRes = e
         checker = untypy.checker(lambda ty=dict[str, int]: ty, dummy_caller)
         wrapped = checker(l2)
+        self.assertFalse(l2 is wrapped)
         try:
             res = f(wrapped)
         except Exception as e:
