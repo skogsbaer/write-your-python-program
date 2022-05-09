@@ -68,6 +68,31 @@ class WrapperTests(unittest.TestCase):
         self.assertEqual(4, len(l))
         self.assertEqual([1,2,3,4], l)
 
+    def _test_api_complete(self, obj, ignore=[]):
+        wrapped = wrap(obj, {})
+        expectedModule = 'untypy.util.wrapper'
+        blacklist = ['__class__', '__delattr__', '__class_getitem__', '__dict__', '__dir__',
+                     '__doc__', '__extra__', '__format__', '__getattribute__', '__init__',
+                     '__init_subclass__', '__module__', '__setattr__', '__subclasshook__',
+                     '__weakref__', '__wrapped__', '_DictWrapper__marker'
+                     ] + ignore
+        for x in dir(wrapped):
+            if x in blacklist: continue
+            m = getattr(wrapped, x)
+            if not hasattr(m, '__module__'):
+                self.fail(f'Attribute {x} not defined')
+            elif m.__module__ != expectedModule:
+                self.fail(f'Attrribute {x} not defined in {expectedModule}')
+
+    def test_list_api_complete(self):
+        self._test_api_complete([])
+
+    def test_set_api_complete(self):
+        self._test_api_complete(set())
+
+    def test_dict_api_complete(self):
+        self._test_api_complete({}, ignore=['fromkeys'])
+
     def test_wrapTuple(self):
         l = wrap((1,2,3), {'__str__': lambda self: 'XXX'})
         self.assertEqual(repr(l), '(1, 2, 3)')

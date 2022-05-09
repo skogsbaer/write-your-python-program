@@ -217,6 +217,9 @@ class TestList(unittest.TestCase):
         self.check(lambda l: l[0])
         self.check(lambda l: l[-2])
         self.check(lambda l: l[1:2])
+        def extend(l):
+            l.extend((5,6))
+        self.check(extend)
         def sliceAssign1(l):
             l[0:2] = [5,6,7,8]
         self.check(sliceAssign1)
@@ -236,6 +239,12 @@ class TestList(unittest.TestCase):
             x.extend(l)
             return x
         self.check(extend2)
+        def iter(l):
+            acc = []
+            for x in l:
+                acc.append(l)
+            return acc
+        self.check(iter)
         self.check(lambda l: l.insert(1, 42))
         self.check(lambda l: l.remove(1))
         self.check(lambda l: l.pop())

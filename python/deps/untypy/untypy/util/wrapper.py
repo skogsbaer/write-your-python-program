@@ -30,6 +30,8 @@ class WrapperBase:
             return self.__wrapped__ == other.__wrapped__
         else:
             return self.__wrapped__ == other
+    def __ne__(self, other):
+        return not self.__eq__(other)
     def __hash__(self):
         return hash(self.__wrapped__)
     def __patch__(self, ms, name=None, extra={}):
@@ -47,6 +49,9 @@ class WrapperBase:
             return other.__wrapped__
         else:
             return other
+    def __reduce__(self): return self.__wrapped__.__reduce__()
+    def __reduce_ex__(self): return self.__wrapped__.__reduce_ex__()
+    def __sizeof__(self): return self.__wrapped__.__sizeof__()
 
 class ObjectWrapper(WrapperBase):
     def __init__(self, baseObject):
@@ -93,9 +98,11 @@ class ListWrapper(WrapperBase, list): # important: inherit from WrapperBase firs
     def __mul__(self, n): return self.__wrapped__.__mul__(n)
     __rmul__ = __mul__
     def __imul__(self, n): return self.__wrapped__.__imul__(n)
+    def __iter__(self): return self.__wrapped__.__iter__()
     def __copy__(self): return self.__wrapped__.copy()
     def __reversed__(self): return self.__wrapped__.__reversed__()
     def append(self, item): return self.__wrapped__.append(item)
+    def extend(self, iter): return self.__wrapped__.extend(iter)
     def insert(self, i, item): return self.__wrapped__.insert(i, item)
     def pop(self, i=-1): return self.__wrapped__.pop(i)
     def remove(self, item): return self.__wrapped__.remove(item)
@@ -175,6 +182,10 @@ class DictWrapper(WrapperBase, dict):
     def __ror__(self, other): return self.__wrapped__.__ror__(self.__cast__(other))
     def __ior__(self, other): return self.__wrapped__.__ior__(self.__cast__(other))
     def __copy__(self): return self.__wrapped__.__copy__()
+    def __lt__(self, other): return self.__wrapped__.__lt__(self.__cast__(other))
+    def __le__(self, other): return self.__wrapped__.__le__(self.__cast__(other))
+    def __gt__(self, other): return self.__wrapped__.__gt__(self.__cast__(other))
+    def __ge__(self, other): return self.__wrapped__.__ge__(self.__cast__(other))
     def copy(self): return self.__wrapped__.copy()
     def __reversed__(self): return self.__wrapped__.__reversed__()
     __marker = object()
