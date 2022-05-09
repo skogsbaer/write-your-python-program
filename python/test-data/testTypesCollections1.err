@@ -4,18 +4,11 @@ Traceback (most recent call last):
   File "test-data/testTypesCollections1.py", line 4, in appendSomething
     l.append("foo")
 WyppTypeError: got value of wrong type
-
-context: appendSomething(l: list[int]) -> None
-                            ^^^^^^^^^
-declared at: test-data/testTypesCollections1.py:3
-caused by: test-data/testTypesCollections1.py:7
-  | appendSomething(l)
-
 given:    'foo'
 expected: value of type int
 
-context: append(self: Self, object: int) -> None
-                                    ^^^
-declared at: test-data/testTypesCollections1.py:3
+context: append(self, object: int)
+                              ^^^
+declared at: site-lib/untypy/impl/interfaces/list.py:17
 caused by: test-data/testTypesCollections1.py:4
   |     l.append("foo")

@@ -4,18 +4,11 @@ Traceback (most recent call last):
   File "test-data/testTypesSet1.py", line 4, in appendSomething
     l.add("foo")
 WyppTypeError: got value of wrong type
-
-context: appendSomething(l: set[int]) -> None
-                            ^^^^^^^^
-declared at: test-data/testTypesSet1.py:3
-caused by: test-data/testTypesSet1.py:7
-  | appendSomething(l)
-
 given:    'foo'
 expected: value of type int
 
-context: add(self: Self, other: int) -> None
-                                ^^^
-declared at: test-data/testTypesSet1.py:3
+context: add(self, other: int)
+                          ^^^
+declared at: site-lib/untypy/impl/interfaces/set.py:7
 caused by: test-data/testTypesSet1.py:4
   |     l.add("foo")

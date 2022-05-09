@@ -5,9 +5,9 @@ Traceback (most recent call last):
     return foo(d)
   File "test-data/testTypesDict4.py", line 7, in foo
     res.append(f())
-WyppTypeError: dict_items is not an Iterable[tuple[str, Callable[[], str]]]
-given:    dict_items([('y', <function <lambda> at 0x00>), ('x', <untypy.impl.callable.TypedCallable object at 0x00>)])
-expected: value of type Iterable[tuple[str, Callable[[], str]]]
+WyppTypeError: dict is not a dict[str, Callable[[], str]]
+given:    {'y': <function <lambda> at 0x00>, 'x': <untypy.impl.callable.TypedCallable object at 0x00>}
+expected: value of type dict[str, Callable[[], str]]
 
 context: foo(d: dict[str, Callable[[], str]]) -> list[str]
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

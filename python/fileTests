@@ -10,15 +10,31 @@ d=$(pwd)
 t=$(mktemp)
 
 if [ "$1" == "--help" ]; then
-    echo "USAGE: $0 [FILE]"
+    echo "USAGE: $0 [--start-at] [FILE]"
     exit 1
 fi
 
+startAt=false
+if [ "$1" == "--start-at" ]; then
+    startAt=true
+    shift
+fi
 FILE="$1"
+
+started=false
 
 function skip()
 {
-    if [ ! -z "$FILE" -a "$FILE" != "$1" ]; then
+    # return 1 if test should be run
+    # return 0 if test should be skipped
+    if [ ! -z "$FILE" ]; then
+        if [ "$startAt" == true -a "$started" == true ]; then
+            return 1
+        fi
+        if [ "$FILE" == "$1" ]; then
+            started=true
+            return 1
+        fi
         return 0
     else
         return 1
@@ -155,10 +171,10 @@ checkWithOutput 1 test-data/testTypes1.py
 checkWithOutput 1:0 test-data/testTypes2.py
 checkWithOutputAux yes 1 test-data/testABCMeta.py
 checkWithOutputAux yes 0 test-data/testClassHierarchy.py
-# checkWithOutputAux yes 1 test-data/testTypesCollections1.py
-# checkWithOutputAux yes 1 test-data/testTypesCollections2.py
-# checkWithOutputAux yes 1 test-data/testTypesCollections3.py  # see #5
-# checkWithOutputAux yes 1 test-data/testTypesCollections4.py
+checkWithOutputAux yes 1 test-data/testTypesCollections1.py
+checkWithOutputAux yes 1 test-data/testTypesCollections2.py
+checkWithOutputAux yes 1 test-data/testTypesCollections3.py  # see #5
+checkWithOutputAux yes 1 test-data/testTypesCollections4.py
 checkWithOutputAux yes 1 test-data/testTypesProtos1.py
 checkWithOutputAux yes 1 test-data/testTypesProtos2.py
 checkWithOutputAux yes 1 test-data/testTypesProtos3.py
@@ -177,7 +193,7 @@ checkWithOutputAux yes 0 test-data/testForwardRef1.py
 checkWithOutputAux yes 1 test-data/testForwardRef2.py
 checkWithOutputAux yes 0 test-data/testForwardRef3.py
 checkWithOutputAux yes 1 test-data/testForwardRef4.py
-# checkWithOutputAux yes 1 test-data/testForwardRef5.py
+checkWithOutputAux yes 1 test-data/testForwardRef5.py
 checkWithOutputAux yes 0 test-data/testForwardRef6.py
 checkWithOutputAux yes 1 test-data/testHintParentheses1.py
 checkWithOutputAux yes 1 test-data/testHintParentheses2.py
@@ -189,14 +205,14 @@ checkWithOutputAux yes 1 test-data/testTypesSequence2.py
 checkWithOutputAux yes 1 test-data/testTypesTuple1.py
 checkWithOutputAux yes 1 test-data/wrong-caused-by.py
 checkWithOutputAux yes 1 test-data/declared-at-missing.py
-# checkWithOutputAux yes 1 test-data/testTypesSet1.py
-# checkWithOutputAux yes 1 test-data/testTypesSet2.py
-# checkWithOutputAux yes 1 test-data/testTypesSet3.py
-# checkWithOutputAux yes 1 test-data/testTypesSet4.py
-# checkWithOutputAux yes 1 test-data/testTypesDict1.py
-# checkWithOutputAux yes 1 test-data/testTypesDict2.py
-# checkWithOutputAux yes 1 test-data/testTypesDict3.py
-# checkWithOutputAux yes 1 test-data/testTypesDict4.py
+checkWithOutputAux yes 1 test-data/testTypesSet1.py
+checkWithOutputAux yes 1 test-data/testTypesSet2.py
+checkWithOutputAux yes 1 test-data/testTypesSet3.py
+checkWithOutputAux yes 1 test-data/testTypesSet4.py
+checkWithOutputAux yes 1 test-data/testTypesDict1.py
+checkWithOutputAux yes 1 test-data/testTypesDict2.py
+checkWithOutputAux yes 1 test-data/testTypesDict3.py
+checkWithOutputAux yes 1 test-data/testTypesDict4.py
 checkWithOutputAux yes 1 test-data/testIterableImplicitAny.py
 checkWithOutputAux yes 0 test-data/testDoubleWrappingDicts.py
 checkWithOutputAux yes 0 test-data/testClassRecursion.py
@@ -210,7 +226,7 @@ checkWithOutputAux yes 0 test-data/testUnionLiteral.py
 checkWithOutputAux yes 0 test-data/testCheck.py
 checkWithOutputAux yes 0 test-data/testNameErrorBug.py
 checkWithOutputAux yes 0 test-data/testOriginalTypeNames.py
-# checkWithOutputAux yes 0 test-data/testDeepEqBug.py ## CHECK
+checkWithOutputAux yes 0 test-data/testDeepEqBug.py
 checkWithOutputAux yes 1 test-data/testLockFactory.py
 checkWithOutputAux yes 1 test-data/testLockFactory2.py
 checkWithOutputAux yes 1 test-data/testGetSource.py
@@ -219,9 +235,9 @@ checkWithOutputAux yes 0 test-data/testFunEq.py #see #78
 checkWithOutputAux yes 0 test-data/testBugSliceIndices.py #see #92
 checkWithOutputAux yes 0 test-data/testABC.py
 checkWithOutputAux yes 0 test-data/testTypesWrapperEq.py
-# checkWithOutputAux yes 0 test-data/testTypesProtos5.py ## CHECK
-# checkWithOutputAux yes 1 test-data/testTypesProtos6.py ## CHECK
-# checkWithOutputAux yes 1 test-data/testTypesProtos7.py   ## CHECK
+checkWithOutputAux yes 0 test-data/testTypesProtos5.py
+checkWithOutputAux yes 1 test-data/testTypesProtos6.py
+checkWithOutputAux yes 1 test-data/testTypesProtos7.py
 checkWithOutputAux yes 1 test-data/testTypesProtos8.py
 checkWithOutputAux yes 1 test-data/testTypesProtos9.py
 checkWithOutputAux yes 0 test-data/testIterable1.py
@@ -233,3 +249,4 @@ checkWithOutputAux yes 0 test-data/testIterator2.py
 checkWithOutputAux yes 0 test-data/testIterator3.py
 checkWithOutputAux yes 0 test-data/testIterator4.py
 checkWithOutputAux yes 0 test-data/testConcat.py
+checkWithOutputAux yes 0 test-data/testCopy.py

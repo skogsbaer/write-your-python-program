@@ -4,18 +4,11 @@ Traceback (most recent call last):
   File "test-data/testTypesDict1.py", line 4, in appendSomething
     d['x'] = "foo"
 WyppTypeError: got value of wrong type
-
-context: appendSomething(d: dict[str, int]) -> None
-                            ^^^^^^^^^^^^^^
-declared at: test-data/testTypesDict1.py:3
-caused by: test-data/testTypesDict1.py:7
-  | appendSomething(d)
-
 given:    'foo'
 expected: value of type int
 
-context: __setitem__(self: Self, key: str, value: int) -> None
-                                                  ^^^
-declared at: test-data/testTypesDict1.py:3
+context: __setitem__(self, key, value: int)
+                                       ^^^
+declared at: site-lib/untypy/impl/interfaces/dict.py:67
 caused by: test-data/testTypesDict1.py:4
   |     d['x'] = "foo"

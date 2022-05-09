@@ -1,9 +1,9 @@
 Traceback (most recent call last):
   File "test-data/testForwardRef5.py", line 23, in <module>
     for car in garage.cars:
-WyppTypeError: got value of wrong type
-given:    'Not A Car'
-expected: value of type Car
+WyppTypeError: list is not a list[Car]
+given:    [Car(color='red'), 'Not A Car']
+expected: value of type list[Car]
 
 context: record constructor Garage(cars: list[Car]) -> Self
                                          ^^^^^^^^^
