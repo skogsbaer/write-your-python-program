@@ -129,7 +129,7 @@ class TypedFunctionBuilder(WrappedFunction):
         fc_pair = None
         if self.fc is not None:
             fc_pair = (self.fc, bindings)
-        return wrap_return(self.checker['return'], args, kwargs, ret, fc_pair, ctx)
+        return wrap_return(self.checkers()['return'], args, kwargs, ret, fc_pair, ctx)
 
     def describe(self):
         return str(self.signature)
