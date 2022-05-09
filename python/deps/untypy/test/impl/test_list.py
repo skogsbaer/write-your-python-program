@@ -310,9 +310,12 @@ class TestList(unittest.TestCase):
 
     def check21(self, f):
         l1 = [1, 4, 2, 1]
-        refRes11 = f(l1.copy(), l1.copy())
+        l11 = l1.copy()
+        l12 = l1.copy()
+        l1w = l1.copy()
+        wrapped1 = checker(l1w)
+        refRes11 = f(l11, l12)
         checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
-        wrapped1 = checker(l1)
         res11 = f(wrapped1, wrapped1)
         self.assertEqual(l1, wrapped1)
         self.assertEqual(refRes11, res11)
@@ -320,13 +323,17 @@ class TestList(unittest.TestCase):
     def check22(self, f):
         l1 = [1, 4, 2, 1]
         l2 = [1, 4, 1]
-        refRes12 = f(l1.copy(), l2.copy())
+        l1w = l1.copy()
+        l2w = l2.copy()
+        refRes12 = f(l1, l2)
         checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
-        wrapped1 = checker(l1)
-        wrapped2 = checker(l2)
+        wrapped1 = checker(l1w)
+        wrapped2 = checker(l2w)
         res12 = f(wrapped1, wrapped2)
         self.assertEqual(l1, wrapped1)
+        self.assertEqual(l1, l1w)
         self.assertEqual(l2, wrapped2)
+        self.assertEqual(l2, l2w)
         self.assertEqual(refRes12, res12)
 
 # def _debug():

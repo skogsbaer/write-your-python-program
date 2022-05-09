@@ -113,12 +113,6 @@ class ListWrapper(WrapperBase, list): # important: inherit from WrapperBase firs
     def reverse(self): return self.__wrapped__.reverse()
     def sort(self, /, *args, **kwds): return self.__wrapped__.sort(*args, **kwds)
 
-class TupleWrapper(tuple, WrapperBase):
-    def __new__(cls, content):
-        self = super().__new__(cls, content)
-        self.__wrapped__ = content
-        return self
-
 class SetWrapper(WrapperBase, set):
     def __new__(cls, content):
         self = super().__new__(cls, set())
@@ -161,12 +155,6 @@ class SetWrapper(WrapperBase, set):
     def __iter__(self): return self.__wrapped__.__iter__()
     def __len__(self): return self.__wrapped__.__len__()
 
-class StringWrapper(str, WrapperBase):
-    def __new__(cls, content):
-        self = super().__new__(cls, content)
-        self.__wrapped__ = content
-        return self
-
 class DictWrapper(WrapperBase, dict):
     def __new__(cls, content):
         self = super().__new__(cls, {})
@@ -202,6 +190,18 @@ class DictWrapper(WrapperBase, dict):
     def keys(self): return self.__wrapped__.keys()
     def items(self): return self.__wrapped__.items()
     def values(self): return self.__wrapped__.values()
+
+class StringWrapper(str, WrapperBase):
+    def __new__(cls, content):
+        self = super().__new__(cls, content)
+        self.__wrapped__ = content
+        return self
+
+class TupleWrapper(tuple, WrapperBase):
+    def __new__(cls, content):
+        self = super().__new__(cls, content)
+        self.__wrapped__ = content
+        return self
 
 _blacklist = [
     '__class__', '__delattr__', '__dict__', '__dir__', '__doc__',
