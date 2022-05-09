@@ -2,7 +2,7 @@ import inspect
 from typing import Any, Optional, TypeVar, List, Dict
 import typing
 
-from untypy.interfaces import CreationContext, TypeChecker
+from untypy.interfaces import CreationContext, TypeChecker, ExecutionContext
 from .annotated import AnnotatedFactory
 from .any import AnyFactory
 from .callable import CallableFactory

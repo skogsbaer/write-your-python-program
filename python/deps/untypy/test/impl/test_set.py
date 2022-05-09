@@ -6,10 +6,7 @@ import collections
 #sys.path.insert(0, '/Users/swehr/devel/write-your-python-program/python/deps/untypy/')
 
 import untypy
-from test.util import DummyExecutionContext
 from test.util_test.untypy_test_case import dummy_caller
-from untypy.error import UntypyTypeError
-from untypy.impl.dummy_delayed import DummyDelayedType
 
 
 class TestSet(unittest.TestCase):

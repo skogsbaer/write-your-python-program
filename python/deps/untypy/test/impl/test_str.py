@@ -1,12 +1,8 @@
 import unittest
 from typing import Iterable
 
-from test.util import DummyExecutionContext, DummyDefaultCreationContext
 from test.util_test.untypy_test_case import dummy_caller
 import untypy
-from untypy.error import UntypyTypeError
-from untypy.impl.dummy_delayed import DummyDelayedType
-from untypy.impl.tuple import TupleFactory
 
 
 class TestStr(unittest.TestCase):
