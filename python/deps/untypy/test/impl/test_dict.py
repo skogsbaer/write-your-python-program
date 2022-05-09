@@ -14,6 +14,8 @@ from untypy.impl.dummy_delayed import DummyDelayedType
 
 class TestDict(unittest.TestCase):
     def test_equiv_with_builtin_dict(self):
+        self.check(str)
+        self.check(repr)
         def inPlaceAdd1(l):
             l["foo"] = 3
             (l, len(l))
@@ -60,18 +62,18 @@ class TestDict(unittest.TestCase):
         self.check(lambda l: list(reversed(l)))
 
     def check(self, f):
-        l = {"1": 1, "2": 2}
+        l1 = {"1": 1, "2": 2}
+        l2 = l1.copy()
         try:
-            refRes = f(l.copy())
+            refRes = f(l1)
         except Exception as e:
             refRes = e
         checker = untypy.checker(lambda ty=dict[str, int]: ty, dummy_caller)
-        wrapped = checker(l)
+        wrapped = checker(l2)
         try:
             res = f(wrapped)
         except Exception as e:
             res = e
-        self.assertEqual(l, wrapped)
         if isinstance(refRes, Exception) and isinstance(res, Exception):
             self.assertEqual(str(refRes), str(res))
         elif not isinstance(refRes, Exception) and  not isinstance(res, Exception):
@@ -82,4 +84,5 @@ class TestDict(unittest.TestCase):
             self.assertEqual(refRes, res)
         else:
             self.fail(f"resRef={refRes}, res={res}")
-
+        self.assertEqual(l1, wrapped)
+        self.assertEqual(l1, l2)

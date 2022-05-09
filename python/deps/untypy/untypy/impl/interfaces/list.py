@@ -53,3 +53,4 @@ class List(Generic[I], list):
     def __setitem__(self, key: Union[int, slice], value: Any) -> None: pass
 
     def __iter__(self) -> Iterator[I]: pass
+    # FIXME: complete methods

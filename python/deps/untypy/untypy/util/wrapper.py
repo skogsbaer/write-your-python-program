@@ -68,6 +68,7 @@ class ABCObjectWrapperRev(ObjectWrapper, abc.ABC):
     pass
 
 # A wrapper for list such that the class is a subclass of the builtin list class.
+# A wrapper for list such that the class is a subclass of the builtin list class.
 class ListWrapper(WrapperBase, list): # important: inherit from WrapperBase first
     def __new__(cls, content):
         # the constructor of list copies the list passed to it. Thus, we use an empty list.
@@ -104,7 +105,6 @@ class ListWrapper(WrapperBase, list): # important: inherit from WrapperBase firs
     def index(self, item, *args): return self.__wrapped__.index(item, *args)
     def reverse(self): return self.__wrapped__.reverse()
     def sort(self, /, *args, **kwds): return self.__wrapped__.sort(*args, **kwds)
-    def extend(self, other): return self.__wrapped__.extend(self.__cast__(other))
 
 class TupleWrapper(tuple, WrapperBase):
     def __new__(cls, content):
@@ -112,11 +112,47 @@ class TupleWrapper(tuple, WrapperBase):
         self.__wrapped__ = content
         return self
 
-class SetWrapper(set, WrapperBase):
+class SetWrapper(WrapperBase, set):
     def __new__(cls, content):
-        self = super().__new__(cls, content)
+        self = super().__new__(cls, set())
         self.__wrapped__ = content
         return self
+    def add(self, x): return self.__wrapped__.add(x)
+    def clear(self): return self.__wrapped__.clear()
+    def copy(self): return self.__wrapped__.copy()
+    def difference(self, *others): return self.__wrapped__.difference(*others)
+    def difference_update(self, *others): return self.__wrapped__.difference_update(*others)
+    def discard(self, elem): return self.__wrapped__.discard(elem)
+    def intersection(self, *others): return self.__wrapped__.intersection(*others)
+    def intersection_update(self, *others): return self.__wrapped__.intersection_update(*others)
+    def isdisjoint(self, other): return self.__wrapped__.isdisjoint(other)
+    def issubset(self, other): return self.__wrapped__.issubset(other)
+    def issuperset(self, other): return self.__wrapped__.issuperset(other)
+    def pop(self): return self.__wrapped__.pop()
+    def remove(self, elem): return self.__wrapped__.remove(elem)
+    def symmetric_difference(self, *others): return self.__wrapped__.symmetric_difference(*others)
+    def symmetric_difference_update(self, *others): return self.__wrapped__.symmetric_difference_update(*others)
+    def union(self, *others): return self.__wrapped__.union(*others)
+    def update(self, *others): return self.__wrapped__.update(*others)
+    def __contains__(self, x): return self.__wrapped__.__contains__(x)
+    def __le__(self, other): return self.__wrapped__.__le__(self.__cast__(other))
+    def __lt__(self, other): return self.__wrapped__.__lt__(self.__cast__(other))
+    def __ge__(self, other): return self.__wrapped__.__ge__(self.__cast__(other))
+    def __gt__(self, other): return self.__wrapped__.__gt__(self.__cast__(other))
+    def __and__(self, other): return self.__wrapped__.__and__(self.__cast__(other))
+    def __rand__(self, other): return self.__wrapped__.__rand__(self.__cast__(other))
+    def __iand__(self, other): return self.__wrapped__.__iand__(self.__cast__(other))
+    def __ior__(self, other): return self.__wrapped__.__ior__(self.__cast__(other))
+    def __ixor__(self, other): return self.__wrapped__.__ixor__(self.__cast__(other))
+    def __or__(self, other): return self.__wrapped__.__or__(self.__cast__(other))
+    def __ror__(self, other): return self.__wrapped__.__ror__(self.__cast__(other))
+    def __rxor__(self, other): return self.__wrapped__.__rxor__(self.__cast__(other))
+    def __xor__(self, other): return self.__wrapped__.__xor__(self.__cast__(other))
+    def __rsub__(self, other): return self.__wrapped__.__rsub__(self.__cast__(other))
+    def __sub__(self, other): return self.__wrapped__.__sub__(self.__cast__(other))
+    def __isub__(self, other): return self.__wrapped__.__isub__(self.__cast__(other))
+    def __iter__(self): return self.__wrapped__.__iter__()
+    def __len__(self): return self.__wrapped__.__len__()
 
 class StringWrapper(str, WrapperBase):
     def __new__(cls, content):
@@ -233,4 +269,3 @@ def wrap(obj, methods, name=None, extra={}, simple=False):
         wname = str(type(w))
     debug(f"Wrapping {obj} at 0x{id(obj):09x} as {wname}, simple={simple}, wrapper=0x{id(w):09x}")
     return w
-

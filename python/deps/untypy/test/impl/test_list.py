@@ -198,6 +198,8 @@ class TestList(unittest.TestCase):
         l.append("foo") # no more wrapper
 
     def test_equiv_with_builtin_list(self):
+        self.check(str)
+        self.check(repr)
         self.check(lambda l: [42, 5] + l)
         self.check(lambda l: l + [42, 5])
         self.check(lambda l: 4 * l)
@@ -283,12 +285,14 @@ class TestList(unittest.TestCase):
         self.check2(lambda l1, l2: l2 >= l1)
 
     def check(self, f):
-        l = [1, 4, 2, 1]
-        refRes = f(l.copy())
+        l1 = [1, 4, 2, 1]
+        l2 = l1.copy()
+        refRes = f(l1)
         checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
-        wrapped = checker(l)
+        wrapped = checker(l2)
         res = f(wrapped)
-        self.assertEqual(l, wrapped)
+        self.assertEqual(l1, wrapped)
+        self.assertEqual(l1, l2)
         self.assertEqual(refRes, res)
 
     def check2(self, f):
