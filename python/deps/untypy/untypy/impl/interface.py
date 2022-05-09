@@ -68,7 +68,7 @@ class InterfaceFactory(TypeCheckerFactory):
                 name = f"{origin.__name__}"
             else:
                 name = f"{origin.__name__}[" + (', '.join(map(lambda t: t.describe(), inner_checkers))) + "]"
-            bindings = dict(zip(bindings, annotation.__args__))
+            bindings = dict(zip(bindings, annotation.__args__)) # FIXME: that's wrong, it throws away the checkers resolved in inner_checkers
             ctx = ctx.with_typevars(bindings)
             return ProtocolChecker(protocol, ctx, altname=name, omit_tyargs=omit_tyargs, ty=origin)
 

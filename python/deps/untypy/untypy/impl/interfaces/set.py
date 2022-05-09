@@ -3,7 +3,7 @@ from untypy.impl.interfaces.iterable import OnlyIterable
 
 I = TypeVar("I")
 
-class Set(Generic[I], set):
+class Set(Generic[I]):
     def add(self, other: I) -> None: pass
     def clear(self) -> None: pass
     def copy(self) -> Any: pass
@@ -27,7 +27,7 @@ class Set(Generic[I], set):
     def update(self, *others: Tuple[OnlyIterable[I], ...]) -> None:
         pass
 
-    def __contains__(self, x: Any) -> bool: pass
+    def __contains__(self, x: I) -> bool: pass
     def __delattr__(self, name: str) -> None: pass
 
     def __le__(self, other: Any) -> bool: pass
@@ -38,7 +38,7 @@ class Set(Generic[I], set):
     def __and__(self, other: set) -> Any: pass
     def __rand__(self, other: set) -> Any: pass
     def __iand__(self, other: set) -> Any: pass
-    def __ior__(self, other: set) -> Any: pass
+    def __ior__(self, other: set) -> Any: pass # FIXME: result should be set[I]
     def __isub__(self, other: set) -> Any: pass
     def __ixor__(self, other: set) -> Any: pass
     def __or__(self, other: set) -> Any: pass
@@ -48,6 +48,6 @@ class Set(Generic[I], set):
     def __rsub__(self, other: set) -> Any: pass
     def __sub__(self, other: set) -> Any: pass
 
-    def __iter__(self) -> Any: pass
+    def __iter__(self) -> Iterator[I]: pass
     def __len__(self) -> int: pass
     def __setattr__(self, name: str, x: Any) -> None: pass
