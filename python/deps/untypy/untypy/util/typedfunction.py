@@ -1,13 +1,15 @@
 import inspect
 import sys
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Any
 
 from untypy.error import UntypyAttributeError, UntypyNameError, UntypyTypeError
 from untypy.impl.any import SelfChecker
+from untypy.impl.choice import ChoiceChecker
 from untypy.interfaces import WrappedFunction, TypeChecker, CreationContext, WrappedFunctionContextProvider, \
     ExecutionContext
 from untypy.util import ArgumentExecutionContext, ReturnExecutionContext
 from untypy.util.typehints import get_type_hints
+from untypy.util.condition import FunctionCondition
 
 class FastTypeError(TypeError):
     pass
@@ -98,7 +100,7 @@ class TypedFunctionBuilder(WrappedFunction):
             (args, kwargs, bindings) = self.wrap_arguments(lambda n: ArgumentExecutionContext(self, caller, n), args,
                                                            kwargs)
             ret = self.inner(*args, **kwargs)
-            ret = self.wrap_return(ret, bindings, ReturnExecutionContext(self))
+            ret = self.wrap_return(args, kwargs, ret, bindings, ReturnExecutionContext(self))
             return ret
 
         if inspect.iscoroutine(self.inner):
@@ -123,11 +125,11 @@ class TypedFunctionBuilder(WrappedFunction):
         return wrap_arguments(self.parameters, self.checkers(), self.signature, self.fc, self.fast_sig,
             ctxprv, args, kwargs)
 
-    def wrap_return(self, ret, bindings, ctx: ExecutionContext):
-        check = self.checkers()['return']
+    def wrap_return(self, args, kwargs, ret, bindings, ctx: ExecutionContext):
+        fc_pair = None
         if self.fc is not None:
-            self.fc.posthook(ret, bindings, ctx)
-        return check.check_and_wrap(ret, ctx)
+            fc_pair = (self.fc, bindings)
+        return wrap_return(self.checkers()['return'], args, kwargs, ret, fc_pair, ctx)
 
     def describe(self):
         return str(self.signature)
@@ -202,3 +204,13 @@ def is_fast_sig(parameters, fc):
             fast_sig = False
             break
     return fast_sig
+
+def wrap_return(check: TypeChecker, args: list[Any], kwds: dict[str, Any], ret: Any,
+    fc_pair: tuple[FunctionCondition, inspect.BoundArguments], ctx: ExecutionContext):
+    if isinstance(check, ChoiceChecker):
+        check = check.get_checker(args, kwds)
+    result = check.check_and_wrap(ret, ctx)
+    if fc_pair is not None:
+        fc, bindings = fc_pair
+        fc.posthook(result, bindings, ctx, check)
+    return result

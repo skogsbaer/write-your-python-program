@@ -1,4 +1,9 @@
 import unittest
+import typing
+
+# For running with the debugger
+#import sys
+#sys.path.insert(0, '/Users/swehr/devel/write-your-python-program/python/deps/untypy/')
 
 import untypy
 from test.util import DummyExecutionContext
@@ -38,6 +43,43 @@ class TestList(unittest.TestCase):
 
         self.assertEqual(cm.exception.last_responsable().file, "dummy")
 
+    def test_not_a_list_fail(self):
+        checker = untypy.checker(lambda ty=list[list[int]]: ty, dummy_caller, DummyExecutionContext())
+        with self.assertRaises(UntypyTypeError) as cm:
+            checker((1,2,3))
+
+    def test_getitem_fail(self):
+        checker = untypy.checker(lambda ty=list[list[DummyDelayedType]]: ty, dummy_caller, DummyExecutionContext())
+        lst = checker([[1]])
+        res1 = lst[0][0]
+        with self.assertRaises(UntypyTypeError) as cm:
+            res1.use()
+        res2 = lst[:][:]
+        self.assertEqual(res2, [[1]])
+
+    def test_getitem_ok(self):
+        checker = untypy.checker(lambda ty=list[list[int]]: ty, dummy_caller, DummyExecutionContext())
+        lst = checker([[1]])
+        res1 = lst[0][0]
+        self.assertIs(int, type(res1))
+        self.assertEqual(1, res1)
+        res2 = lst[:][:]
+        self.assertTrue(isinstance(res2, list))
+        self.assertEqual([[1]], res2)
+
+    def test_list_or_tuple(self):
+        checker = untypy.checker(lambda ty=typing.Union[list[int], tuple[str, str]]: ty, dummy_caller, DummyExecutionContext())
+        lst = checker([1,2,3])
+        (x, y) = checker(("foo", "bar"))
+        self.assertEqual([1,2,3], [lst[0], lst[1], lst[2]])
+        self.assertEqual("foo", x)
+        self.assertEqual("bar", y)
+        lst_fail = checker(["foo", "bar"])
+        with self.assertRaises(UntypyTypeError) as cm:
+            lst_fail[0]
+        with self.assertRaises(UntypyTypeError) as cm:
+            checker((1, 2))
+
     def test_wrapping_resp(self):
         """
         The wrapping call is responsable for ensuring the list
@@ -75,8 +117,8 @@ class TestList(unittest.TestCase):
         (t, i) = cm.exception.next_type_and_indicator()
         i = i.rstrip()
 
-        self.assertEqual(t, "append(self: Self, object: int) -> None")
-        self.assertEqual(i, "                           ^^^")
+        self.assertEqual(t, "append(self, object: int)")
+        self.assertEqual(i, "                     ^^^")
 
         self.assertEqual(cm.exception.last_responsable().file, __file__)
 
@@ -114,6 +156,7 @@ class TestList(unittest.TestCase):
         self.assertRaises(ValueError, lambda: self.wrapped_list.index(2, start=3))  # Value Error '2' not in list
         self.assertRaises(UntypyTypeError, lambda: self.wrapped_list.index("hello"))  # Wrong Argument Type
 
+        self.assertEqual(self.wrapped_list, [0, 1, 2, 3])
         self.wrapped_list.append(4)
         self.assertEqual(self.wrapped_list, [0, 1, 2, 3, 4])
 
@@ -155,6 +198,8 @@ class TestList(unittest.TestCase):
         l.append("foo") # no more wrapper
 
     def test_equiv_with_builtin_list(self):
+        self.check(str)
+        self.check(repr)
         self.check(lambda l: [42, 5] + l)
         self.check(lambda l: l + [42, 5])
         self.check(lambda l: 4 * l)
@@ -172,6 +217,9 @@ class TestList(unittest.TestCase):
         self.check(lambda l: l[0])
         self.check(lambda l: l[-2])
         self.check(lambda l: l[1:2])
+        def extend(l):
+            l.extend((5,6))
+        self.check(extend)
         def sliceAssign1(l):
             l[0:2] = [5,6,7,8]
         self.check(sliceAssign1)
@@ -191,6 +239,12 @@ class TestList(unittest.TestCase):
             x.extend(l)
             return x
         self.check(extend2)
+        def iter(l):
+            acc = []
+            for x in l:
+                acc.append(l)
+            return acc
+        self.check(iter)
         self.check(lambda l: l.insert(1, 42))
         self.check(lambda l: l.remove(1))
         self.check(lambda l: l.pop())
@@ -240,12 +294,15 @@ class TestList(unittest.TestCase):
         self.check2(lambda l1, l2: l2 >= l1)
 
     def check(self, f):
-        l = [1, 4, 2, 1]
-        refRes = f(l.copy())
+        l1 = [1, 4, 2, 1]
+        l2 = l1.copy()
+        refRes = f(l1)
         checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
-        wrapped = checker(l)
+        wrapped = checker(l2)
+        self.assertFalse(l1 is wrapped)
         res = f(wrapped)
-        self.assertEqual(l, wrapped)
+        self.assertEqual(l1, wrapped)
+        self.assertEqual(l1, l2)
         self.assertEqual(refRes, res)
 
     def check2(self, f):
@@ -254,9 +311,13 @@ class TestList(unittest.TestCase):
 
     def check21(self, f):
         l1 = [1, 4, 2, 1]
-        refRes11 = f(l1.copy(), l1.copy())
+        l11 = l1.copy()
+        l12 = l1.copy()
+        l1w = l1.copy()
         checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
-        wrapped1 = checker(l1)
+        wrapped1 = checker(l1w)
+        self.assertFalse(l1 is wrapped1)
+        refRes11 = f(l11, l12)
         res11 = f(wrapped1, wrapped1)
         self.assertEqual(l1, wrapped1)
         self.assertEqual(refRes11, res11)
@@ -264,11 +325,24 @@ class TestList(unittest.TestCase):
     def check22(self, f):
         l1 = [1, 4, 2, 1]
         l2 = [1, 4, 1]
-        refRes12 = f(l1.copy(), l2.copy())
+        l1w = l1.copy()
+        l2w = l2.copy()
+        refRes12 = f(l1, l2)
         checker = untypy.checker(lambda ty=list[int]: ty, dummy_caller)
-        wrapped1 = checker(l1)
-        wrapped2 = checker(l2)
+        wrapped1 = checker(l1w)
+        wrapped2 = checker(l2w)
+        self.assertFalse(l1 is wrapped1)
+        self.assertFalse(l2 is wrapped2)
         res12 = f(wrapped1, wrapped2)
         self.assertEqual(l1, wrapped1)
+        self.assertEqual(l1, l1w)
         self.assertEqual(l2, wrapped2)
+        self.assertEqual(l2, l2w)
         self.assertEqual(refRes12, res12)
+
+# def _debug():
+#     t = TestList()
+#     t.setUp()
+#     t.test_some_basic_ops()
+#
+# _debug()

@@ -88,10 +88,7 @@ class TupleChecker(TypeChecker):
         return tuple(out)
 
     def base_type(self) -> Any:
-        out = []
-        for checker in self.inner:
-            out.append(checker.base_type())
-        return tuple(out)
+        return [tuple]
 
     def describe(self) -> str:
         desc = lambda s: s.describe()

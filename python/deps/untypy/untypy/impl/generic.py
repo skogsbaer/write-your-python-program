@@ -25,8 +25,13 @@ class GenericFactory(TypeCheckerFactory):
         # TODO: Support other typevar features
         if type(annotation) is TypeVar:
             (found, replacement_annotation) = ctx.resolve_typevar(annotation)
-            if found:
+            if isinstance(replacement_annotation, TypeChecker):
+                inner = replacement_annotation
+            elif found:
                 inner = ctx.find_checker(replacement_annotation)
+            else:
+                inner = None
+            if found:
                 if inner is not None:
                     return BoundTypeVar(inner, annotation)
                 else:

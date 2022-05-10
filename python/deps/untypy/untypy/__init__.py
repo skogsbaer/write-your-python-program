@@ -9,7 +9,7 @@ from .patching.ast_transformer import UntypyAstTransformer, did_no_code_run_befo
     UntypyAstImportTransformer
 from .patching.import_hook import install_import_hook
 from .patching.standalone_checker import StandaloneChecker
-from .util.condition import FunctionCondition
+from .util import condition
 from .util.return_traces import ReturnTracesTransformer, before_return, GlobalReturnTraceManager
 from .util.tranformer_combinator import TransformerCombinator
 from .util import debug
@@ -140,34 +140,8 @@ def _find_calling_module() -> Optional[ModuleType]:
                 return mod
     return None
 
-
-def _condgetfc(func):
-    if hasattr(func, "__fc"):
-        return getattr(func, "__fc")
-    else:
-        fc = FunctionCondition()
-        setattr(func, "__fc", fc)
-        fc.func = func
-        return fc
-
-
-def precondition(cond):
-    def decorator(func):
-        fc = _condgetfc(func)
-        fc.precondition.append(cond)
-        return func
-
-    return decorator
-
-
-def postcondition(cond):
-    def decorator(func):
-        fc = _condgetfc(func)
-        fc.postcondition.append(cond)
-        return func
-
-    return decorator
-
+precondition = condition.precondition
+postcondition = condition.postcondition
 
 def unchecked(fn):
     setattr(fn, "__unchecked", True)
@@ -209,5 +183,5 @@ def checker(annotation: Callable[[], Any], location: Any, ctx=None) -> Callable[
     """
     return StandaloneChecker(annotation, location, DefaultConfig, ctx)
 
-def enableDebug(debug: bool):
-    debug.enableDebug(debug)
+def enableDebug(d: bool):
+    debug.enableDebug(d)

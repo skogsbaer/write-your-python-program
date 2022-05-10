@@ -2,7 +2,7 @@ import inspect
 from typing import Any, Optional, TypeVar, List, Dict
 import typing
 
-from untypy.interfaces import CreationContext, TypeChecker
+from untypy.interfaces import CreationContext, TypeChecker, ExecutionContext
 from .annotated import AnnotatedFactory
 from .any import AnyFactory
 from .callable import CallableFactory
@@ -10,6 +10,7 @@ from .dummy_delayed import DummyDelayedFactory
 from .generator import GeneratorFactory
 from .generic import GenericFactory
 from .interface import InterfaceFactory
+from .choice import ChoiceFactory
 from .iterator import IteratorFactory
 from .literal import LiteralFactory
 from .none import NoneFactory
@@ -26,6 +27,7 @@ from ..util.debug import debug
 _FactoryList = [
     AnyFactory(),
     NoneFactory(),
+    DummyDelayedFactory(),
     AnnotatedFactory(),
     ProtocolFactory(),  # must be higher then Generic
     GenericFactory(),
@@ -34,10 +36,10 @@ _FactoryList = [
     OptionalFactory(),  # must be higher then Union
     UnionFactory(),
     TupleFactory(),
-    DummyDelayedFactory(),
     GeneratorFactory(),
     IteratorFactory(),
     InterfaceFactory(),
+    ChoiceFactory(),
     StringForwardRefFactory(),  # resolve types passed as strings
     # must come last
     SimpleFactory()
@@ -60,7 +62,7 @@ class DefaultCreationContext(CreationContext):
         for fac in _FactoryList:
             res = fac.create_from(annotation=annotation, ctx=self)
             if res is not None:
-                debug(f'Created type annotation for {annotation} from factory {fac}')
+                # debug(f'Created checker for {annotation} from factory {fac}')
                 return res
         return None
 

@@ -120,7 +120,7 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
 
 class ProtocolChecker(TypeChecker):
     def __init__(self, annotation: type, ctx: CreationContext, *, altname : Optional[str] = None,
-            omit_tyargs=False):
+            omit_tyargs=False, ty: Optional[type]=None):
         (proto, typevars) = _find_bound_typevars(annotation)
         self.ctx = ctx.with_typevars(typevars)
         self.proto = proto
@@ -128,6 +128,7 @@ class ProtocolChecker(TypeChecker):
         self.typevars = typevars
         self.altname = altname
         self.omit_tyargs = omit_tyargs
+        self.ty = ty
 
     @property
     def members(self):
@@ -145,11 +146,20 @@ class ProtocolChecker(TypeChecker):
         simple = False
         if hasattr(self.proto, '__protocol_only__'):
             simple = getattr(self.proto, '__protocol_only__')
+        if self.ty is not None and not isinstance(arg, self.ty):
+            err = ctx.wrap(UntypyTypeError(
+                expected=self.describe(),
+                given=arg
+            ))
+            raise err
         return wrapForProtocol(self, arg, self.members, ctx, simple=simple)
 
     def base_type(self) -> list[Any]:
         # Prevent Classes implementing multiple Protocols in one Union by accident.
-        return [Protocol]
+        if self.ty:
+            return [self.ty]
+        else:
+            return [Protocol]
 
     def describe(self) -> str:
         if self.altname is not None:
@@ -255,10 +265,14 @@ def wrapForProtocol(protocolchecker: ProtocolChecker,
             for k in sig.parameters:
                 paramDict[k] = k
 
-        list_of_attr[fnname] = ProtocolWrappedFunction(original_fn, sig, baseArgDict,
-                                                       protocolchecker, paramDict, fc).build()
+        list_of_attr[fnname] = ProtocolWrappedFunction(original_fn,
+                                                       sig,
+                                                       baseArgDict,
+                                                       protocolchecker,
+                                                       paramDict,
+                                                       fc).build()
 
-    name = f"WyppTypeCheck({original.__name__}, {protocolchecker.proto.__name__})"
+    name = f"WyppTypeCheck({original.__name__}, {protocolchecker.describe()})"
     return wrapper.wrap(originalValue, list_of_attr, name, extra={'ctx': ctx}, simple=simple)
 
 class ProtocolWrappedFunction(WrappedFunction):
@@ -301,13 +315,10 @@ class ProtocolWrappedFunction(WrappedFunction):
                     args, kwargs)
             ret = fn(*args, **kwargs)
             if isinstance(self.inner, WrappedFunction):
-                ret = self.inner.wrap_return(ret, bind2, ProtocolReturnExecutionContext(self,
-                                                                                        ResponsibilityType.IN,
-                                                                                        inner_object,
-                                                                                        inner_ctx))
-            return self.wrap_return(ret, bind1, ProtocolReturnExecutionContext(self,
-                                                                               ResponsibilityType.OUT, inner_object,
-                                                                               inner_ctx))
+                ret = self.inner.wrap_return(args, kwargs, ret, bind2,
+                    ProtocolReturnExecutionContext(self, ResponsibilityType.IN, inner_object, inner_ctx))
+            return self.wrap_return(args, kwargs, ret, bind1,
+                ProtocolReturnExecutionContext(self, ResponsibilityType.OUT, inner_object, inner_ctx))
 
         async def async_wrapper(*args, **kwargs):
             raise AssertionError("Not correctly implemented see wrapper")
@@ -330,11 +341,11 @@ class ProtocolWrappedFunction(WrappedFunction):
         return typedfun.wrap_arguments(self.parameters, self.checker, self.signature,
             self.fc, self.fast_sig, ctxprv, args, kwargs, expectSelf=True)
 
-    def wrap_return(self, ret, bindings, ctx: ExecutionContext):
-        check = self.checker['return']
+    def wrap_return(self, args, kwargs, ret, bindings, ctx: ExecutionContext):
+        fc_pair = None
         if self.fc is not None:
-            self.fc.posthook(ret, bindings, ctx)
-        return check.check_and_wrap(ret, ctx)
+            fc_pair = (self.fc, bindings)
+        return typedfun.wrap_return(self.checker['return'], args, kwargs, ret, fc_pair, ctx)
 
     def describe(self) -> str:
         fn = WrappedFunction.find_original(self.inner)

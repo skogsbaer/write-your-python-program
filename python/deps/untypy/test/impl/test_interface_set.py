@@ -1,4 +1,7 @@
 import unittest
+# For running with the debugger
+#import sys
+#sys.path.insert(0, '/Users/swehr/devel/write-your-python-program/python/deps/untypy/')
 
 from test.util_test.untypy_test_case import UntypyTestCase, dummy_caller
 from untypy.error import UntypyTypeError
@@ -60,6 +63,7 @@ class TestInterfaceSet(UntypyTestCase):
             self.good.update({"four"})
 
     @unittest.skip("fails :/. Does not raise UntypyTypeError")
+    #FIXME: enable once all tests are running
     def test_ior(self):
         self.good |= {4} | {7}
         self.assertEqual(self.good, {1, 2, 3, 4, 7})
@@ -80,3 +84,9 @@ class TestInterfaceSet(UntypyTestCase):
         with self.assertRaises(UntypyTypeError):
             for k in self.bad:
                 pass
+def _debug():
+    t = TestInterfaceSet()
+    t.setUp()
+    t.test_ior()
+
+# _debug()

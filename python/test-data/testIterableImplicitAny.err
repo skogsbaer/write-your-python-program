@@ -1,14 +1,12 @@
 Traceback (most recent call last):
   File "test-data/testIterableImplicitAny.py", line 13, in <module>
-    foo(NotIterable)
-WyppTypeError: type is not an Iterable
-It is missing the function '__iter__'
-
-given:    <class '__wypp__.NotIterable'>
+    foo(NotIterable())
+WyppTypeError: got value of wrong type
+given:    NotIterable
 expected: value of type Iterable
 
 context: foo(it: Iterable) -> int
                  ^^^^^^^^
 declared at: test-data/testIterableImplicitAny.py:7
 caused by: test-data/testIterableImplicitAny.py:13
-  | foo(NotIterable)
+  | foo(NotIterable())

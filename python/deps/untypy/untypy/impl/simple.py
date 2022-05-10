@@ -41,6 +41,7 @@ class SimpleChecker(TypeChecker):
                 p = ParentProtocolChecker(annotation, ctx)
                 self.parent_checker = p.check_and_wrap
             else:
+                #raise ValueError("dead?")
                 # annotation is from an wrapped import
                 t = WrappedType(annotation, ctx)
 

@@ -24,64 +24,45 @@ V = TypeVar("V")
 
 # See: https://docs.python.org/3/library/stdtypes.html#typesmapping
 class Dict(Generic[K, V], dict):
-    def clear(self) -> None:
-        pass
+    def clear(self) -> None: pass
 
     # Cannot Typecheck Copy -> Leads to endless recursion in "UntypyInterfaces"
     # def copy(self) -> dict[K,V]:
     #     pass
 
-    def get(self, key: K, default: Optional[V] = None) -> Optional[V]:
-        pass
+    def get(self, key: K, default: Optional[V] = None) -> Optional[V]: pass
 
-    def items(self) -> Iterable[Tuple[K, V]]:
-        pass
+    def items(self) -> Iterable[Tuple[K, V]]: pass
 
-    def keys(self) -> Iterable[K]:
-        pass
+    def keys(self) -> Iterable[K]: pass
 
-    def pop(self, k: K, default: Optional[V] = None) -> Optional[V]:
-        pass
+    def pop(self, k: K, default: Optional[V] = None) -> Optional[V]: pass
 
-    def popitem(self) -> Tuple[K, V]:
-        pass
+    def popitem(self) -> Tuple[K, V]: pass
 
     # Miss-match See: https://github.com/skogsbaer/write-your-python-program/issues/19
-    def setdefault(self, key: K, default: V) -> V:
-        pass
+    def setdefault(self, key: K, default: V=None) -> V: pass
 
-    def update(self, *E: Iterable[DictLike[K, V]], **F: Optional[DictLike[K, V]]) -> Any:
-        pass
+    def update(self, *E: Iterable[DictLike[K, V]], **F: Optional[DictLike[K, V]]) -> Any: pass
 
-    def values(self) -> Iterable[V]:
-        pass
+    def values(self) -> Iterable[V]: pass
 
-    def __contains__(self, key: K) -> bool:
-        pass
+    def __contains__(self, key: K) -> bool: pass
 
-    def __delitem__(self, key: K) -> None:
-        pass
+    def __delitem__(self, key: K) -> None: pass
 
-    def __iter__(self) -> Iterator[K]:
-        pass
+    def __iter__(self) -> Iterator[K]: pass
 
-    def __len__(self) -> int:
-        pass
+    def __len__(self) -> int: pass
 
     # Untypy does not support generic functions :/
-    # def __or__(self, other : dict[I, J]) -> dict[Union[K,I], Union[V,J]]:
-    #     pass
+    def __or__(self, other : dict) -> dict: pass
 
-    def __reversed__(self) -> Iterator[K]:
-        pass
+    def __reversed__(self) -> Iterator[K]: pass
 
     # Untypy does not support generic functions :/
-    # def __ror__(self, other : dict[I, J]) -> dict[Union[K,I], Union[V,J]]:
-    #     """ Return value|self. """
-    #     pass
+    def __ror__(self, other : dict) -> dict: pass
+    def __getitem__(self, key: K) -> V: pass
 
-    def __getitem__(self, key: K) -> V:
-        pass
-
-    def __setitem__(self, key: K, value: V) -> None:
-        pass
+    def __setitem__(self, key: K, value: V) -> None: pass
+    # FIXME: complete methods

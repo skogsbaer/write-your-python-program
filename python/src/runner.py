@@ -318,6 +318,7 @@ def runCode(fileToRun, globals, args, useUntypy=True):
             verbose(f'finding modules imported by {fileToRun}')
             importedMods = findImportedModules([localDir], fileToRun)
             verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
+            untypy.enableDebug(DEBUG)
             untypy.just_install_hook(importedMods + ['__wypp__'])
             verbose(f"transforming {fileToRun} for typechecking")
             tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
