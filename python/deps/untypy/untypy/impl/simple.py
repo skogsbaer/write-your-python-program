@@ -3,7 +3,6 @@ from typing import Any, Optional, Callable
 
 from untypy.error import UntypyTypeError
 from untypy.impl.protocol import ProtocolChecker
-from untypy.impl.wrappedclass import WrappedType
 from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext
 
 
@@ -40,20 +39,6 @@ class SimpleChecker(TypeChecker):
             if hasattr(annotation, '__patched'):
                 p = ParentProtocolChecker(annotation, ctx)
                 self.parent_checker = p.check_and_wrap
-            else:
-                #raise ValueError("dead?")
-                # annotation is from an wrapped import
-                t = WrappedType(annotation, ctx)
-
-                def wrap(i, ctx):
-                    instance = t.__new__(t)
-                    instance._WrappedClassFunction__inner = i
-                    instance._WrappedClassFunction__return_ctx = None
-                    return instance
-
-                # TODO: Use only on import_wrapped module
-                # self.always_wrap = True
-                self.parent_checker = wrap
         else:
             self.parent_checker = None
 
