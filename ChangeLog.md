@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.17.0 (2022-05-30)
+  * Rework wrapping, fixes several bugs
 * 0.16.7 (2022-05-05)
   * Improve performance with type annotations for common cases #101
 * 0.16.6 (2022-05-04)
