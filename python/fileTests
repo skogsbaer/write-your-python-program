@@ -250,3 +250,4 @@ checkWithOutputAux yes 0 test-data/testIterator3.py
 checkWithOutputAux yes 0 test-data/testIterator4.py
 checkWithOutputAux yes 0 test-data/testConcat.py
 checkWithOutputAux yes 0 test-data/testCopy.py
+checkWithOutputAux yes 0 test-data/testHof.py
