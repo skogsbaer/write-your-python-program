@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 0.17.1 (2022-06-14)
+  * Fix bug with higher-order functions
 * 0.17.0 (2022-05-30)
   * Rework wrapping, fixes several bugs
 * 0.16.7 (2022-05-05)
