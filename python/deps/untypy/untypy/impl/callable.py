@@ -8,6 +8,7 @@ from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, 
     WrappedFunctionContextProvider
 # These Types are prefixed with an underscore...
 from untypy.util import ArgumentExecutionContext, ReturnExecutionContext
+import untypy.util.typedfunction as typedfun
 
 CallableTypeOne = type(Callable[[], None])
 CallableTypeTwo = type(AbcCallable[[], None])
@@ -97,9 +98,9 @@ class TypedCallable(Callable, WrappedFunction):
 
         ret = self.fn(*args, **kwargs)
         if isinstance(self.inner, WrappedFunction):
-            ret = self.inner.wrap_return(ret, bind2, TypedCallableReturnExecutionContext(self.ctx, self, True))
+            ret = self.inner.wrap_return(args, kwargs, ret, bind2, TypedCallableReturnExecutionContext(self.ctx, self, True))
 
-        ret = self.wrap_return(ret, bindings, TypedCallableReturnExecutionContext(self.ctx, self, False))
+        ret = self.wrap_return(args, kwargs, ret, bindings, TypedCallableReturnExecutionContext(self.ctx, self, False))
         return ret
 
     def get_original(self):
@@ -122,8 +123,9 @@ class TypedCallable(Callable, WrappedFunction):
         bindings = None
         return new_args, kwargs, bindings
 
-    def wrap_return(self, ret, bindings, ctx: ExecutionContext):
-        return self.return_checker.check_and_wrap(ret, ctx)
+    def wrap_return(self, args, kwargs, ret, bindings, ctx: ExecutionContext):
+        fc_pair = None
+        return typedfun.wrap_return(self.return_checker, args, kwargs, ret, fc_pair, ctx)
 
     def describe(self) -> str:
         arguments = ", ".join(map(lambda e: e.describe(), self.argument_checker))
