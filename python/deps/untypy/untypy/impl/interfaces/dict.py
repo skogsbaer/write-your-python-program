@@ -41,7 +41,7 @@ class Dict(Generic[K, V], dict):
     def popitem(self) -> Tuple[K, V]: pass
 
     # Miss-match See: https://github.com/skogsbaer/write-your-python-program/issues/19
-    def setdefault(self, key: K, default: V=None) -> V: pass
+    def setdefault(self, key: K, default: Optional[V]=None) -> V: pass
 
     def update(self, *E: Iterable[DictLike[K, V]], **F: Optional[DictLike[K, V]]) -> Any: pass
 

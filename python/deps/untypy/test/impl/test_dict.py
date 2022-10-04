@@ -7,6 +7,7 @@ import collections
 
 import untypy
 from test.util_test.untypy_test_case import dummy_caller
+import inspect
 
 class TestDict(unittest.TestCase):
     def test_equiv_with_builtin_dict(self):
@@ -73,13 +74,14 @@ class TestDict(unittest.TestCase):
             res = e
         if isinstance(refRes, Exception) and isinstance(res, Exception):
             self.assertEqual(str(refRes), str(res))
-        elif not isinstance(refRes, Exception) and  not isinstance(res, Exception):
+        elif not isinstance(refRes, Exception) and not isinstance(res, Exception):
             if isinstance(refRes, collections.abc.ValuesView):
                 refRes = list(refRes)
             if isinstance(res, collections.abc.ValuesView):
                 res = list(res)
             self.assertEqual(refRes, res)
         else:
-            self.fail(f"resRef={refRes}, res={res}")
+            src = inspect.getsource(f)
+            self.fail(f"when checking {src.strip()}: reference result: {refRes}, real result: {res}")
         self.assertEqual(l1, wrapped)
         self.assertEqual(l1, l2)
