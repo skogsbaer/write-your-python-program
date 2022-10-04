@@ -38,6 +38,9 @@ class VariadicTupleChecker(TypeChecker):
         self.inner = inner
 
     def check_and_wrap(self, arg: Any, ctx: ExecutionContext) -> Any:
+        if hasattr(arg, '__wrapped__'):
+            # no double wrapping
+            arg = getattr(arg, '__wrapped__')
         if not type(arg) is tuple:
             raise ctx.wrap(UntypyTypeError(arg, self.describe()))
         out = []
