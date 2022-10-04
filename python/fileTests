@@ -252,3 +252,5 @@ checkWithOutputAux yes 0 test-data/testConcat.py
 checkWithOutputAux yes 0 test-data/testCopy.py
 checkWithOutputAux yes 0 test-data/testHof.py
 checkWithOutputAux yes 0 test-data/testIndexSeq.py
+checkWithOutputAux yes 0 test-data/testWrap.py
+checkWithOutputAux yes 0 test-data/testWrap2.py
