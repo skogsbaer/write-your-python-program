@@ -1,12 +1,13 @@
-from typing import TypeVar, Generic, Optional, Iterator
-
+from typing import TypeVar, Generic, Optional, Iterator, Optional, Union, Any
+from untypy.impl.choice import Choice
 I = TypeVar("I")
 
 
 class Sequence(Generic[I]):
     # See https://docs.python.org/3/library/collections.abc.html
 
-    def __getitem__(self, key: int) -> I:
+    def __getitem__(self, i: Union[int, slice]) -> \
+        Choice[I, Any, lambda self, i, kws, ti, tl: ti if isinstance(i, int) else tl]:
         pass
 
     def __len__(self) -> int:

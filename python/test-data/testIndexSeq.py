@@ -1,7 +1,7 @@
 from wypp import *
 
-def foo(seq: Sequence) -> int:
-    i = seq.index("foo")
-    return i
+def removeFromSeq(seq: Sequence, x: Any) -> Sequence:
+    i = seq.index(x)
+    return seq[:i] + seq[i+1:]
 
-print(foo(["bar", "foo", "baz"])) # should print 1
+print(removeFromSeq(["bar", "foo", "baz"], "foo"))
