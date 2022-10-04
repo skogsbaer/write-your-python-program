@@ -164,10 +164,7 @@ class TestInterfaceDict(UntypyTestCase):
     def test_contains(self):
         self.assertTrue(1 in self.good)
         self.assertFalse(4 in self.good)
-
-        with self.assertRaises(UntypyTypeError):
-            # Cannot be in if Key : str.
-            "42" in self.good
+        self.assertFalse("42" in self.good)
 
     def test_delitem(self):
         del self.good[1]

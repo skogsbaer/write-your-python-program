@@ -73,9 +73,7 @@ class TestInterfaceSet(UntypyTestCase):
 
     def test_contains(self):
         self.assertEqual(1 in self.good, True)
-
-        with self.assertRaises(UntypyTypeError):
-            "four" in self.good
+        self.assertFalse("four" in self.good)
 
     def test_iter(self):
         for k in self.good:

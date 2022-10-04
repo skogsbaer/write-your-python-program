@@ -35,7 +35,7 @@ class List(Generic[I], list):
     # inner list will check type of key.
     def sort(self, *, key: Any = None, reverse: bool = False) -> None: pass
 
-    def __contains__(self, key: I) -> bool: pass
+    def __contains__(self, key: Any) -> bool: pass
 
     def __delitem__(self, i: Union[int, slice]): pass
 

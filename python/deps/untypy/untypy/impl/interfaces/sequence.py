@@ -13,7 +13,7 @@ class Sequence(Generic[I]):
     def __len__(self) -> int:
         pass
 
-    def __contains__(self, key: I) -> bool:
+    def __contains__(self, key: Any) -> bool:
         pass
 
     def index(self, value: I, start: Optional[int] = 0, stop: Optional[int] = 9223372036854775807) -> int:

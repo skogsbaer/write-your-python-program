@@ -47,7 +47,7 @@ class Dict(Generic[K, V], dict):
 
     def values(self) -> Iterable[V]: pass
 
-    def __contains__(self, key: K) -> bool: pass
+    def __contains__(self, key: Any) -> bool: pass
 
     def __delitem__(self, key: K) -> None: pass
 

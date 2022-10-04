@@ -27,7 +27,7 @@ class Set(Generic[I]):
     def update(self, *others: Tuple[OnlyIterable[I], ...]) -> None:
         pass
 
-    def __contains__(self, x: I) -> bool: pass
+    def __contains__(self, x: Any) -> bool: pass
     def __delattr__(self, name: str) -> None: pass
 
     def __le__(self, other: Any) -> bool: pass
