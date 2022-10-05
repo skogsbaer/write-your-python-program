@@ -1,5 +1,9 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.0.1 (2022-10-05)
+  * Include changelog
+* 1.0.0 (2022-10-05)
+  * Fix bug with generators
 * 0.17.1 (2022-06-14)
   * Fix bug with higher-order functions
 * 0.17.0 (2022-05-30)
