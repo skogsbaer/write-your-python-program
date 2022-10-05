@@ -41,6 +41,8 @@ class WrapperBase:
         ty = type(name, (cls,), ms)
         patch(self, ty, extra)
     def __repr__(self):
+        #w = self.__wrapped__
+        #return f"Wrapper(addr=0x{id(self):09x}, wrapped_addr=0x{id(w):09x}, wrapped={repr(w)}"
         return repr(self.__wrapped__)
     def __str__(self):
         return str(self.__wrapped__)
@@ -204,10 +206,11 @@ class TupleWrapper(tuple, WrapperBase):
         self.__wrapped__ = content
         return self
 
+# These methods are not delegated to the wrapped object
 _blacklist = [
     '__class__', '__delattr__', '__dict__', '__dir__', '__doc__',
     '__getattribute__', '__get_attr_', '__init_subclass__'
-    '__init__', '__new__', '__repr__', '__setattr__', '__str__',
+    '__init__', '__new__', '__del__', '__repr__', '__setattr__', '__str__',
     '__hash__', '__eq__', '__patch__',
     '__class_getitem__',  '__subclasshook__']
 
@@ -225,7 +228,7 @@ class SimpleWrapper(WrapperBase):
         for x in dir(baseObject) + _extra:
             if x not in ms and x not in _blacklist and hasattr(baseObject, x):
                 ms[x] = getattr(baseObject, x)
-        ty = type(name, (cls,), ms) # FIXME: use (cls,) and get rid off ViewsWrapper?!
+        ty = type(name, (cls,), ms) #
         patch(self, ty, extra)
 
 class ValuesViewWrapper(SimpleWrapper):

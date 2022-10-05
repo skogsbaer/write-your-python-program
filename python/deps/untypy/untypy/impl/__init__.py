@@ -11,7 +11,6 @@ from .generator import GeneratorFactory
 from .generic import GenericFactory
 from .interface import InterfaceFactory
 from .choice import ChoiceFactory
-from .iterator import IteratorFactory
 from .literal import LiteralFactory
 from .none import NoneFactory
 from .optional import OptionalFactory
@@ -37,7 +36,6 @@ _FactoryList = [
     UnionFactory(),
     TupleFactory(),
     GeneratorFactory(),
-    IteratorFactory(),
     InterfaceFactory(),
     ChoiceFactory(),
     StringForwardRefFactory(),  # resolve types passed as strings
@@ -62,7 +60,7 @@ class DefaultCreationContext(CreationContext):
         for fac in _FactoryList:
             res = fac.create_from(annotation=annotation, ctx=self)
             if res is not None:
-                # debug(f'Created checker for {annotation} from factory {fac}')
+                debug(f'Created checker for {annotation} from factory {fac}')
                 return res
         return None
 
