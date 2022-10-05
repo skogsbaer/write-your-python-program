@@ -244,6 +244,9 @@ checkWithOutputAux yes 0 test-data/testIterable1.py
 checkWithOutputAux yes 0 test-data/testIterable2.py
 checkWithOutputAux yes 0 test-data/testIterable3.py
 checkWithOutputAux yes 0 test-data/testIterable4.py
+checkWithOutputAux yes 0 test-data/testIterable5.py
+checkWithOutputAux yes 0 test-data/testIterable6.py
+checkWithOutputAux yes 1 test-data/testIterable7.py
 checkWithOutputAux yes 0 test-data/testIterator.py
 checkWithOutputAux yes 0 test-data/testIterator2.py
 checkWithOutputAux yes 0 test-data/testIterator3.py

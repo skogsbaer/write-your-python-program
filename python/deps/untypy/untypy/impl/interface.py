@@ -5,7 +5,7 @@ from collections.abc import Sequence as ABCSequence
 from typing import Optional, Any
 
 from untypy.error import UntypyAttributeError
-from untypy.impl.interfaces.iterable import Iterable
+from untypy.impl.interfaces.iterable import Iterable, Iterator
 from untypy.impl.interfaces.sequence import Sequence
 from untypy.impl.interfaces.dict import Dict, DictLike
 from untypy.impl.interfaces.list import List
@@ -23,6 +23,8 @@ InterfaceMapping = {
     typing.Set: Set,
     ABCIterable: Iterable,
     typing.Iterable: Iterable,
+    typing.Iterator: Iterator,
+    ABCIterator: Iterator,
     ABCSequence: Sequence,
     typing.Sequence: Sequence
 }
