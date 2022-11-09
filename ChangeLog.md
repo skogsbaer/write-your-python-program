@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.0.2 (2022-11-09)
+  * Fix | syntax for union
 * 1.0.1 (2022-10-05)
   * Include changelog
 * 1.0.0 (2022-10-05)
