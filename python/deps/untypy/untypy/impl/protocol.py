@@ -20,7 +20,9 @@ class ProtocolFactory(TypeCheckerFactory):
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
         if isinstance(annotation, type) and Protocol in annotation.mro():
             return ProtocolChecker(annotation, ctx)
-        elif hasattr(annotation, '__args__') and hasattr(annotation.__origin__, '__mro__') and \
+        elif hasattr(annotation, '__args__') and \
+            hasattr(annotation, '__origin__') and \
+            hasattr(annotation.__origin__, '__mro__') and \
             typing.Protocol in annotation.__origin__.__mro__:
             return ProtocolChecker(annotation, ctx)
         else:
