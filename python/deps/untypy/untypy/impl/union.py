@@ -4,13 +4,18 @@ from untypy.error import UntypyTypeError, UntypyAttributeError
 from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext
 from untypy.util import CompoundTypeExecutionContext
 
-UnionType = type(Union[int, str])
+import sys
+pythonVersion = sys.version_info
 
+unionTypes = [type(Union[int, str])]
+if pythonVersion >= (3, 10):
+    unionTypes.append(type(int | str))
 
 class UnionFactory(TypeCheckerFactory):
 
     def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
-        if type(annotation) is UnionType:
+        t = type(annotation)
+        if t in unionTypes:
             inner = []
             for arg in annotation.__args__:
                 checker = ctx.find_checker(arg)
