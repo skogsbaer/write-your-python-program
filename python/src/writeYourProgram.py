@@ -181,7 +181,7 @@ def printTestResults(prefix=''):
 def checkEq(actual, expected):
     return check(actual, expected, structuralObjEq=False)
 
-def check(actual, expected, structuralObjEq=True, floatEqWithDelta=True):
+def check(actual, expected, *, structuralObjEq=True, floatEqWithDelta=True):
     if not _checksEnabled:
         return
     global _testCount

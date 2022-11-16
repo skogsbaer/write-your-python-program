@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "test-data/testCheck2.py", line 3, in <module>
+    check(1, 2, 3)
+TypeError: check() takes 2 positional arguments but 3 were given
