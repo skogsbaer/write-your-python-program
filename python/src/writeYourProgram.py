@@ -303,6 +303,22 @@ def deepEq(v1, v2, **flags):
             return False # v1 == v2 already checked
     return False
 
+class TodoError(Exception):
+    pass
+
+def todo(msg=None):
+    if msg is None:
+        msg = 'TODO'
+    raise TodoError(msg)
+
+class ImpossibleError(Exception):
+    pass
+
+def impossible(msg=None):
+    if msg is None:
+        msg = 'the impossible happened'
+    raise ImpossibleError(msg)
+
 # Additional functions and aliases
 
 import math as moduleMath
