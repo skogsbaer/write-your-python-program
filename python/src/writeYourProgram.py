@@ -181,7 +181,7 @@ def printTestResults(prefix=''):
 def checkEq(actual, expected):
     return check(actual, expected, structuralObjEq=False)
 
-def check(actual, expected, structuralObjEq=True, floatEqWithDelta=True):
+def check(actual, expected, *, structuralObjEq=True, floatEqWithDelta=True):
     if not _checksEnabled:
         return
     global _testCount
@@ -302,6 +302,22 @@ def deepEq(v1, v2, **flags):
         else:
             return False # v1 == v2 already checked
     return False
+
+class TodoError(Exception):
+    pass
+
+def todo(msg=None):
+    if msg is None:
+        msg = 'TODO'
+    raise TodoError(msg)
+
+class ImpossibleError(Exception):
+    pass
+
+def impossible(msg=None):
+    if msg is None:
+        msg = 'the impossible happened'
+    raise ImpossibleError(msg)
 
 # Additional functions and aliases
 

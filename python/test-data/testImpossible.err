@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "test-data/testImpossible.py", line 3, in <module>
+    impossible()
+wypp.writeYourProgram.ImpossibleError: the impossible happened

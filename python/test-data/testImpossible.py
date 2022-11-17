@@ -1,0 +1,3 @@
+from wypp import *
+
+impossible()

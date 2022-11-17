@@ -18,6 +18,7 @@ floatNegative = w.floatNegative
 floatNonNegative = w.floatNonNegative
 floatNonPositive = w.floatNonPositive
 floatPositive = w.floatPositive
+impossible = w.impossible
 intNegative = w.intNegative
 intNonNegative = w.intNonNegative
 intNonPositive = w.intNonPositive
@@ -26,6 +27,7 @@ math = w.math
 nat = w.nat
 record = w.record
 T = w.T
+todo = w.todo
 U = w.U
 unchecked = w.unchecked
 V = w.V
@@ -48,6 +50,7 @@ __all__ = [
     'floatNonNegative',
     'floatNonPositive',
     'floatPositive',
+    'impossible',
     'intNegative',
     'intNonNegative',
     'intNonPositive',
@@ -56,6 +59,7 @@ __all__ = [
     'nat',
     'record',
     'T',
+    'todo',
     'U',
     'unchecked',
     'V'
