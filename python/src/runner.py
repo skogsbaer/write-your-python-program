@@ -519,7 +519,7 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
                        useUntypy=args.checkTypes)
     except Exception as e:
         verbose(e)
-        handleCurrentException(exit=False)
+        handleCurrentException(exit=not isInteractive)
         loadingFailed = True
 
     performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes)
