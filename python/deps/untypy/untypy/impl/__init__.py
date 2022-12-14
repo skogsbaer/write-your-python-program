@@ -19,7 +19,7 @@ from .simple import SimpleFactory
 from .string_forward_refs import StringForwardRefFactory
 from .tuple import TupleFactory
 from .union import UnionFactory
-from ..error import Location, UntypyAttributeError
+from ..error import Location, UntypyAttributeError, UntypyAnnotationError
 from ..util.debug import debug
 
 # More Specific Ones First
@@ -43,6 +43,12 @@ _FactoryList = [
     SimpleFactory()
 ]
 
+def isAnnotationValid(annot: Any):
+    try:
+        hash(annot)
+    except TypeError:
+        return False
+    return True
 
 class DefaultCreationContext(CreationContext):
 
@@ -57,6 +63,8 @@ class DefaultCreationContext(CreationContext):
         return self.declared
 
     def find_checker(self, annotation: Any) -> Optional[TypeChecker]:
+        if not isAnnotationValid(annotation):
+            raise UntypyAnnotationError(message="Invalid type annotation: " + str(annotation))
         for fac in _FactoryList:
             res = fac.create_from(annotation=annotation, ctx=self)
             if res is not None:
