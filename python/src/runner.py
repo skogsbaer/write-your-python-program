@@ -511,6 +511,7 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
 
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']
+    loadingFailed = False
     try:
         verbose(f'running code in {fileToRun}')
         globals['__file__'] = fileToRun
@@ -518,12 +519,16 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
                        useUntypy=args.checkTypes)
     except Exception as e:
         verbose(e)
-        handleCurrentException()
+        handleCurrentException(exit=False)
+        loadingFailed = True
 
     performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes)
 
     if isInteractive:
         enterInteractive(globals)
+        if loadingFailed:
+            print('NOTE: running the code failed, some definitions might not be available!')
+            print()
         if args.checkTypes:
             consoleClass = TypecheckedInteractiveConsole
         else:
