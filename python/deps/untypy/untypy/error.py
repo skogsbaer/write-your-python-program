@@ -369,3 +369,6 @@ class UntypyNameError(UntypyAttributeError, UntypyError):
     def simpleName(self):
         return 'NameError'
 
+class UntypyAnnotationError(UntypyAttributeError, UntypyError):
+    def simpleName(self):
+        return 'AnnotationError'
