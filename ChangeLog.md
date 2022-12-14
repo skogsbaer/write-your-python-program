@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.0.3
+  * Start interactive mode even on exception
+  * Improve error messages
 * 1.0.2 (2022-11-09)
   * Fix | syntax for union
 * 1.0.1 (2022-10-05)
