@@ -9,6 +9,6 @@ expected: value of type int
 
 context: add(self, other: int)
                           ^^^
-declared at: deps/untypy/untypy/impl/interfaces/set.py:7
+declared at: site-lib/untypy/impl/interfaces/set.py:7
 caused by: test-data/testTypesSet1.py:4
   |     l.add("foo")

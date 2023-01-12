@@ -9,6 +9,6 @@ expected: value of type int
 
 context: append(self, object: int)
                               ^^^
-declared at: deps/untypy/untypy/impl/interfaces/list.py:17
+declared at: site-lib/untypy/impl/interfaces/list.py:17
 caused by: test-data/testTypesCollections3.py:4
   |     l.append("foo")
