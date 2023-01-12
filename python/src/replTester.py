@@ -56,7 +56,7 @@ if opts.verbose:
 libDir = os.path.dirname(__file__)
 libFile = os.path.join(libDir, 'writeYourProgram.py')
 defs = globals()
-importUntypy()
+importUntypy('install')
 # runCode(libFile, defs, [])
 
 for lib in opts.libs:

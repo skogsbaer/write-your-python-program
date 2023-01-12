@@ -1,6 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
-* 1.0.3
+* 1.0.4 (2022-12-14)
+  * Fix release
+* 1.0.3 (2022-12-14)
   * Start interactive mode even on exception
   * Improve error messages
 * 1.0.2 (2022-11-09)

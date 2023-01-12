@@ -448,7 +448,9 @@ def getHistoryFilePath():
         return None
 
 # We cannot import untypy at the top of the file because we might have to install it first.
-def importUntypy():
+def importUntypy(installMode: str):
+    if installMode == 'dontInstall':
+        sys.path.insert(0, UNTYPY_DIR)
     global untypy
     try:
         import untypy
@@ -490,7 +492,7 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
         else:
             verbose(f"Adding user site-package directory {site.USER_SITE} to sys.path")
             sys.path.append(site.USER_SITE)
-    importUntypy()
+    importUntypy(args.installMode)
 
     fileToRun = args.file
     if args.changeDir:
