@@ -9,6 +9,6 @@ expected: value of type int
 
 context: __setitem__(self, key, value: int)
                                        ^^^
-declared at: site-lib/untypy/impl/interfaces/dict.py:67
+declared at: deps/untypy/untypy/impl/interfaces/dict.py:67
 caused by: test-data/testTypesDict1.py:4
   |     d['x'] = "foo"
