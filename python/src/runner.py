@@ -450,7 +450,7 @@ def getHistoryFilePath():
 # We cannot import untypy at the top of the file because we might have to install it first.
 def importUntypy(installMode: str):
     if installMode == 'dontInstall':
-        sys.path.insert(0, os.path.dirname(UNTYPY_DIR))
+        sys.path.insert(0, UNTYPY_DIR)
     global untypy
     try:
         import untypy
