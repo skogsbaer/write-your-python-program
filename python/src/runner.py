@@ -45,6 +45,7 @@ FILES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
 
 UNTYPY_DIR = os.path.join(LIB_DIR, "..", "deps", "untypy", "untypy")
 UNTYPY_MODULE_NAME = 'untypy'
+SITELIB_DIR = os.path.join(LIB_DIR, "..", "site-lib")
 
 def verbose(s):
     if VERBOSE or DEBUG:
@@ -484,12 +485,16 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
     verbose(f'VERBOSE={VERBOSE}, DEBUG={DEBUG}')
 
     installLib(args.installMode)
-    if site.USER_SITE not in sys.path:
-        if not site.ENABLE_USER_SITE:
-            printStderr(f"User site-packages disabled ({site.USER_SITE}. This might cause problems importing wypp or untypy.")
-        else:
-            verbose(f"Adding user site-package directory {site.USER_SITE} to sys.path")
-            sys.path.append(site.USER_SITE)
+    if args.installMode == InstallMode.dontInstall:
+        if SITELIB_DIR not in sys.path:
+            sys.path.insert(0, SITELIB_DIR)
+    else:
+        if site.USER_SITE not in sys.path:
+            if not site.ENABLE_USER_SITE:
+                printStderr(f"User site-packages disabled ({site.USER_SITE}. This might cause problems importing wypp or untypy.")
+            else:
+                verbose(f"Adding user site-package directory {site.USER_SITE} to sys.path")
+                sys.path.append(site.USER_SITE)
     importUntypy()
 
     fileToRun = args.file
