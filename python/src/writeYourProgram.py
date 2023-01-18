@@ -228,8 +228,8 @@ def _seqEq(seq1, seq2, flags):
     return True
 
 def _dictEq(d1, d2, flags):
-    ks1 = sorted(d1.keys())
-    ks2 = sorted(d2.keys())
+    ks1 = set(d1.keys())
+    ks2 = set(d2.keys())
     if ks1 != ks2: # keys should be exactly equal
         return False
     for k in ks1:
