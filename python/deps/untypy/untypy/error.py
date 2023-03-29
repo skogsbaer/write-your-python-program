@@ -198,6 +198,16 @@ DECLARED_AT_PREFIX = "declared at: "
 def formatLocations(prefix: str, locs: list[Location]) -> str:
     return joinLines(map(lambda s: prefix + str(s), locs))
 
+# DeliberateError instances are not reported as bugs
+class DeliberateError:
+    pass
+
+class WyppTypeError(TypeError, DeliberateError):
+    pass
+
+class WyppAttributeError(AttributeError, DeliberateError):
+    pass
+
 # All error types must be subclasses from UntypyError.
 class UntypyError:
     def simpleName(self):

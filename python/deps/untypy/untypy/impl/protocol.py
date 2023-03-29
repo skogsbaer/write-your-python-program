@@ -277,6 +277,17 @@ def wrapForProtocol(protocolchecker: ProtocolChecker,
     name = f"WyppTypeCheck({original.__name__}, {protocolchecker.describe()})"
     return wrapper.wrap(originalValue, list_of_attr, name, extra={'ctx': ctx}, simple=simple)
 
+def _getWrappedName(fn):
+    if hasattr(fn, '__name__'):
+        return fn.__name__
+    elif hasattr(fn, 'fget'):
+        return fn.fget.__name__
+    else:
+        raise ValueError(f'Cannot determine name of {fn}')
+
+def _isProperty(fn):
+    return isinstance(fn, property)
+
 class ProtocolWrappedFunction(WrappedFunction):
 
     def __init__(self,
@@ -297,8 +308,8 @@ class ProtocolWrappedFunction(WrappedFunction):
 
     def build(self):
         fn = WrappedFunction.find_original(self.inner)
-
-        fn_of_protocol = getattr(self.protocol.proto, fn.__name__)
+        name = _getWrappedName(fn)
+        fn_of_protocol = getattr(self.protocol.proto, name)
         if hasattr(fn_of_protocol, '__wf'):
             fn_of_protocol = getattr(fn_of_protocol, '__wf')
 
@@ -315,7 +326,10 @@ class ProtocolWrappedFunction(WrappedFunction):
                                                                inner_object,
                                                                inner_ctx),
                     args, kwargs)
-            ret = fn(*args, **kwargs)
+            if _isProperty(fn):
+                ret = fn
+            else:
+                ret = fn(*args, **kwargs)
             if isinstance(self.inner, WrappedFunction):
                 ret = self.inner.wrap_return(args, kwargs, ret, bind2,
                     ProtocolReturnExecutionContext(self, ResponsibilityType.IN, inner_object, inner_ctx))
@@ -331,7 +345,7 @@ class ProtocolWrappedFunction(WrappedFunction):
             w = wrapper
 
         setattr(w, '__wrapped__', fn)
-        setattr(w, '__name__', fn.__name__)
+        setattr(w, '__name__', name)
         setattr(w, '__signature__', self.signature)
         setattr(w, '__wf', self)
         return w

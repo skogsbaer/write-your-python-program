@@ -396,26 +396,34 @@ def tbToFrameList(tb):
         cur = cur.tb_next
     return res
 
-def ignoreFrame(frame):
-    if DEBUG:
-        return False
+def isWyppFrame(frame):
     modName = frame.f_globals["__name__"]
     return '__wypp_runYourProgram' in frame.f_globals or \
         modName == 'untypy' or modName.startswith('untypy.') or \
         modName == 'wypp' or modName.startswith('wypp.')
 
+def ignoreFrame(frame):
+    if DEBUG:
+        return False
+    return isWyppFrame(frame)
+
 # Returns a StackSummary object
-def limitTraceback(tb):
-    frames = [(f, f.f_lineno) for f in tbToFrameList(tb) if not ignoreFrame(f)]
+def limitTraceback(frameList, isBug):
+    frames = [(f, f.f_lineno) for f in frameList if isBug or not ignoreFrame(f)]
     return traceback.StackSummary.extract(frames)
 
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
     if isinstance(val, SystemExit):
         die(val.code)
-    if tb and removeFirstTb:
-        tb = tb.tb_next
-    stackSummary = limitTraceback(tb)
+    frameList = tbToFrameList(tb)
+    if frameList and removeFirstTb:
+        frameList = frameList[1:]
+    isWyppError = isinstance(val, untypy.error.UntypyError)
+    isBug = not isWyppError and not isinstance(val, SyntaxError) and \
+        not isinstance(val, untypy.error.DeliberateError) and frameList \
+        and isWyppFrame(frameList[-1])
+    stackSummary = limitTraceback(frameList, isBug)
     header = False
     for x in stackSummary.format():
         if not header:
@@ -433,6 +441,8 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     else:
         for x in traceback.format_exception_only(etype, val):
             file.write(x)
+    if isBug:
+        file.write(f'BUG: the error above is most likely a bug in WYPP!')
     if exit:
         die(1)
 
@@ -523,7 +533,7 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
         runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
                        useUntypy=args.checkTypes)
     except Exception as e:
-        verbose(e)
+        verbose(f'Error while running code in {fileToRun}: {e}')
         handleCurrentException(exit=not isInteractive)
         loadingFailed = True
 
