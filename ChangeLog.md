@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.0.5 (2023-03-29)
+  * Fix bug with properties
 * 1.0.4 (2022-12-14)
   * Fix release
 * 1.0.3 (2022-12-14)
