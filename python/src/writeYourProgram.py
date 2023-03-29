@@ -74,7 +74,7 @@ def _invalidCall(self, *args, **kwds):
         typingPrefix = 'typing.'
         if name.startswith(typingPrefix):
             name = name[len(typingPrefix):]
-    raise TypeError(f"Cannot instantiate {name}. Did you mean {name}[{argStr}]?")
+    raise untypy.error.WyppTypeError(f"Cannot instantiate {name}. Did you mean {name}[{argStr}]?")
 
 # Dirty hack ahead: we patch some methods of internal class of the typing module.
 
@@ -129,7 +129,7 @@ def _patchDataClass(cls, mutable):
             elif k in fields:
                 oldSetattr(obj, k, v)
             else:
-                raise AttributeError(f'Unknown attribute {k} for record {cls.__name__}')
+                raise untypy.error.WyppAttributeError(f'Unknown attribute {k} for record {cls.__name__}')
         setattr(cls, "__setattr__", _setattr)
     return cls
 
@@ -303,7 +303,7 @@ def deepEq(v1, v2, **flags):
             return False # v1 == v2 already checked
     return False
 
-class TodoError(Exception):
+class TodoError(Exception, untypy.error.DeliberateError):
     pass
 
 def todo(msg=None):
@@ -311,7 +311,7 @@ def todo(msg=None):
         msg = 'TODO'
     raise TodoError(msg)
 
-class ImpossibleError(Exception):
+class ImpossibleError(Exception, untypy.error.DeliberateError):
     pass
 
 def impossible(msg=None):
