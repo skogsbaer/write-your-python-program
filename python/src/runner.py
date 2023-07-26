@@ -90,6 +90,10 @@ def parseCmdlineArgs(argList):
                         const=True, default=False, help='Do not clear the terminal')
     parser.add_argument('--test-file', dest='testFile',
                         type=str, help='Run additional tests contained in this file.')
+    parser.add_argument('--extra-dir', dest='extraDirs', action='append', type=str,
+                        help='Also typechecks files contained in the given directory.\n' \
+                            'By default, only files in the same directory as the main file are\n' \
+                            'checked.')
     parser.add_argument('--change-directory', dest='changeDir', action='store_const',
                         const=True, default=False,
                         help='Change to the directory of FILE before running')
@@ -309,7 +313,9 @@ class RunSetup:
             sys.path.remove(self.sysPath)
             self.sysPathInserted = False
 
-def runCode(fileToRun, globals, args, useUntypy=True):
+def runCode(fileToRun, globals, args, useUntypy=True, extraDirs=None):
+    if not extraDirs:
+        extraDirs = []
     localDir = os.path.dirname(fileToRun)
 
     with RunSetup(localDir):
@@ -317,7 +323,7 @@ def runCode(fileToRun, globals, args, useUntypy=True):
         flags = 0 | anns.compiler_flag
         if useUntypy:
             verbose(f'finding modules imported by {fileToRun}')
-            importedMods = findImportedModules([localDir], fileToRun)
+            importedMods = findImportedModules([localDir] + extraDirs, fileToRun)
             verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
             untypy.enableDebug(DEBUG)
             untypy.just_install_hook(importedMods + ['__wypp__'])
@@ -337,8 +343,8 @@ def runCode(fileToRun, globals, args, useUntypy=True):
         finally:
             sys.argv = oldArgs
 
-def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True):
-    doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy)
+def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True, extraDirs=None):
+    doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy, extraDirs=extraDirs)
     if onlyCheckRunnable:
         try:
             doRun()
@@ -350,18 +356,18 @@ def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True):
     doRun()
 
 # globals already contain libDefs
-def runTestsInFile(testFile, globals, libDefs, useUntypy=True):
+def runTestsInFile(testFile, globals, libDefs, useUntypy=True, extraDirs=[]):
     printStderr()
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
     try:
-        runCode(testFile, globals, [], useUntypy=useUntypy)
+        runCode(testFile, globals, [], useUntypy=useUntypy, extraDirs=extraDirs)
     except:
         handleCurrentException()
     return libDefs.dict['printTestResults']('Tutor:  ')
 
 # globals already contain libDefs
-def performChecks(check, testFile, globals, libDefs, useUntypy=True):
+def performChecks(check, testFile, globals, libDefs, useUntypy=True, extraDirs=None):
     prefix = ''
     if check and testFile:
         prefix = 'Student: '
@@ -369,7 +375,8 @@ def performChecks(check, testFile, globals, libDefs, useUntypy=True):
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
-            testResultsInstr = runTestsInFile(testFile, globals, libDefs, useUntypy=useUntypy)
+            testResultsInstr = runTestsInFile(testFile, globals, libDefs, useUntypy=useUntypy,
+                                              extraDirs=extraDirs)
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
         die(0 if failingSum < 1 else 1)
 
@@ -531,13 +538,14 @@ Python in version 3.9.2 or newer is required. You are still using version {vStr}
         verbose(f'running code in {fileToRun}')
         globals['__file__'] = fileToRun
         runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
-                       useUntypy=args.checkTypes)
+                       useUntypy=args.checkTypes, extraDirs=args.extraDirs)
     except Exception as e:
         verbose(f'Error while running code in {fileToRun}: {e}')
         handleCurrentException(exit=not isInteractive)
         loadingFailed = True
 
-    performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes)
+    performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes,
+                  extraDirs=args.extraDirs)
 
     if isInteractive:
         enterInteractive(globals)
