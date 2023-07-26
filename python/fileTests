@@ -80,10 +80,17 @@ check test-data/fileWithRecursiveTypes.py
 version=$(python3 -V | sed 's/Python //g' | sed 's/\.[^.]*$//g')
 fullVersion=$(python3 -V | sed 's/Python //g')
 
+function fix_output()
+{
+    sed 's/at 0x[0-9a-f][0-9a-f]*>/at 0x00>/g' | \
+        sed 's|  File "/[^"]*"|  File ""|g'
+}
+
 # First argument: whether to do type checking or not
 # Second argument: expected exit code. If given as X:Y, then X is the exit code with active
 #   type checking, and Y is the exit code without type checking.
 # Third argument: input file
+# The remaining arguments are passed to src/runYourProgram.py
 function checkWithOutputAux()
 {
     local tycheck="$1"
@@ -132,11 +139,15 @@ function checkWithOutputAux()
     local outtemp=$t.outtemp
     set +e
     echo "Checking $file (typecheck: $tycheck)"
-    PYTHONPATH=$d/site-lib $PY $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$errtemp" > "$outtemp"
+    local p=$d/site-lib
+    if [ ! -z $PP ]; then
+        p=$p:$PP
+    fi
+    PYTHONPATH=$p $PY $d/src/runYourProgram.py --quiet $tycheckOpt "$file" "$@" 2>> "$errtemp" > "$outtemp"
     ecode=$?
     set -e
-    cat "$errtemp" | sed 's/at 0x[0-9a-f][0-9a-f]*>/at 0x00>/g' > "$err"
-    cat "$outtemp" | sed 's/at 0x[0-9a-f][0-9a-f]*>/at 0x00>/g' > "$out"
+    cat "$errtemp" | fix_output > "$err"
+    cat "$outtemp" | fix_output > "$out"
     if [ $ecode != $expectedEcode ]; then
         echo "Expected exit code $expectedEcode got $ecode for test $file"
         echo "Stderr:"
@@ -265,6 +276,8 @@ checkWithOutputAux yes 1 test-data/testTodo.py
 checkWithOutputAux yes 1 test-data/testImpossible.py
 checkWithOutputAux yes 1 test-data/testInvalidLiteral.py
 checkWithOutputAux yes 0 test-data/admin.py
+PP=test-data/modules/B checkWithOutputAux yes 1 test-data/modules/A/main.py \
+  --extra-dir test-data/modules/B
 
 function is_min_version()
 {
