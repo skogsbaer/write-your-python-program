@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.0.6 (2023-09-18)
+  * Run button is now visible with every color theme
 * 1.0.5 (2023-03-29)
   * Fix bug with properties
 * 1.0.4 (2022-12-14)

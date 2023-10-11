@@ -20,7 +20,6 @@ const buttons: vscode.StatusBarItem[] = [];
 function installButton(title: string, cmd: string | undefined) {
     const runButton = vscode.window.createStatusBarItem(1, 0);
     runButton.text = title;
-    runButton.color = 'white';
     if (cmd) {
         runButton.command = cmd;
     }
