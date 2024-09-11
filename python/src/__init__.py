@@ -71,3 +71,4 @@ LockFactory = w.LockFactory
 initModule = w.initModule
 printTestResults = w.printTestResults
 resetTestCount = w.resetTestCount
+deepEq = w.deepEq
