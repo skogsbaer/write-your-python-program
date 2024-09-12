@@ -13,6 +13,7 @@ Sequence = w.Sequence
 Protocol = w.Protocol
 Union = w.Union
 check = w.check
+checkFail = w.checkFail
 dataclass = w.dataclass
 floatNegative = w.floatNegative
 floatNonNegative = w.floatNonNegative
@@ -45,6 +46,7 @@ __all__ = [
     'Protocol',
     'Union',
     'check',
+    'checkFail',
     'dataclass',
     'floatNegative',
     'floatNonNegative',
@@ -71,3 +73,4 @@ LockFactory = w.LockFactory
 initModule = w.initModule
 printTestResults = w.printTestResults
 resetTestCount = w.resetTestCount
+deepEq = w.deepEq

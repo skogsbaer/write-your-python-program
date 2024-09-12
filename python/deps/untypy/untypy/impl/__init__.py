@@ -3,6 +3,7 @@ from typing import Any, Optional, TypeVar, List, Dict
 import typing
 
 from untypy.interfaces import CreationContext, TypeChecker, ExecutionContext
+from .alias import TypeAliasTypeFactory
 from .annotated import AnnotatedFactory
 from .any import AnyFactory
 from .callable import CallableFactory
@@ -28,6 +29,7 @@ _FactoryList = [
     NoneFactory(),
     DummyDelayedFactory(),
     AnnotatedFactory(),
+    TypeAliasTypeFactory(),
     ProtocolFactory(),  # must be higher then Generic
     GenericFactory(),
     CallableFactory(),

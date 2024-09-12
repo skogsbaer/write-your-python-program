@@ -183,6 +183,9 @@ checkWithOutput 0 test-data/testArgs.py ARG_1 ARG_2
 checkWithOutput 0 test-data/printModuleName.py
 checkWithOutput 0 test-data/printModuleNameImport.py
 checkWithOutput 1 test-data/testTypes1.py
+checkWithOutput 1 test-data/testIndexError.py
+checkWithOutput 1 test-data/testWrapperError.py
+checkWithOutput 0 test-data/testCheckFail.py
 checkWithOutput 1:0 test-data/testTypes2.py
 checkWithOutputAux yes 1 test-data/testABCMeta.py
 checkWithOutputAux yes 0 test-data/testClassHierarchy.py
@@ -278,6 +281,10 @@ checkWithOutputAux yes 1 test-data/testInvalidLiteral.py
 checkWithOutputAux yes 0 test-data/admin.py
 PP=test-data/modules/B checkWithOutputAux yes 1 test-data/modules/A/main.py \
   --extra-dir test-data/modules/B
+checkWithOutputAux yes 0 test-data/testUnion.py
+checkWithOutputAux yes 0 test-data/testUnion2.py
+checkWithOutputAux yes 0 test-data/testUnion3.py
+checkWithOutputAux yes 1 test-data/testLiteral1.py
 
 function is_min_version()
 {
@@ -291,11 +298,7 @@ function is_min_version()
     fi
 }
 version=$(python3 --version | sed 's/Python //g')
-minVersion="3.10"
 
-if is_min_version "3.10" "$version"; then
-    # only for python 3.10 and higher
-    checkWithOutputAux yes 0 test-data/testUnion.py
-    checkWithOutputAux yes 0 test-data/testUnion2.py
-    checkWithOutputAux yes 0 test-data/testUnion3.py
+if is_min_version "3.12" "$version"; then
+    checkWithOutput 0 test-data/testTypeKeyword.py
 fi

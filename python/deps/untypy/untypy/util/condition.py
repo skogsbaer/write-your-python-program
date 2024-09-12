@@ -98,7 +98,7 @@ def find_lambdasource(fn) -> Optional[str]:
     try:
         fn = WrappedFunction.find_original(fn)
         source = inspect.getsource(fn).split('\n')
-        m = re.match('@[a-zA-Z_\.]+\((.*)\)', source[0])
+        m = re.match(r'@[a-zA-Z_\.]+\((.*)\)', source[0])
         if m is not None and len(m.groups()) == 1:
             return m.group(1)
     except:

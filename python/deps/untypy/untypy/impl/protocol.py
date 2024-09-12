@@ -329,7 +329,17 @@ class ProtocolWrappedFunction(WrappedFunction):
             if _isProperty(fn):
                 ret = fn
             else:
-                ret = fn(*args, **kwargs)
+                try:
+                    ret = fn(*args, **kwargs)
+                except Exception as e:
+                    # If an exception occurs here, we find an additional stack frame
+                    # on top of the traceback. We add the __wrapped__ attribute so that
+                    # traceback formatting mechanism can remove this additional frame.
+                    e.__wrapped__ = True
+                    tb = e.__traceback__
+                    if tb:
+                        tb = tb.tb_next
+                    raise e.with_traceback(tb)
             if isinstance(self.inner, WrappedFunction):
                 ret = self.inner.wrap_return(args, kwargs, ret, bind2,
                     ProtocolReturnExecutionContext(self, ResponsibilityType.IN, inner_object, inner_ctx))

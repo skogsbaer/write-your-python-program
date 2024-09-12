@@ -265,8 +265,8 @@ function fixPythonConfig(context: vscode.ExtensionContext) {
     }
     pyComplConfig.update("extraPaths", newPath);
 
-    const pyLintConfig = vscode.workspace.getConfiguration("python.linting");
-    pyLintConfig.update("enabled", false);
+    // const pyLintConfig = vscode.workspace.getConfiguration("python.linting");
+    // pyLintConfig.update("enabled", false);
 }
 
 class Location implements vscode.TerminalLink {
