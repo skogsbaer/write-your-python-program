@@ -10,8 +10,7 @@ The ideas of this environment are based on the great ideas from
 
 ## Quick start
 
-* Step 1. Install **Python 3.9.x** (with x at least 2) or **Python 3.10.x.**.
-  Note that Python 3.9.0 and 3.9.1 are not supported.
+* Step 1. Install **Python 3.10.x** or **Python 3.11.x** or **Python 3.12.x**.
 * Step 2. Install the **write-your-python-program** extension. You need at least Visual Studio Code
   version 1.49.0.
 * Step 3. Open or create a Python file. The "RUN" button in the taskbar at the bottom will
@@ -20,14 +19,10 @@ The ideas of this environment are based on the great ideas from
 ### Troubleshooting
 
 - By default, the Visual Studio Code extension uses the Python interpreter of the regular
-  Python extension. If
-  this is not Python version 3.9.x, you have to configure it explicitly. Configuration
+  Python extension, but you may also configure it explicitly. Configuration
   can be done either by selecting the desired Python version in the left corner of the status
   bar (at the bottom of the window), or by setting the path the the python
   executable in the settings of the plugin.
-- The extension disables linting of Python code when activated. This is well-suited for beginners
-  but might cause unwanted effects when you rely on linting. In such cases, you have to
-  deactivate the extension.
 
 ### Usage without Visual Studio Code
 
@@ -83,7 +78,7 @@ its type hint or when a function returns a value not matching the return type hi
 #### Enums
 
 ~~~python
-Color = Literal['red', 'green', 'blue']
+type Color = Literal['red', 'green', 'blue']
 ~~~
 
 #### Records
@@ -117,14 +112,14 @@ Fields of records are immutable by default. You get mutable fields with `@record
 #### Mixed Data Types
 
 ~~~python
-PrimitiveShape = Union[Circle, Square]
+type PrimitiveShape = Union[Circle, Square]
 ~~~
 
 To use recursive types, you need to write a forward reference to the yet undefined type
 as a string:
 
 ~~~python
-Shape = Union[Circle, Square, 'Overlay']
+type Shape = Union[Circle, Square, 'Overlay']
 
 @record
 class Overlay:
