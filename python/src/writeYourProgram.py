@@ -66,7 +66,6 @@ def _literalInstanceOf(self, value):
     return False
 
 def _invalidCall(self, *args, **kwds):
-    argStr = ', '.join([untypy.util.typehints.qualname(x) for x in args])
     if hasattr(self, '__name__'):
         name = self.__name__
     else:
@@ -74,7 +73,13 @@ def _invalidCall(self, *args, **kwds):
         typingPrefix = 'typing.'
         if name.startswith(typingPrefix):
             name = name[len(typingPrefix):]
-    raise untypy.error.WyppTypeError(f"Cannot instantiate {name}. Did you mean {name}[{argStr}]?")
+    def formatArg(x):
+        if name == 'Literal':
+            return repr(x)
+        else:
+            return x
+    argStr = ', '.join([formatArg(untypy.util.typehints.qualname(x)) for x in args])
+    raise untypy.error.WyppTypeError(f"Cannot call {name} like a function. Did you mean {name}[{argStr}]?")
 
 # Dirty hack ahead: we patch some methods of internal class of the typing module.
 
