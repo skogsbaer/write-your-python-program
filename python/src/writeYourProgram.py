@@ -181,16 +181,19 @@ def printTestResults(prefix=''):
 def checkEq(actual, expected):
     return check(actual, expected, structuralObjEq=False)
 
+def incTestCount(testOk: bool):
+    global _testCount
+    _testCount = {
+        'total': _testCount['total'] + 1,
+        'failing': _testCount['failing'] + (0 if testOk else 1)
+    }
+
 def check(actual, expected, *, structuralObjEq=True, floatEqWithDelta=True):
     if not _checksEnabled:
         return
-    global _testCount
     flags = {'structuralObjEq': structuralObjEq, 'floatEqWithDelta': floatEqWithDelta}
     matches = deepEq(actual, expected, **flags)
-    _testCount = {
-        'total': _testCount['total'] + 1,
-        'failing': _testCount['failing'] + (0 if matches else 1)
-    }
+    incTestCount(matches)
     if not matches:
         stack = inspect.stack()
         caller = stack[1] if len(stack) > 1 else None
@@ -205,6 +208,16 @@ def check(actual, expected, *, structuralObjEq=True, floatEqWithDelta=True):
             raise Exception(msg)
         else:
             print("FEHLER in " + msg)
+
+def checkFail(msg: str):
+    if not _checksEnabled:
+        return
+    incTestCount(False)
+    msg = str(msg)
+    if _dieOnCheckFailures():
+        raise Exception(msg)
+    else:
+        print("FEHLER: " + msg)
 
 def uncoveredCase():
     stack = inspect.stack()
