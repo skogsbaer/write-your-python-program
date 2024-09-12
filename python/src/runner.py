@@ -426,6 +426,9 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     frameList = tbToFrameList(tb)
     if frameList and removeFirstTb:
         frameList = frameList[1:]
+    if frameList and getattr(val, '__wrapped__', False):
+        # We remove the stack frame of the wrapper
+        frameList = frameList[:-1]
     isWyppError = isinstance(val, untypy.error.UntypyError)
     isBug = not isWyppError and not isinstance(val, SyntaxError) and \
         not isinstance(val, untypy.error.DeliberateError) and frameList \
@@ -474,10 +477,12 @@ def importUntypy():
         printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
         die(1)
 
+requiredVersion = (3, 10, 0)
 def versionOk(v):
-    if v.major < 3 or v.minor < 9:
+    (reqMajor, reqMinor, reqMicro) = requiredVersion
+    if v.major < reqMajor or v.minor < reqMinor:
         return False
-    if v.major == 3 and v.minor == 9 and v.micro < 2:
+    if v.major == reqMajor and v.minor == reqMinor and v.micro < reqMicro:
         return False
     else:
         return True
@@ -486,8 +491,9 @@ def main(globals, argList=None):
     v = sys.version_info
     if not versionOk(v):
         vStr = sys.version.split()[0]
+        reqVStr = '.'.join(requiredVersion)
         print(f"""
-Python in version 3.9.2 or newer is required. You are still using version {vStr}, please upgrade!
+Python in version {reqVStr} or newer is required. You are still using version {vStr}, please upgrade!
 """)
         sys.exit(1)
 

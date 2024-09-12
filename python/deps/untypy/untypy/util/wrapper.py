@@ -75,7 +75,6 @@ class ABCObjectWrapperRev(ObjectWrapper, abc.ABC):
     pass
 
 # A wrapper for list such that the class is a subclass of the builtin list class.
-# A wrapper for list such that the class is a subclass of the builtin list class.
 class ListWrapper(WrapperBase, list): # important: inherit from WrapperBase first
     def __new__(cls, content):
         # the constructor of list copies the list passed to it. Thus, we use an empty list.

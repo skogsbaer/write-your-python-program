@@ -27,3 +27,4 @@ class UntypyTestCase(unittest.TestCase):
             print("not in")
             print(Location.from_code(blamed))
         self.assertTrue(ok)
+
