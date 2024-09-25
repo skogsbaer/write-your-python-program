@@ -6,6 +6,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Uri } from 'vscode';
 
+import { getProgFlowVizCallback } from './programflow-visualization/main';
+import { initTraceCache } from './programflow-visualization/trace_cache';
+
 const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
 const verboseConfigKey = 'verbose';
@@ -124,6 +127,15 @@ function installCmd(
     disposables.push(disposable);
     context.subscriptions.push(disposable);
     installButton(buttonTitle, cmdId);
+}
+
+function initProgramFlowVisualization(context: vscode.ExtensionContext) {
+    initTraceCache(context);
+    const cmdId = extensionId + ".programflow-visualization";
+    let disposable = vscode.commands.registerCommand(cmdId, getProgFlowVizCallback(context));
+    disposables.push(disposable);
+    context.subscriptions.push(disposable);
+    installButton("$(debug-alt-small) Visualize", cmdId);
 }
 
 type PythonCmdResult = {
@@ -382,6 +394,8 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
     );
+
+    initProgramFlowVisualization(context);
 
     vscode.window.onDidChangeActiveTextEditor(showHideButtons);
     showHideButtons(vscode.window.activeTextEditor);
