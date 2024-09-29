@@ -1,10 +1,16 @@
 import { spawn } from 'child_process';
 import { MessagePort, isMainThread, parentPort } from 'worker_threads';
 
-export function generateTrace(mainPath: string, filePath: string, tracePort: MessagePort) {
-    const traceArgs = [mainPath, filePath];
+export function generateTrace(pythonCmd: string[], mainPath: string, filePath: string, tracePort: MessagePort) {
+    if (pythonCmd.length === 0) {
+        console.error("Python command is missing");
+        tracePort.close();
+        return;
+    }
 
-    const child = spawn("python3", traceArgs, { windowsHide: true });
+    const traceArgs = [mainPath, filePath];
+    const args = pythonCmd.slice(1).concat(traceArgs);
+    const child = spawn(pythonCmd[0], args, { windowsHide: true });
     let err = "";
 
     tracePort.on('close', () => {
@@ -50,6 +56,6 @@ export function generateTrace(mainPath: string, filePath: string, tracePort: Mes
 
 if (!isMainThread && parentPort) {
     parentPort.once('message', (initParams) => {
-        generateTrace(initParams.mainPath, initParams.file, initParams.tracePort);
+        generateTrace(initParams.pythonCmd, initParams.mainPath, initParams.file, initParams.tracePort);
     });
 }

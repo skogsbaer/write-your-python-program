@@ -146,7 +146,7 @@ type PythonCmdResult = {
     kind: "warning", msg: string, cmd: string[]
 };
 
-function getPythonCmd(ext: PythonExtension): PythonCmdResult {
+export function getPythonCmd(ext: PythonExtension): PythonCmdResult {
     const config = vscode.workspace.getConfiguration(extensionId);
     const hasConfig = config && config[python3ConfigKey];
     if (hasConfig) {
@@ -314,7 +314,7 @@ class TerminalLinkProvider implements vscode.TerminalLinkProvider {
 	}
 }
 
-class PythonExtension {
+export class PythonExtension {
     private pyApi: any;
 
     constructor() {
