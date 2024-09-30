@@ -155,7 +155,8 @@ class Stack:
         return [frame.format() for frame in self.frames]
 
 class Heap:
-    def __init__(self):
+    def __init__(self, script_path):
+        self.script_path = script_path
         self.memory = {}
     
     def store(self, address, value):
@@ -202,7 +203,7 @@ class Heap:
                 except:
                     # Just ignore it in case getattr fails
                     continue
-                if should_ignore_on_heap(field, v):
+                if should_ignore_on_heap(field, v, self.script_path):
                     continue
 
                 prim_value = PrimitiveValue(v)
@@ -234,7 +235,7 @@ class TraceStep:
         }
 
 
-def should_ignore(variable_name, value, ignore_list = []):
+def should_ignore(variable_name, value, script_path, ignore_list = []):
     if variable_name in ignore_list or variable_name.startswith("__"):
         return True
     if inspect.isfunction(value) or inspect.ismethod(value) or inspect.isbuiltin(value):
@@ -245,24 +246,27 @@ def should_ignore(variable_name, value, ignore_list = []):
         return True
     if inspect.isframe(value):
         return True
+    if hasattr(value, "__module__"):
+        if not sys.modules[value.__module__].__file__.startswith(script_path):
+            return True
     return False
 
-def should_ignore_on_stack(variable_name, value, ignore_list = []):
-    if should_ignore(variable_name, value, ignore_list):
+def should_ignore_on_stack(variable_name, value, script_path, ignore_list = []):
+    if should_ignore(variable_name, value, script_path, ignore_list):
         return True
     return False
 
-def should_ignore_on_heap(variable_name, value, ignore_list = []):
-    if should_ignore(variable_name, value, ignore_list):
+def should_ignore_on_heap(variable_name, value, script_path, ignore_list = []):
+    if should_ignore(variable_name, value, script_path, ignore_list):
         return True
     return False
 
 
-def generate_heap(frame, ignore):
-    heap = Heap()
+def generate_heap(frame, script_path, ignore):
+    heap = Heap(script_path)
     while True:
         for variable_name in frame.f_locals:
-            if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], ignore):
+            if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], script_path, ignore):
                 continue
             if primitive_type(type(frame.f_locals[variable_name])) != "ref":
                 continue
@@ -313,10 +317,10 @@ class PyTraceGenerator(bdb.Bdb):
             self.stack.pop_frame()
         elif event == "line":
             for variable_name in frame.f_locals:
-                if should_ignore_on_stack(variable_name, frame.f_locals[variable_name],self.stack_ignore):
+                if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], self.filename, self.stack_ignore):
                     continue
                 self.stack.push(variable_name, frame.f_locals[variable_name])
-            heap = generate_heap(frame, self.stack_ignore)
+            heap = generate_heap(frame, self.filename, self.stack_ignore)
 
             step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap))
 
