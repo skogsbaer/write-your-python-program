@@ -189,9 +189,6 @@ class Heap:
                 stored_value[key_id] = prim_value
                 if prim_value.is_ref():
                     inner_values.append(v)
-        elif value_type == str:
-            # Leave it as it is
-            pass
         else:
             # Assume that there are no primitive types (int, bool, ...) passed to the top level heap
             # Only "real" objects are left
