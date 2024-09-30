@@ -243,6 +243,8 @@ def should_ignore(variable_name, value, ignore_list = []):
         return True
     if inspect.isclass(value):
         return True
+    if inspect.isframe(value):
+        return True
     return False
 
 def should_ignore_on_stack(variable_name, value, ignore_list = []):
