@@ -330,7 +330,7 @@ class PyTraceGenerator(bdb.Bdb):
         return self.trace_dispatch
 
     def run_script(self, filename, script_str):
-        self.filename = os.path.abspath(filename)
+        self.filename = filename
         code = compile(script_str, self.filename, "exec")
         self.run(code)
     
@@ -340,13 +340,16 @@ if len(sys.argv) <= 1:
     eprint("usage: python main.py file.py")
     exit(1)
 
-filename = sys.argv[1]
+filename = os.path.abspath(sys.argv[1])
 with open(filename, "r") as f:
     script_str = f.read()
 
 # Add a 'pass' at the end to also get the last trace step
 # It's a bit hacky but probably the easiest solution
 script_str += "\npass\n"
+
+# Add script directory to path
+sys.path.insert(0, os.path.dirname(filename))
 
 debugger = PyTraceGenerator()
 debugger.run_script(filename, script_str)
