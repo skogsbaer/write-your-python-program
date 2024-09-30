@@ -266,8 +266,6 @@ class PyTraceGenerator(bdb.Bdb):
 
     def trace_dispatch(self, frame, event, arg):
         filename = frame.f_code.co_filename
-        if filename == "<string>":
-            filename = self.filename
 
         # Skip built-in modules
         # This might not be the best solution. Adjust if required.
@@ -277,8 +275,6 @@ class PyTraceGenerator(bdb.Bdb):
         elif not filename.startswith(os.path.dirname(self.filename)):
             skip = True
             self.skip_until = frame.f_back.f_code.co_filename
-            if self.skip_until == "<string>":
-                self.skip_until = self.filename
         if skip:
             return self.trace_dispatch
         else:
@@ -317,7 +313,8 @@ class PyTraceGenerator(bdb.Bdb):
 
     def run_script(self, filename, script_str):
         self.filename = os.path.abspath(filename)
-        self.run(script_str)
+        code = compile(script_str, self.filename, "exec")
+        self.run(code)
     
 
 if len(sys.argv) <= 1:
