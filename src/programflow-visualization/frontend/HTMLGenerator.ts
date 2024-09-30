@@ -1,5 +1,9 @@
 function escapeHTML(s: any) {
-    return s.toString().replace(/[^0-9A-Za-z ]/g, (c: string) => "&#" + c.charCodeAt(0) + ";");
+    if (s !== undefined && s !== null) {
+        return s.toString().replace(/[^0-9A-Za-z ]/g, (c: string) => "&#" + c.charCodeAt(0) + ";");
+    } else {
+        return s;
+    }
 }
 
 export class HTMLGenerator {
