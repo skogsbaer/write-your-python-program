@@ -202,7 +202,7 @@ class Heap:
                 if field.startswith("__") or callable(v):
                     continue
 
-                prim_value = PrimitiveValue(getattr(value, field))
+                prim_value = PrimitiveValue(v)
                 stored_value[field] = prim_value
                 if prim_value.is_ref():
                     inner_values.append(v)
