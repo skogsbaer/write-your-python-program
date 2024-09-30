@@ -1,5 +1,16 @@
 [
 	{
+		"line": 1,
+		"filePath": "importSubprocess.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
 		"line": 3,
 		"filePath": "importSubprocess.py",
 		"stack": [

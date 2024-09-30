@@ -202,7 +202,7 @@ class Heap:
                 except:
                     # Just ignore it in case getattr fails
                     continue
-                if field.startswith("__") or callable(v):
+                if should_ignore_on_heap(field, v):
                     continue
 
                 prim_value = PrimitiveValue(v)
@@ -234,14 +234,33 @@ class TraceStep:
         }
 
 
+def should_ignore(variable_name, value, ignore_list = []):
+    if variable_name in ignore_list or variable_name.startswith("__"):
+        return True
+    if inspect.isfunction(value) or inspect.ismethod(value) or inspect.isbuiltin(value):
+        return True
+    if inspect.ismodule(value):
+        return True
+    if inspect.isclass(value):
+        return True
+    return False
+
+def should_ignore_on_stack(variable_name, value, ignore_list = []):
+    if should_ignore(variable_name, value, ignore_list):
+        return True
+    return False
+
+def should_ignore_on_heap(variable_name, value, ignore_list = []):
+    if should_ignore(variable_name, value, ignore_list):
+        return True
+    return False
+
+
 def generate_heap(frame, ignore):
     heap = Heap()
     while True:
         for variable_name in frame.f_locals:
-            if variable_name in ignore or variable_name.startswith("__"):
-                continue
-            if callable(frame.f_locals[variable_name]) and frame.f_code.co_qualname == "<module>":
-                # Skip top-level functions
+            if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], ignore):
                 continue
             if primitive_type(type(frame.f_locals[variable_name])) != "ref":
                 continue
@@ -292,10 +311,7 @@ class PyTraceGenerator(bdb.Bdb):
             self.stack.pop_frame()
         elif event == "line":
             for variable_name in frame.f_locals:
-                if variable_name in self.stack_ignore or variable_name.startswith("__"):
-                    continue
-                if type(frame.f_locals[variable_name]) == types.FunctionType:
-                    # Skip functions
+                if should_ignore_on_stack(variable_name, frame.f_locals[variable_name],self.stack_ignore):
                     continue
                 self.stack.push(variable_name, frame.f_locals[variable_name])
             heap = generate_heap(frame, self.stack_ignore)

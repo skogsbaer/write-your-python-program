@@ -1,6 +1,17 @@
 [
 	{
-		"line": 3,
+		"line": 1,
+		"filePath": "importTime.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 2,
 		"filePath": "importTime.py",
 		"stack": [
 			{
