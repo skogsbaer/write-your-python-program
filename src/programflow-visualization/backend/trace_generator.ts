@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { dirname } from 'path';
 import { MessagePort, isMainThread, parentPort } from 'worker_threads';
 
 export function generateTrace(pythonCmd: string[], mainPath: string, filePath: string, tracePort: MessagePort) {
@@ -10,7 +11,7 @@ export function generateTrace(pythonCmd: string[], mainPath: string, filePath: s
 
     const traceArgs = [mainPath, filePath];
     const args = pythonCmd.slice(1).concat(traceArgs);
-    const child = spawn(pythonCmd[0], args, { windowsHide: true });
+    const child = spawn(pythonCmd[0], args, { cwd: dirname(filePath), windowsHide: true });
     let err = "";
 
     tracePort.on('close', () => {
