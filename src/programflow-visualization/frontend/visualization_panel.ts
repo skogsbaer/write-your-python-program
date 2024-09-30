@@ -184,7 +184,7 @@ export class VisualizationPanel {
       editor = await vscode.window.showTextDocument(document);
     }
 
-    if (remove) {
+    if (remove || editor.document.lineCount < this._trace[this._traceIndex][0]) {
       editor.setDecorations(nextLineExecuteHighlightType, []);
     } else {
       this.setNextLineHighlighting(editor);
@@ -195,7 +195,7 @@ export class VisualizationPanel {
     if (this._trace.length === 0) {
       return;
     }
-    const nextLine = this._traceIndex !== this._trace.length - 1 ? this._trace[this._traceIndex][0] - 1 : -1;
+    const nextLine = this._trace[this._traceIndex][0] - 1;
 
     if (nextLine > -1) {
       this.setEditorDecorations(editor, nextLineExecuteHighlightType, nextLine);
