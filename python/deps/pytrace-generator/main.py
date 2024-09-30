@@ -1,6 +1,7 @@
 import bdb
 import copy
 from dataclasses import dataclass
+import inspect
 import json
 import math
 import os
@@ -189,6 +190,8 @@ class Heap:
                 stored_value[key_id] = prim_value
                 if prim_value.is_ref():
                     inner_values.append(v)
+        elif inspect.isgenerator(value):
+            stored_value = {}
         else:
             # Assume that there are no primitive types (int, bool, ...) passed to the top level heap
             # Only "real" objects are left
