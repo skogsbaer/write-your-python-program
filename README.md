@@ -12,7 +12,7 @@ The ideas of this environment are based on the great ideas from
 
 * Step 1. Install **Python 3.10.x** or **Python 3.11.x** or **Python 3.12.x**.
 * Step 2. Install the **write-your-python-program** extension. You need at least Visual Studio Code
-  version 1.49.0.
+  version 1.85.0.
 * Step 3. Open or create a Python file. The "RUN" button in the taskbar at the bottom will
   run your file with the teaching language provided by write-your-python-program.
 
@@ -241,6 +241,7 @@ Please report them in the [issue tracker](https://github.com/skogsbaer/write-you
 
 You can debug the extension from Visual Studio Code:
 
+* `npm install`
 * Open the main folder of the plugin with vscode.
 * Open the file `extension.ts`.
 * Choose "Run" from the menu, then "Start Debugging".
