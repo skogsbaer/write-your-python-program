@@ -6,6 +6,7 @@ import json
 import math
 import os
 import re
+import socket
 import sys
 import types
 
@@ -281,8 +282,9 @@ def generate_heap(frame, script_path, ignore):
 
 
 class PyTraceGenerator(bdb.Bdb):
-    def __init__(self):
+    def __init__(self, trace_socket):
         super().__init__()
+        self.trace_socket = trace_socket
         self.stack = Stack()
         self.stack_ignore = []
         self.init = False
@@ -325,10 +327,11 @@ class PyTraceGenerator(bdb.Bdb):
             step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap))
 
             # Output trace
-            json_str = json.dumps(step.format()).encode('utf-8')
-            json_len = len(json_str).to_bytes(4, byteorder='big', signed=False)
-            sys.stdout.buffer.write(json_len)
-            sys.stdout.buffer.write(json_str)
+            if self.trace_socket is not None:
+                json_str = json.dumps(step.format()).encode('utf-8')
+                json_len = len(json_str).to_bytes(4, byteorder='big', signed=False)
+                self.trace_socket.sendall(json_len)
+                self.trace_socket.sendall(json_str)
         # TODO exception
 
         return self.trace_dispatch
@@ -341,7 +344,7 @@ class PyTraceGenerator(bdb.Bdb):
 
 if len(sys.argv) <= 1:
     eprint("not enough arguments")
-    eprint("usage: python main.py file.py")
+    eprint("usage: python main.py file.py [port]")
     exit(1)
 
 filename = os.path.abspath(sys.argv[1])
@@ -355,5 +358,16 @@ script_str += "\npass\n"
 # Add script directory to path
 sys.path.insert(0, os.path.dirname(filename))
 
-debugger = PyTraceGenerator()
+trace_socket = None
+try:
+    if len(sys.argv) > 2:
+        trace_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        trace_socket.connect(("127.0.0.1", int(sys.argv[2])))
+except:
+    trace_socket = None
+
+debugger = PyTraceGenerator(trace_socket)
 debugger.run_script(filename, script_str)
+
+if trace_socket is not None:
+    trace_socket.close()
