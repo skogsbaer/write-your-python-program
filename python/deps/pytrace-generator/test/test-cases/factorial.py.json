@@ -16,10 +16,22 @@
 		"stack": [
 			{
 				"frameName": "<module>",
-				"locals": []
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "factorical"
+					}
+				]
 			}
 		],
-		"heap": {}
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
 	},
 	{
 		"line": 2,
@@ -27,7 +39,13 @@
 		"stack": [
 			{
 				"frameName": "<module>",
-				"locals": []
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "factorical"
+					}
+				]
 			},
 			{
 				"frameName": "factorical",
@@ -40,7 +58,13 @@
 				]
 			}
 		],
-		"heap": {}
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
 	},
 	{
 		"line": 4,
@@ -48,7 +72,13 @@
 		"stack": [
 			{
 				"frameName": "<module>",
-				"locals": []
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "factorical"
+					}
+				]
 			},
 			{
 				"frameName": "factorical",
@@ -61,7 +91,13 @@
 				]
 			}
 		],
-		"heap": {}
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
 	},
 	{
 		"line": 2,
@@ -69,7 +105,13 @@
 		"stack": [
 			{
 				"frameName": "<module>",
-				"locals": []
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "factorical"
+					}
+				]
 			},
 			{
 				"frameName": "factorical",
@@ -92,7 +134,13 @@
 				]
 			}
 		],
-		"heap": {}
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
 	},
 	{
 		"line": 3,
@@ -100,7 +148,13 @@
 		"stack": [
 			{
 				"frameName": "<module>",
-				"locals": []
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "factorical"
+					}
+				]
 			},
 			{
 				"frameName": "factorical",
@@ -123,7 +177,13 @@
 				]
 			}
 		],
-		"heap": {}
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
 	},
 	{
 		"line": 5,
@@ -131,7 +191,13 @@
 		"stack": [
 			{
 				"frameName": "<module>",
-				"locals": []
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "factorical"
+					}
+				]
 			},
 			{
 				"frameName": "factorical",
@@ -149,7 +215,13 @@
 				]
 			}
 		],
-		"heap": {}
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
 	},
 	{
 		"line": 6,
@@ -157,7 +229,13 @@
 		"stack": [
 			{
 				"frameName": "<module>",
-				"locals": []
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "factorical"
+					}
+				]
 			},
 			{
 				"frameName": "factorical",
@@ -180,7 +258,13 @@
 				]
 			}
 		],
-		"heap": {}
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
 	},
 	{
 		"line": 10,
@@ -190,6 +274,11 @@
 				"frameName": "<module>",
 				"locals": [
 					{
+						"type": "ref",
+						"value": 0,
+						"name": "factorical"
+					},
+					{
 						"type": "int",
 						"value": 2,
 						"name": "res1"
@@ -197,6 +286,12 @@
 				]
 			}
 		],
-		"heap": {}
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
 	}
 ]
