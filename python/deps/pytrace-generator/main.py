@@ -239,7 +239,7 @@ class TraceStep:
 def should_ignore(variable_name, value, script_path, ignore_list = []):
     if variable_name in ignore_list or variable_name.startswith("__"):
         return True
-    if inspect.isfunction(value) or inspect.ismethod(value) or inspect.isbuiltin(value):
+    if inspect.isbuiltin(value):
         return True
     if inspect.ismodule(value):
         return True
