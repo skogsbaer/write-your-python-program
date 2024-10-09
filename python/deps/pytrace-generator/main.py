@@ -3,6 +3,7 @@ import copy
 from dataclasses import dataclass
 import inspect
 import json
+import linecache
 import math
 import os
 import re
@@ -14,6 +15,7 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 type_name_regex = re.compile("<class '(?:__main__\\.)?(.*)'>")
+import_regex = re.compile(r"^(?:[^'\"]+\s)?import ")
 
 # Frame objects:
 # https://docs.python.org/3/reference/datamodel.html#frame-objects
@@ -155,6 +157,13 @@ class Stack:
     def format(self):
         return [frame.format() for frame in self.frames]
 
+    def contains(self, variable_name):
+        for frame in self.frames:
+            for var in frame.values:
+                if var.variable_name == variable_name:
+                    return True
+        return False
+
 class Heap:
     def __init__(self, script_path):
         self.script_path = script_path
@@ -247,9 +256,6 @@ def should_ignore(variable_name, value, script_path, ignore_list = []):
         return True
     if inspect.isframe(value):
         return True
-    if hasattr(value, "__module__"):
-        if not sys.modules[value.__module__].__file__.startswith(script_path):
-            return True
     return False
 
 def should_ignore_on_stack(variable_name, value, script_path, ignore_list = []):
@@ -290,6 +296,7 @@ class PyTraceGenerator(bdb.Bdb):
         self.init = False
         self.filename = ""
         self.skip_until = None
+        self.import_following = False
 
     def trace_dispatch(self, frame, event, arg):
         filename = frame.f_code.co_filename
@@ -312,6 +319,17 @@ class PyTraceGenerator(bdb.Bdb):
             self.init = True
             for variable_name in frame.f_locals:
                 self.stack_ignore.append(variable_name)
+        elif self.import_following:
+            # Ignore new variables introduced through import
+            for variable_name in frame.f_locals:
+                if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], self.filename, self.stack_ignore):
+                    continue
+                if not self.stack.contains(variable_name):
+                    self.stack_ignore.append(variable_name)
+
+        # Check if the next line will be an import
+        next_source_line = linecache.getline(filename, line).strip()
+        self.import_following = import_regex.search(next_source_line) is not None
 
         if event == "call":
             self.stack.push_frame(frame)
