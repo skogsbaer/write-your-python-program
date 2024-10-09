@@ -1,0 +1,318 @@
+[
+	{
+		"line": 1,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 2,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 4,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 5,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 4,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			},
+			{
+				"frameName": "Bar",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 6,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			},
+			{
+				"frameName": "Bar",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 4,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 5,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 8,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 11,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "generate_bar"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		}
+	},
+	{
+		"line": 12,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "generate_bar"
+					},
+					{
+						"type": "ref",
+						"value": 1,
+						"name": "obj1"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			},
+			"1": {
+				"type": "instance",
+				"value": {
+					"baz": {
+						"type": "str",
+						"value": "baz value"
+					}
+				},
+				"name": "Bar"
+			}
+		}
+	},
+	{
+		"line": 9,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "generate_bar"
+					},
+					{
+						"type": "ref",
+						"value": 1,
+						"name": "obj1"
+					}
+				]
+			},
+			{
+				"frameName": "generate_bar",
+				"locals": []
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			},
+			"1": {
+				"type": "instance",
+				"value": {
+					"baz": {
+						"type": "str",
+						"value": "baz value"
+					}
+				},
+				"name": "Bar"
+			}
+		}
+	},
+	{
+		"line": 14,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "generate_bar"
+					},
+					{
+						"type": "ref",
+						"value": 1,
+						"name": "obj1"
+					},
+					{
+						"type": "ref",
+						"value": 2,
+						"name": "obj2"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			},
+			"1": {
+				"type": "instance",
+				"value": {
+					"baz": {
+						"type": "str",
+						"value": "baz value"
+					}
+				},
+				"name": "Bar"
+			},
+			"2": {
+				"type": "instance",
+				"value": {
+					"baz": {
+						"type": "str",
+						"value": "baz value"
+					}
+				},
+				"name": "Bar"
+			}
+		}
+	},
+	{
+		"line": 16,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "generate_bar"
+					},
+					{
+						"type": "ref",
+						"value": 1,
+						"name": "obj1"
+					},
+					{
+						"type": "ref",
+						"value": 2,
+						"name": "obj2"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			},
+			"1": {
+				"type": "instance",
+				"value": {
+					"baz": {
+						"type": "str",
+						"value": "baz value"
+					}
+				},
+				"name": "Bar"
+			},
+			"2": {
+				"type": "instance",
+				"value": {
+					"baz": {
+						"type": "str",
+						"value": "baz value"
+					}
+				},
+				"name": "Bar"
+			}
+		}
+	}
+]
