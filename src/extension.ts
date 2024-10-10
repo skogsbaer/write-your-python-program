@@ -129,10 +129,10 @@ function installCmd(
     installButton(buttonTitle, cmdId);
 }
 
-function initProgramFlowVisualization(context: vscode.ExtensionContext) {
+function initProgramFlowVisualization(context: vscode.ExtensionContext, outChannel: vscode.OutputChannel) {
     initTraceCache(context);
     const cmdId = extensionId + ".programflow-visualization";
-    let disposable = vscode.commands.registerCommand(cmdId, getProgFlowVizCallback(context));
+    let disposable = vscode.commands.registerCommand(cmdId, getProgFlowVizCallback(context, outChannel));
     disposables.push(disposable);
     context.subscriptions.push(disposable);
     installButton("$(debug-alt-small) Visualize", cmdId);
@@ -334,6 +334,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     console.log('Activating extension ' + extensionId);
 
+    const outChannel = vscode.window.createOutputChannel("Write Your Python Program");
+    disposables.push(outChannel);
+
     fixPythonConfig(context);
     const terminals: { [name: string]: TerminalContext } = {};
 
@@ -395,7 +398,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
-    initProgramFlowVisualization(context);
+    initProgramFlowVisualization(context, outChannel);
 
     vscode.window.onDidChangeActiveTextEditor(showHideButtons);
     showHideButtons(vscode.window.activeTextEditor);

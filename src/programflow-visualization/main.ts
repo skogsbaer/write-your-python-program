@@ -5,7 +5,7 @@ import { Md5 } from 'ts-md5';
 import { startFrontend } from './frontend/frontend';
 import { traceAlreadyExists } from './trace_cache';
 
-export function getProgFlowVizCallback(context: vscode.ExtensionContext): () => Promise<void> {
+export function getProgFlowVizCallback(context: vscode.ExtensionContext, outChannel: vscode.OutputChannel): () => Promise<void> {
     return async () => {
         try {
             const file = vscode.window.activeTextEditor ?
@@ -26,7 +26,7 @@ export function getProgFlowVizCallback(context: vscode.ExtensionContext): () => 
 
             let tracePort = null;
             if (!(await traceAlreadyExists(context, fileHash))) {
-                tracePort = startBackend(context, file);
+                tracePort = startBackend(context, file, outChannel);
             }
 
             const result = await startFrontend(context, file.fsPath, fileHash, tracePort);
@@ -36,10 +36,11 @@ export function getProgFlowVizCallback(context: vscode.ExtensionContext): () => 
             }
         } catch (e: any) {
             if (e instanceof Error) {
-                console.log(e.stack?.toString());
+                outChannel.appendLine(e.stack?.toString() ?? "Error: <stack undefined>");
             } else {
-                console.log(e);
+                outChannel.appendLine(e);
             }
+            outChannel.show(true);
         }
     };
 }

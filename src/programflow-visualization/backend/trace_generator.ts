@@ -8,7 +8,7 @@ function installWypp(pythonCmd: string[], runYourProgramPath: string, callback: 
     execFile(pythonCmd[0], args, { windowsHide: true }, callback);
 }
 
-export function generateTrace(pythonCmd: string[], mainPath: string, filePath: string, tracePort: MessagePort) {
+export function generateTrace(pythonCmd: string[], mainPath: string, filePath: string, tracePort: MessagePort, logPort: MessagePort) {
     let childRef: ChildProcessWithoutNullStreams[] = [];
     let buffer = Buffer.alloc(0);
     const server = createServer((socket) => {
@@ -23,7 +23,7 @@ export function generateTrace(pythonCmd: string[], mainPath: string, filePath: s
                         tracePort.postMessage(traceElem);
                         buffer = buffer.subarray(4 + dataLen);
                     } catch (error) {
-                        console.error('JSON parsing of trace element failed:', error);
+                        logPort.postMessage(`JSON parsing of trace element failed: ${error}\n`);
                         tracePort.close();
                         if (childRef.length > 0) {
                             childRef[0].kill();
@@ -49,21 +49,23 @@ export function generateTrace(pythonCmd: string[], mainPath: string, filePath: s
 
         tracePort.on('close', () => {
             child.kill();
+            logPort.close();
         });
 
         child.stdout.on('data', (data) => {
-            console.log(data.toString());
+            logPort.postMessage(data.toString());
         });
         child.stderr.on('data', (data) => {
-            err += data.toString();
+            logPort.postMessage(data.toString());
         });
         child.on('close', (code) => {
             if (code !== 0) {
-                console.error(`trace generator failed with code ${code}: ${err}`);
+                logPort.postMessage(`trace generator failed with code ${code}: ${err}\n`);
             }
         });
         child.on('error', (error) => {
-            console.error(error);
+            logPort.postMessage(`${error}\n`);
+            logPort.close();
             tracePort.close();
         });
     });
@@ -72,23 +74,25 @@ export function generateTrace(pythonCmd: string[], mainPath: string, filePath: s
 if (!isMainThread && parentPort) {
     parentPort.once('message', (initParams) => {
         if (initParams.pythonCmd.length === 0) {
-            console.error("Python command is missing");
+            initParams.logPort.postMessage('Python command is missing\n');
+            initParams.logPort.close();
             initParams.tracePort.close();
             return;
         }
         installWypp(initParams.pythonCmd, initParams.runYourProgramPath, (error, stdout, stderr) => {
             if (stdout.length > 0) {
-                console.log(stdout);
+                initParams.logPort.postMessage(`${stdout}\n`);
             }
             if (stderr.length > 0) {
-                console.error(stderr);
+                initParams.logPort.postMessage(`${stderr}\n`);
             }
             if (error !== null) {
-                console.error(error);
+                initParams.logPort.postMessage(`${error}\n`);
+                initParams.logPort.close();
                 initParams.tracePort.close();
                 return;
             }
-            generateTrace(initParams.pythonCmd, initParams.mainPath, initParams.file, initParams.tracePort);
+            generateTrace(initParams.pythonCmd, initParams.mainPath, initParams.file, initParams.tracePort, initParams.logPort);
         });
     });
 }
