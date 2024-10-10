@@ -6,6 +6,16 @@ function escapeHTML(s: any) {
     }
 }
 
+function toID(s: any) {
+    if (s !== undefined && s !== null) {
+        return Array.from(s.toString()).filter((c) => {
+            return c !== "\"" && c !== "\t" && c !== "\n" && c !== "\f" && c !== "\r" && c !== " ";
+        }).join("");
+    } else {
+        return s;
+    }
+}
+
 export class HTMLGenerator {
     uniqueId: number = -1;
 
@@ -92,8 +102,6 @@ export class HTMLGenerator {
         return result;
     }
 
-    // TODO: escape all values for embedding them into HTML
-
     private dictValue(key: any, value: Value): string {
         this.uniqueId++;
         return `
@@ -148,11 +156,11 @@ export class HTMLGenerator {
 
     private frameSubItem(frameName: string, namedValue: NamedValue): string {
         return `
-            <div class="row frame-item" id="subItem${namedValue.name}">
+            <div class="row frame-item" id="subItem${toID(namedValue.name)}">
                 <div class="name-border">
                     ${escapeHTML(namedValue.name)}
                 </div>
-                <div class="value-border" ${namedValue.type === 'ref' ? `id="${frameName}${namedValue.name}Pointer${namedValue.value}"` : ''}>
+                <div class="value-border" ${namedValue.type === 'ref' ? `id="${toID(frameName)}${toID(namedValue.name)}Pointer${toID(namedValue.value)}"` : ''}>
                     ${this.getCorrectValueOf(namedValue)}
                 </div>
             </div>
