@@ -252,8 +252,6 @@ def should_ignore(variable_name, value, script_path, ignore_list = []):
         return True
     if inspect.ismodule(value):
         return True
-    if inspect.isclass(value):
-        return True
     if inspect.isframe(value):
         return True
     return False
