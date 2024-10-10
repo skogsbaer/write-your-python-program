@@ -101,7 +101,13 @@
 		"stack": [
 			{
 				"frameName": "<module>",
-				"locals": []
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class '__main__.Bar'>",
+						"name": "Bar"
+					}
+				]
 			}
 		],
 		"heap": {}
@@ -113,6 +119,11 @@
 			{
 				"frameName": "<module>",
 				"locals": [
+					{
+						"type": "type",
+						"value": "<class '__main__.Bar'>",
+						"name": "Bar"
+					},
 					{
 						"type": "ref",
 						"value": 0,
@@ -136,6 +147,11 @@
 			{
 				"frameName": "<module>",
 				"locals": [
+					{
+						"type": "type",
+						"value": "<class '__main__.Bar'>",
+						"name": "Bar"
+					},
 					{
 						"type": "ref",
 						"value": 0,
@@ -174,6 +190,11 @@
 			{
 				"frameName": "<module>",
 				"locals": [
+					{
+						"type": "type",
+						"value": "<class '__main__.Bar'>",
+						"name": "Bar"
+					},
 					{
 						"type": "ref",
 						"value": 0,
@@ -216,6 +237,11 @@
 			{
 				"frameName": "<module>",
 				"locals": [
+					{
+						"type": "type",
+						"value": "<class '__main__.Bar'>",
+						"name": "Bar"
+					},
 					{
 						"type": "ref",
 						"value": 0,
@@ -269,6 +295,11 @@
 			{
 				"frameName": "<module>",
 				"locals": [
+					{
+						"type": "type",
+						"value": "<class '__main__.Bar'>",
+						"name": "Bar"
+					},
 					{
 						"type": "ref",
 						"value": 0,
