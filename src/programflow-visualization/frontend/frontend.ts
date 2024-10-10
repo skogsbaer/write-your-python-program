@@ -5,6 +5,7 @@ import * as TraceCache from '../trace_cache';
 
 export async function startFrontend(
     context: ExtensionContext,
+    filePath: string,
     fileHash: string,
     tracePort: MessagePort | null): Promise<Failure | undefined> {
     var trace: BackendTrace = [];
@@ -12,7 +13,7 @@ export async function startFrontend(
         trace = await TraceCache.getTrace(context, fileHash);
     }
 
-    const panel = await VisualizationPanel.getVisualizationPanel(context, fileHash, trace, tracePort);
+    const panel = await VisualizationPanel.getVisualizationPanel(context, filePath, fileHash, trace, tracePort);
     if (!panel) {
         return failure("Frontend couldn't be initialized!");
     }

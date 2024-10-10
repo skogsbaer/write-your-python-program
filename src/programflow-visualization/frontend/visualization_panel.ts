@@ -19,7 +19,7 @@ export class VisualizationPanel {
   private _traceIndex: number;
   private _tracePortSelfClose: boolean;
 
-  private constructor(context: vscode.ExtensionContext, fileHash: string, trace: BackendTrace, tracePort: MessagePort | null) {
+  private constructor(context: vscode.ExtensionContext, filePath: string, fileHash: string, trace: BackendTrace, tracePort: MessagePort | null) {
     this._fileHash = fileHash;
     this._tracePort = tracePort;
     this._backendTrace = { trace: trace, complete: trace.length > 0 };
@@ -31,7 +31,7 @@ export class VisualizationPanel {
     this._traceIndex = 0;
     const panel = vscode.window.createWebviewPanel(
       'programflow-visualization',
-      'Code Visualization', // TODO adjust name to original file name
+      `Visualization: ${path.basename(filePath)}`,
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,
@@ -111,11 +111,12 @@ export class VisualizationPanel {
 
   public static async getVisualizationPanel(
     context: vscode.ExtensionContext,
+    filePath: string,
     fileHash: string,
     trace: BackendTrace,
     tracePort: MessagePort | null
   ): Promise<VisualizationPanel | undefined> {
-    return new VisualizationPanel(context, fileHash, trace, tracePort);
+    return new VisualizationPanel(context, filePath, fileHash, trace, tracePort);
   }
 
   // TODO: Look if Typescript is possible OR do better documentation in all files
