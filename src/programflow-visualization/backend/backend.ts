@@ -20,6 +20,9 @@ export function startBackend(context: ExtensionContext, file: Uri): MessagePort 
             break;
     }
 
+    // Get WYPP path
+    const runYourProgramPath = context.asAbsolutePath("python/src/runYourProgram.py");
+
     const mainPath = context.asAbsolutePath("python/deps/pytrace-generator/main.py");
     const workerPath = path.resolve(__dirname, 'trace_generator.js');
     const worker = new Worker(workerPath);
@@ -28,6 +31,7 @@ export function startBackend(context: ExtensionContext, file: Uri): MessagePort 
         file: file.fsPath,
         mainPath: mainPath,
         pythonCmd: pythonCmd,
+        runYourProgramPath: runYourProgramPath,
         tracePort: channel.port1
     }, [channel.port1]);
     return channel.port2;

@@ -1,15 +1,14 @@
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { ChildProcessWithoutNullStreams, execFile, ExecFileException, spawn } from 'child_process';
 import { AddressInfo, createServer } from 'net';
 import { dirname } from 'path';
 import { MessagePort, isMainThread, parentPort } from 'worker_threads';
 
-export function generateTrace(pythonCmd: string[], mainPath: string, filePath: string, tracePort: MessagePort) {
-    if (pythonCmd.length === 0) {
-        console.error("Python command is missing");
-        tracePort.close();
-        return;
-    }
+function installWypp(pythonCmd: string[], runYourProgramPath: string, callback: (error: ExecFileException | null, stdout: string, stderr: string) => void) {
+    const args = pythonCmd.slice(1).concat([runYourProgramPath, '--install-mode', 'installOnly']);
+    execFile(pythonCmd[0], args, { windowsHide: true }, callback);
+}
 
+export function generateTrace(pythonCmd: string[], mainPath: string, filePath: string, tracePort: MessagePort) {
     let childRef: ChildProcessWithoutNullStreams[] = [];
     let buffer = Buffer.alloc(0);
     const server = createServer((socket) => {
@@ -72,6 +71,24 @@ export function generateTrace(pythonCmd: string[], mainPath: string, filePath: s
 
 if (!isMainThread && parentPort) {
     parentPort.once('message', (initParams) => {
-        generateTrace(initParams.pythonCmd, initParams.mainPath, initParams.file, initParams.tracePort);
+        if (initParams.pythonCmd.length === 0) {
+            console.error("Python command is missing");
+            initParams.tracePort.close();
+            return;
+        }
+        installWypp(initParams.pythonCmd, initParams.runYourProgramPath, (error, stdout, stderr) => {
+            if (stdout.length > 0) {
+                console.log(stdout);
+            }
+            if (stderr.length > 0) {
+                console.error(stderr);
+            }
+            if (error !== null) {
+                console.error(error);
+                initParams.tracePort.close();
+                return;
+            }
+            generateTrace(initParams.pythonCmd, initParams.mainPath, initParams.file, initParams.tracePort);
+        });
     });
 }
