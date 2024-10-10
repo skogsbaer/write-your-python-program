@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.1.0 (2024-10-02)
+  * Improve invocation on windows, always use cmd.exe
+  * Fixed bugs #132, #133, #134, and #135
 * 1.0.6 (2023-09-18)
   * Run button is now visible with every color theme
 * 1.0.5 (2023-03-29)
