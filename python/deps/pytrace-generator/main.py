@@ -267,7 +267,7 @@ def should_ignore_on_heap(variable_name, value, script_path, ignore_list = []):
     return False
 
 
-def generate_heap(frame, script_path, ignore):
+def generate_heap(frame, script_path, ignore, return_value = None):
     heap = Heap(script_path)
     while True:
         for variable_name in frame.f_locals:
@@ -277,6 +277,11 @@ def generate_heap(frame, script_path, ignore):
                 continue
             value = frame.f_locals[variable_name]
             heap.store(id(value), value)
+        
+        if return_value is not None:
+            # Store return value
+            if not should_ignore_on_stack("return", return_value, script_path) and not primitive_type(type(return_value)) != "ref":
+                heap.store(id(return_value), return_value)
 
         frame = frame.f_back
         if frame is None or frame.f_code.co_qualname == "Bdb.run":
@@ -329,16 +334,17 @@ class PyTraceGenerator(bdb.Bdb):
         next_source_line = linecache.getline(filename, line).strip()
         self.import_following = import_regex.search(next_source_line) is not None
 
-        if event == "call":
-            self.stack.push_frame(frame)
-        elif event == "return":
-            self.stack.pop_frame()
-        elif event == "line":
+        display_return = event == "return" and len(self.stack.frames) > 1
+        if event == "line" or display_return:
             for variable_name in frame.f_locals:
                 if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], self.filename, self.stack_ignore):
                     continue
                 self.stack.push(variable_name, frame.f_locals[variable_name])
-            heap = generate_heap(frame, self.filename, self.stack_ignore)
+            if event == "return" and display_return:
+                self.stack.push("return", arg)
+                heap = generate_heap(frame, self.filename, self.stack_ignore, return_value=arg)
+            else:
+                heap = generate_heap(frame, self.filename, self.stack_ignore)
 
             step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap))
 
@@ -348,6 +354,10 @@ class PyTraceGenerator(bdb.Bdb):
                 json_len = len(json_str).to_bytes(4, byteorder='big', signed=False)
                 self.trace_socket.sendall(json_len)
                 self.trace_socket.sendall(json_str)
+        if event == "call":
+            self.stack.push_frame(frame)
+        elif event == "return":
+            self.stack.pop_frame()
         # TODO exception
 
         return self.trace_dispatch

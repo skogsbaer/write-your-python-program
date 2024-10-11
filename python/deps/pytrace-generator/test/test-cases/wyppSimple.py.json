@@ -74,6 +74,27 @@
 		"heap": {}
 	},
 	{
+		"line": 6,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			},
+			{
+				"frameName": "Bar",
+				"locals": [
+					{
+						"type": "none",
+						"value": null,
+						"name": "return"
+					}
+				]
+			}
+		],
+		"heap": {}
+	},
+	{
 		"line": 4,
 		"filePath": "wyppSimple.py",
 		"stack": [
@@ -219,6 +240,69 @@
 				"name": "function"
 			},
 			"1": {
+				"type": "instance",
+				"value": {
+					"baz": {
+						"type": "str",
+						"value": "baz value"
+					}
+				},
+				"name": "Bar"
+			}
+		}
+	},
+	{
+		"line": 9,
+		"filePath": "wyppSimple.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class '__main__.Bar'>",
+						"name": "Bar"
+					},
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "generate_bar"
+					},
+					{
+						"type": "ref",
+						"value": 1,
+						"name": "obj1"
+					}
+				]
+			},
+			{
+				"frameName": "generate_bar",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 2,
+						"name": "return"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			},
+			"1": {
+				"type": "instance",
+				"value": {
+					"baz": {
+						"type": "str",
+						"value": "baz value"
+					}
+				},
+				"name": "Bar"
+			},
+			"2": {
 				"type": "instance",
 				"value": {
 					"baz": {

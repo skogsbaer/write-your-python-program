@@ -163,3 +163,7 @@ body {
 .object-item {
   margin-bottom: 15px;
 }
+
+.return-value {
+  color: red;
+}
