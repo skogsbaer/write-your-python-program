@@ -290,6 +290,23 @@ def generate_heap(frame, script_path, ignore, return_value = None):
     return heap
 
 
+class ShownClassDefs:
+    def __init__(self):
+        self.frames = []
+
+    def did_show(self, filename, line):
+        return (filename, line) in self.frames[-1]
+
+    def append(self, filename, line):
+        self.frames[-1].append((filename, line))
+
+    def push_frame(self):
+        self.frames.append([])
+
+    def pop_frame(self):
+        self.frames.pop()
+
+
 class PyTraceGenerator(bdb.Bdb):
     def __init__(self, trace_socket):
         super().__init__()
@@ -300,6 +317,9 @@ class PyTraceGenerator(bdb.Bdb):
         self.filename = ""
         self.skip_until = None
         self.import_following = False
+        self.last_step_was_class = False
+        self.prev_num_frames = 0
+        self.shown_class_defs = ShownClassDefs()
 
     def trace_dispatch(self, frame, event, arg):
         filename = frame.f_code.co_filename
@@ -348,16 +368,31 @@ class PyTraceGenerator(bdb.Bdb):
 
             step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap))
 
-            # Output trace
-            if self.trace_socket is not None:
-                json_str = json.dumps(step.format()).encode('utf-8')
-                json_len = len(json_str).to_bytes(4, byteorder='big', signed=False)
-                self.trace_socket.sendall(json_len)
-                self.trace_socket.sendall(json_str)
+            is_annotation = next_source_line.startswith("@")
+            should_display_step = not is_annotation
+            is_class_def = next_source_line.startswith("class ")
+            class_def_already_shown = is_class_def and self.shown_class_defs.did_show(filename, line)
+            should_display_step = should_display_step and not class_def_already_shown
+            num_frames = len(self.stack.frames)
+            is_inside_class_def = num_frames > self.prev_num_frames and self.last_step_was_class
+            should_display_step = should_display_step and not is_inside_class_def
+            if should_display_step:
+                # Output trace
+                if self.trace_socket is not None:
+                    json_str = json.dumps(step.format()).encode('utf-8')
+                    json_len = len(json_str).to_bytes(4, byteorder='big', signed=False)
+                    self.trace_socket.sendall(json_len)
+                    self.trace_socket.sendall(json_str)
+                if is_class_def:
+                    self.shown_class_defs.append(filename, line)
+                self.last_step_was_class = is_class_def
+                self.prev_num_frames = num_frames
         if event == "call":
             self.stack.push_frame(frame)
+            self.shown_class_defs.push_frame()
         elif event == "return":
             self.stack.pop_frame()
+            self.shown_class_defs.pop_frame()
         # TODO exception
 
         return self.trace_dispatch
