@@ -128,13 +128,13 @@ class StackFrame:
             if stack_value.variable_name == variable_name:
                 value_index = idx
                 break
-        
+
         stack_value = PrimitiveValue(value, variable_name)
         if value_index is not None:
             self.values[value_index] = stack_value
         else:
             self.values.append(stack_value)
-    
+
     def format(self):
         return {
             "frameName": self.name,
@@ -144,10 +144,10 @@ class StackFrame:
 class Stack:
     def __init__(self):
         self.frames = []
-    
+
     def push_frame(self, frame):
         self.frames.append(StackFrame(frame.f_code.co_qualname))
-    
+
     def pop_frame(self):
         self.frames.pop()
 
@@ -168,7 +168,7 @@ class Heap:
     def __init__(self, script_path):
         self.script_path = script_path
         self.memory = {}
-    
+
     def store(self, address, value):
         # This check only works because we are taking heap snapshots
         if address in self.memory:
@@ -277,7 +277,7 @@ def generate_heap(frame, script_path, ignore, return_value = None):
                 continue
             value = frame.f_locals[variable_name]
             heap.store(id(value), value)
-        
+
         if return_value is not None:
             # Store return value
             if not should_ignore_on_stack("return", return_value, script_path) and not primitive_type(type(return_value)) != "ref":
@@ -286,7 +286,7 @@ def generate_heap(frame, script_path, ignore, return_value = None):
         frame = frame.f_back
         if frame is None or frame.f_code.co_qualname == "Bdb.run":
             break
-    
+
     return heap
 
 
@@ -401,7 +401,7 @@ class PyTraceGenerator(bdb.Bdb):
         self.filename = filename
         code = compile(script_str, self.filename, "exec")
         self.run(code)
-    
+
 
 if len(sys.argv) <= 1:
     eprint("not enough arguments")
