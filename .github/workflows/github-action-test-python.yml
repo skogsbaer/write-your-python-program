@@ -22,3 +22,5 @@ jobs:
       - name: Test
         run: |
           cd python && ./allTestsForPyVersion
+      - name: Test pytrace-generator
+        run: python3 python/deps/pytrace-generator/test/runTests.py
