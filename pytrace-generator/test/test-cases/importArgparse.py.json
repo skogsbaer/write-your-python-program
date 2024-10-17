@@ -1,0 +1,24 @@
+[
+	{
+		"line": 1,
+		"filePath": "importArgparse.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	},
+	{
+		"line": 3,
+		"filePath": "importArgparse.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {}
+	}
+]
