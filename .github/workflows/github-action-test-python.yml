@@ -25,4 +25,4 @@ jobs:
       - name: Test pytrace-generator
         run: |
           python3 python/src/runYourProgram.py --install-mode installOnly
-          python3 python/deps/pytrace-generator/test/runTests.py
+          python3 pytrace-generator/test/runTests.py

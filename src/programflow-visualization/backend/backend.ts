@@ -23,7 +23,7 @@ export function startBackend(context: ExtensionContext, file: Uri, outChannel: O
     // Get WYPP path
     const runYourProgramPath = context.asAbsolutePath("python/src/runYourProgram.py");
 
-    const mainPath = context.asAbsolutePath("python/deps/pytrace-generator/main.py");
+    const mainPath = context.asAbsolutePath("pytrace-generator/main.py");
     const workerPath = path.resolve(__dirname, 'trace_generator.js');
     const worker = new Worker(workerPath);
     const traceChannel = new MessageChannel();
