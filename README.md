@@ -10,7 +10,7 @@ The ideas of this environment are based on the great ideas from
 
 ## Quick start
 
-* Step 1. Install **Python 3.10.x** or **Python 3.11.x** or **Python 3.12.x**.
+* Step 1. Install **Python 3.12.x**.
 * Step 2. Install the **write-your-python-program** extension. You need at least Visual Studio Code
   version 1.85.0.
 * Step 3. Open or create a Python file. The "RUN" button in the taskbar at the bottom will
