@@ -4,6 +4,6 @@ Traceback (most recent call last):
 WyppTypeError: missing a required argument: 'x'
 
 context: record constructor Point(x: int, y: int) -> Self
-declared at: test-data/testWrongKeywordArg2.py:4
+declared at: test-data/testWrongKeywordArg2.py:3
 caused by: test-data/testWrongKeywordArg2.py:8
   | p = Point(foo=3, y=4)

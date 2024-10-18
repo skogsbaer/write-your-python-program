@@ -22,6 +22,29 @@ the package via pip:
 pip3 install wypp
 ```
 
-This needs Python 3.9.x. After installation, you can use the `wypp` command
+This needs Python 3.12.x. After installation, you can use the `wypp` command
 for running your python files, making all features explained below available.
 Run `wypp --help` for usage information.
+
+## Development
+
+### Debugging
+
+To debug a failing unit test, insert the following at top of the file (adjust path as needed):
+
+```
+import sys
+sys.path.insert(0, '/Users/swehr/devel/write-your-python-program/python/deps/untypy')
+```
+
+Then insert at the end of the file:
+
+```
+def _debug():
+    t = TestSimple()
+    t.setUp()
+    t.test_wrap_inheritance()
+_debug()
+```
+
+Then debug in vscode

@@ -11,8 +11,23 @@ generatorType = type(_f())
 class WyppWrapError(Exception):
     pass
 
+def _readonly(self, *args, **kwargs):
+    raise RuntimeError("Cannot modify ReadOnlyDict")
+
+class ReadOnlyDict(dict):
+    __setitem__ = _readonly
+    __delitem__ = _readonly
+    pop = _readonly
+    popitem = _readonly
+    clear = _readonly
+    update = _readonly
+    setdefault = _readonly
+
 def patch(self, ty, extra):
-    self.__extra__ = extra
+    # SW (2024-10-18): With python 3.13 there is the behavior that extra is modified after patching
+    # the object. I never found out who is doing the modification. By wrapping extra with
+    # ReadOnlyDict, everything works. Strangely, no error occurs somewhere.
+    self.__extra__ = ReadOnlyDict(extra)
     w = self.__wrapped__
     m = None
     if hasattr(w, '__module__'):
@@ -34,7 +49,9 @@ class WrapperBase:
         return not self.__eq__(other)
     def __hash__(self):
         return hash(self.__wrapped__)
-    def __patch__(self, ms, name=None, extra={}):
+    def __patch__(self, ms, name=None, extra=None):
+        if extra is None:
+            extra = {}
         cls = self.__class__
         if name is None:
             name = cls.__name__
@@ -59,7 +76,9 @@ class ObjectWrapper(WrapperBase):
     def __init__(self, baseObject):
         self.__dict__ = baseObject.__dict__
         self.__wrapped__ = baseObject
-    def __patch__(self, ms, name=None, extra={}):
+    def __patch__(self, ms, name=None, extra=None):
+        if extra is None:
+            extra = {}
         cls = self.__class__
         if name is None:
             name = cls.__name__
@@ -211,7 +230,8 @@ _blacklist = [
     '__getattribute__', '__get_attr_', '__init_subclass__'
     '__init__', '__new__', '__del__', '__repr__', '__setattr__', '__str__',
     '__hash__', '__eq__', '__patch__',
-    '__class_getitem__',  '__subclasshook__']
+    '__class_getitem__',  '__subclasshook__',
+    '__firstlineno__', '__static_attributes__']
 
 _extra = ['__next__']
 
@@ -219,7 +239,9 @@ _extra = ['__next__']
 class SimpleWrapper(WrapperBase):
     def __init__(self, baseObject):
         self.__wrapped__ = baseObject
-    def __patch__(self, ms, name=None, extra={}):
+    def __patch__(self, ms, name=None, extra=None):
+        if extra is None:
+            extra = {}
         cls = self.__class__
         if name is None:
             name = cls.__name__
@@ -242,7 +264,9 @@ class KeysViewWrapper(SimpleWrapper):
     pass
 collections.abc.KeysView.register(KeysViewWrapper)
 
-def wrap(obj, methods, name=None, extra={}, simple=False):
+def wrap(obj, methods, name=None, extra=None, simple=False):
+    if extra is None:
+        extra = {}
     if simple:
         w = SimpleWrapper(obj)
     elif isinstance(obj, list):
