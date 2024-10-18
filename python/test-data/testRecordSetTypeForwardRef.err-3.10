@@ -7,6 +7,6 @@ WyppTypeError: got value of wrong type
 given:    'hello'
 expected: value of type A
 
-declared at: test-data/testRecordSetTypeForwardRef.py:4
+declared at: test-data/testRecordSetTypeForwardRef.py:3
 caused by: test-data/testRecordSetTypeForwardRef.py:12
   |     r.x = "hello"

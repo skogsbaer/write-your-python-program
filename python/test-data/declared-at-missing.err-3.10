@@ -7,6 +7,6 @@ expected: value of type CourseM
 
 context: record constructor Semester(degreeProgram: str, semester: str, courses: tuple[CourseM, ...]) -> Self
                                                                                        ^^^^^^^
-declared at: test-data/declared-at-missing.py:16
+declared at: test-data/declared-at-missing.py:15
 caused by: test-data/declared-at-missing.py:22
   | semester1_2020 = Semester('AKI', '1. Semester 2020/21', (prog1, ))

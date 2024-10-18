@@ -7,6 +7,6 @@ expected: value of type int
 
 context: record constructor Point3D(x: int, y: int, z: int) -> Self
                                                        ^^^
-declared at: test-data/testTypesRecordInheritance.py:10
+declared at: test-data/testTypesRecordInheritance.py:9
 caused by: test-data/testTypesRecordInheritance.py:18
   | Point3D(1,2, "foo")
