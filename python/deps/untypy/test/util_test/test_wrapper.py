@@ -75,7 +75,7 @@ class WrapperTests(unittest.TestCase):
                      '__doc__', '__extra__', '__format__', '__getattribute__', '__init__',
                      '__init_subclass__', '__module__', '__setattr__', '__subclasshook__',
                      '__weakref__', '__wrapped__', '_DictWrapper__marker', '__setstate__',
-                     '__getstate__'
+                     '__getstate__', '__firstlineno__', '__static_attributes__'
                      ] + ignore
         for x in dir(wrapped):
             if x in blacklist: continue
