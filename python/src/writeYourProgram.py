@@ -172,19 +172,32 @@ def resetTestCount():
     global _testCount
     _testCount = {'total': 0, 'failing': 0}
 
-def printTestResults(prefix=''):
+def printTestResults(prefix='', loadingFailed=False):
     total = _testCount['total']
     failing = _testCount['failing']
+    bad = '🙁'
+    good = '😀'
+    tests = f'{prefix}{total} Tests'
+    if total == 1:
+        tests = f'{prefix}{total} Test'
     if total == 0:
         pass
     elif failing == 0:
-        print(f'{prefix}{total} Tests, alle erfolgreich :-)')
+        if loadingFailed:
+            print(f'{tests}, Abbruch der Ausführung {bad}')
+        elif total == 1:
+            print(f'1 erfolgreicher Test {good}')
+        else:
+            print(f'{tests}, alle erfolgreich {good}')
     else:
-        print(f'{prefix}{total} Tests, {failing} Fehler :-(')
+        if loadingFailed:
+            print(f'{tests}, {failing} Testfehler und Abbruch der Ausführung {bad}')
+        else:
+            print(f'{tests}, {failing} Testfehler {bad}')
     return {'total': total, 'failing': failing}
 
 def checkEq(actual, expected):
-    return check(actual, expected, structuralObjEq=False)
+    return checkGeneric(actual, expected, structuralObjEq=False)
 
 def incTestCount(testOk: bool):
     global _testCount
@@ -193,7 +206,17 @@ def incTestCount(testOk: bool):
         'failing': _testCount['failing'] + (0 if testOk else 1)
     }
 
-def check(actual, expected, *, structuralObjEq=True, floatEqWithDelta=True):
+def check(actual, expected):
+    """
+    Überprüft, ob ein Funktionsaufruf das gewünschte Ergebnis liefert.
+
+    Beispiel:
+
+    `check(f(10, 'blah'), 17)` überprüft, ob der Aufruf `f(10, 'blah')` wie erwartet das Ergebnis `17` liefert.
+    """
+    checkGeneric(actual, expected)
+
+def checkGeneric(actual, expected, *, structuralObjEq=True, floatEqWithDelta=True):
     if not _checksEnabled:
         return
     flags = {'structuralObjEq': structuralObjEq, 'floatEqWithDelta': floatEqWithDelta}

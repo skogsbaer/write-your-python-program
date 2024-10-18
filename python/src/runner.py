@@ -367,11 +367,11 @@ def runTestsInFile(testFile, globals, libDefs, useUntypy=True, extraDirs=[]):
     return libDefs.dict['printTestResults']('Tutor:  ')
 
 # globals already contain libDefs
-def performChecks(check, testFile, globals, libDefs, useUntypy=True, extraDirs=None):
+def performChecks(check, testFile, globals, libDefs, useUntypy=True, extraDirs=None, loadingFailed=False):
     prefix = ''
     if check and testFile:
         prefix = 'Student: '
-    testResultsStudent = libDefs.printTestResults(prefix)
+    testResultsStudent = libDefs.printTestResults(prefix, loadingFailed)
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
@@ -477,7 +477,7 @@ def importUntypy():
         printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
         die(1)
 
-requiredVersion = (3, 10, 0)
+requiredVersion = (3, 12, 0)
 def versionOk(v):
     (reqMajor, reqMinor, reqMicro) = requiredVersion
     if v.major < reqMajor or v.minor < reqMinor:
@@ -491,7 +491,7 @@ def main(globals, argList=None):
     v = sys.version_info
     if not versionOk(v):
         vStr = sys.version.split()[0]
-        reqVStr = '.'.join(requiredVersion)
+        reqVStr = '.'.join([str(x) for x in requiredVersion])
         print(f"""
 Python in version {reqVStr} or newer is required. You are still using version {vStr}, please upgrade!
 """)
@@ -551,7 +551,7 @@ Python in version {reqVStr} or newer is required. You are still using version {v
         loadingFailed = True
 
     performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes,
-                  extraDirs=args.extraDirs)
+                  extraDirs=args.extraDirs, loadingFailed=loadingFailed)
 
     if isInteractive:
         enterInteractive(globals)
