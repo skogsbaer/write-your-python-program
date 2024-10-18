@@ -367,11 +367,11 @@ def runTestsInFile(testFile, globals, libDefs, useUntypy=True, extraDirs=[]):
     return libDefs.dict['printTestResults']('Tutor:  ')
 
 # globals already contain libDefs
-def performChecks(check, testFile, globals, libDefs, useUntypy=True, extraDirs=None):
+def performChecks(check, testFile, globals, libDefs, useUntypy=True, extraDirs=None, loadingFailed=False):
     prefix = ''
     if check and testFile:
         prefix = 'Student: '
-    testResultsStudent = libDefs.printTestResults(prefix)
+    testResultsStudent = libDefs.printTestResults(prefix, loadingFailed)
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
@@ -551,7 +551,7 @@ Python in version {reqVStr} or newer is required. You are still using version {v
         loadingFailed = True
 
     performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes,
-                  extraDirs=args.extraDirs)
+                  extraDirs=args.extraDirs, loadingFailed=loadingFailed)
 
     if isInteractive:
         enterInteractive(globals)

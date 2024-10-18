@@ -172,15 +172,28 @@ def resetTestCount():
     global _testCount
     _testCount = {'total': 0, 'failing': 0}
 
-def printTestResults(prefix=''):
+def printTestResults(prefix='', loadingFailed=False):
     total = _testCount['total']
     failing = _testCount['failing']
+    bad = '🙁'
+    good = '😀'
+    tests = f'{prefix}{total} Tests'
+    if total == 1:
+        tests = f'{prefix}{total} Test'
     if total == 0:
         pass
     elif failing == 0:
-        print(f'{prefix}{total} Tests, alle erfolgreich :-)')
+        if loadingFailed:
+            print(f'{tests}, Abbruch der Ausführung {bad}')
+        elif total == 1:
+            print(f'1 erfolgreicher Test {good}')
+        else:
+            print(f'{tests}, alle erfolgreich {good}')
     else:
-        print(f'{prefix}{total} Tests, {failing} Fehler :-(')
+        if loadingFailed:
+            print(f'{tests}, {failing} Testfehler und Abbruch der Ausführung {bad}')
+        else:
+            print(f'{tests}, {failing} Testfehler {bad}')
     return {'total': total, 'failing': failing}
 
 def checkEq(actual, expected):
