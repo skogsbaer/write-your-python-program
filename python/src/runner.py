@@ -491,7 +491,7 @@ def main(globals, argList=None):
     v = sys.version_info
     if not versionOk(v):
         vStr = sys.version.split()[0]
-        reqVStr = '.'.join(requiredVersion)
+        reqVStr = '.'.join([str(x) for x in requiredVersion])
         print(f"""
 Python in version {reqVStr} or newer is required. You are still using version {vStr}, please upgrade!
 """)
