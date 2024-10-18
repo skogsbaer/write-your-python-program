@@ -34,6 +34,6 @@ setup(name='wypp',
       url='https://github.com/skogsbaer/write-your-python-program',
       package_dir={'wypp': 'src', 'untypy': 'deps/untypy/untypy'},
       packages=['wypp'] + setuptools.find_packages("deps/untypy", exclude=['test', 'test.*']),
-      python_requires='>=3.9.2',
+      python_requires='>=3.12.0',
       scripts=['wypp']
       )

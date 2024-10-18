@@ -477,7 +477,7 @@ def importUntypy():
         printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
         die(1)
 
-requiredVersion = (3, 10, 0)
+requiredVersion = (3, 12, 0)
 def versionOk(v):
     (reqMajor, reqMinor, reqMicro) = requiredVersion
     if v.major < reqMajor or v.minor < reqMinor:
