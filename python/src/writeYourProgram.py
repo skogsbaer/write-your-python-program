@@ -184,7 +184,7 @@ def printTestResults(prefix=''):
     return {'total': total, 'failing': failing}
 
 def checkEq(actual, expected):
-    return check(actual, expected, structuralObjEq=False)
+    return checkGeneric(actual, expected, structuralObjEq=False)
 
 def incTestCount(testOk: bool):
     global _testCount
@@ -193,7 +193,17 @@ def incTestCount(testOk: bool):
         'failing': _testCount['failing'] + (0 if testOk else 1)
     }
 
-def check(actual, expected, *, structuralObjEq=True, floatEqWithDelta=True):
+def check(actual, expected):
+    """
+    Überprüft, ob ein Funktionsaufruf das gewünschte Ergebnis liefert.
+
+    Beispiel:
+
+    `check(f(10, 'blah'), 17)` überprüft, ob der Aufruf `f(10, 'blah')` wie erwartet das Ergebnis `17` liefert.
+    """
+    checkGeneric(actual, expected)
+
+def checkGeneric(actual, expected, *, structuralObjEq=True, floatEqWithDelta=True):
     if not _checksEnabled:
         return
     flags = {'structuralObjEq': structuralObjEq, 'floatEqWithDelta': floatEqWithDelta}
