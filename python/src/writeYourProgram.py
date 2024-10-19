@@ -224,13 +224,17 @@ def checkGeneric(actual, expected, *, structuralObjEq=True, floatEqWithDelta=Tru
     incTestCount(matches)
     if not matches:
         stack = inspect.stack()
-        caller = stack[1] if len(stack) > 1 else None
+        frame = stack[2] if len(stack) > 2 else None
+        if frame:
+            caller = f"{frame.filename}:{frame.lineno}: "
+        else:
+            caller = ""
         def fmt(x):
             if type(x) == str:
                 return repr(x)
             else:
                 return str(x)
-        msg = f"{caller.filename}:{caller.lineno}: Erwartet wird {fmt(expected)}, aber das " \
+        msg = f"{caller}Erwartet wird {fmt(expected)}, aber das " \
             f"Ergebnis ist {fmt(actual)}"
         if _dieOnCheckFailures():
             raise Exception(msg)
