@@ -191,9 +191,9 @@ def printTestResults(prefix='', loadingFailed=False):
             print(f'{tests}, alle erfolgreich {good}')
     else:
         if loadingFailed:
-            print(f'{tests}, {failing} Testfehler und Abbruch der Ausführung {bad}')
+            print(f'{tests}, {failing} Fehler und Abbruch der Ausführung {bad}')
         else:
-            print(f'{tests}, {failing} Testfehler {bad}')
+            print(f'{tests}, {failing} Fehler {bad}')
     return {'total': total, 'failing': failing}
 
 def checkEq(actual, expected):
