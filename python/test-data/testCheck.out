@@ -2,4 +2,4 @@ FEHLER in test-data/testCheck.py:13: Erwartet wird 2, aber das Ergebnis ist 1
 FEHLER in test-data/testCheck.py:14: Erwartet wird 'xyz', aber das Ergebnis ist 'abc'
 FEHLER in test-data/testCheck.py:15: Erwartet wird Point(x=1, y=3), aber das Ergebnis ist Point(x=1, y=2)
 FEHLER in test-data/testCheck.py:16: Erwartet wird Point(x=1, y=3), aber das Ergebnis ist Name(firstName='Max', lastName='Müller')
-4 Tests, 4 Fehler :-(
+4 Tests, 4 Fehler 🙁
