@@ -48,6 +48,7 @@ type HeapValue =
   | { type: 'tuple'; value: Array<Value> }
   | { type: 'set'; value: Array<Value> }
   | { type: 'dict'; keys: Map<any, Value>, value: Map<any, Value> }
+  | { type: 'type', value: string }
   | { type: 'instance'; name: string, value: Map<string, Value> };
 // wrapper type -> frontend list elements dodge
 

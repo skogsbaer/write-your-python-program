@@ -26,10 +26,10 @@ STACK_TYPES = {
     float: "float",
     bool: "bool",
     str: "str",
-    type(None): "none",
-    type: "type"
+    type(None): "none"
 }
 HEAP_TYPES = {
+    type: "type",
     list: "list",
     tuple: "tuple",
     dict: "dict",
@@ -112,8 +112,6 @@ class PrimitiveValue:
             "type": self.type_str,
             "value": self.value
         }
-        if type(d["value"]) == type:
-            d["value"] = str(d["value"])
         if self.variable_name is not None:
             d["name"] = self.variable_name
         return d
@@ -202,6 +200,11 @@ class Heap:
                 stored_value[key_id] = prim_value
                 if prim_value.is_ref():
                     inner_values.append(v)
+        elif value_type == type:
+            stored_value = str(value)
+            search_result = type_name_regex.search(stored_value)
+            if search_result is not None:
+                stored_value = f"<class '{search_result.group(1)}'>"
         elif inspect.isgenerator(value):
             stored_value = {}
         else:
