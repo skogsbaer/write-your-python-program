@@ -23,6 +23,8 @@ function usage()
 }
 
 if [ -z "${1:-}" ]; then
+    echo "Python version:"
+    python3 --version
     echo "Running untypy tests"
     pushd deps/untypy > /dev/null
     ./runtests.sh || exit 1

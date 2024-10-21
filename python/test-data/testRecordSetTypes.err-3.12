@@ -7,6 +7,6 @@ WyppTypeError: got value of wrong type
 given:    'hello'
 expected: value of type int
 
-declared at: test-data/testRecordSetTypes.py:4
+declared at: test-data/testRecordSetTypes.py:3
 caused by: test-data/testRecordSetTypes.py:10
   |     r.x = "hello"

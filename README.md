@@ -10,9 +10,9 @@ The ideas of this environment are based on the great ideas from
 
 ## Quick start
 
-* Step 1. Install **Python 3.12.x**.
-* Step 2. Install the **write-your-python-program** extension. You need at least Visual Studio Code
-  version 1.85.0.
+* Step 1. Install **Python 3.12.x** or **Python 3.13.x**.
+* Step 2. Install Visual Studio Code, at least version Version: 1.94.2
+* Step 2. Install the **write-your-python-program** extension for Visual Studio Code.
 * Step 3. Open or create a Python file. The "RUN" button in the taskbar at the bottom will
   run your file with the teaching language provided by write-your-python-program.
 
@@ -32,7 +32,7 @@ Write Your Python Program can be installed outside of Visual Studio Code via pip
 pip3 install wypp
 ```
 
-This needs Python 3.9.x. After installation, you can use the `wypp` command
+After installation, you can use the `wypp` command
 for running your python files, making all features explained below available.
 Run `wypp --help` for usage information.
 
@@ -187,8 +187,8 @@ predefined types:
 * `nat`
 
 The code is run with `from __future__ import annotations`
-(see [PEP 563](https://www.python.org/dev/peps/pep-0563/)), which will be
-the default from python 3.10 on. This means that you can use a type as an annotation
+(see [PEP 563](https://www.python.org/dev/peps/pep-0563/)).
+This means that you can use a type as an annotation
 before the type being defined, for example to define recursive types or as
 the type of `self` inside of classes. In fact, there is no check at all to make sure
 that anotations refer to existing types.

@@ -53,7 +53,8 @@ def get_proto_members(proto: type, ctx: CreationContext) -> dict[
     blacklist = ['__init__', '__class__', '__delattr__', '__dict__', '__dir__',
                  '__doc__', '__getattribute__', '__getattr__', '__init_subclass__',
                  '__new__', '__setattr__', '__subclasshook__', '__weakref__',
-                 '__abstractmethods__', '__class_getitem__']
+                 '__abstractmethods__', '__class_getitem__',
+                 '__firstlineno__', '__static_attributes__']
 
     member_dict = {}
     for [name, member] in inspect.getmembers(proto):

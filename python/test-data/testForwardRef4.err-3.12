@@ -3,4 +3,4 @@ Traceback (most recent call last):
     t = Test(Foo())
 WyppNameError: name 'FooX' is not defined.
 Type annotation inside of class 'Test' could not be resolved.
-declared at: test-data/testForwardRef4.py:4
+declared at: test-data/testForwardRef4.py:3
