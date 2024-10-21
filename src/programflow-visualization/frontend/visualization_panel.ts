@@ -132,7 +132,7 @@ export class VisualizationPanel {
           <script src="${this._lineScript}"></script>
           <title>Code Visualization</title>
       </head>
-      <body class="scrollable" onload="onLoad()">
+      <body onload="onLoad()">
         <div class="column scrollable" id="viz">
           <div class="row">
             <div class="column title">
@@ -151,19 +151,26 @@ export class VisualizationPanel {
             </div>
           </div>
         </div>
-        <div class="slidecontainer">
-          <input type="range" min="0" max="0" value="0" class="slider" id="traceSlider" oninput="onSlide(this.value)">
-        </div>
-        <div class="row margin-vertical">
-          <p>Step&nbsp;</p>
-          <p id="indexCounter">0</p>
-          <p id="traceMax">/?</p>
-        </div>
-        <div class="row margin-vertical">
-          <button class="margin-horizontal" id="firstButton" type="button" onclick="onClick('first')">First</button>
-          <button class="margin-horizontal" id="prevButton" type="button" onclick="onClick('prev')">Prev</button>
-          <button class="margin-horizontal" id="nextButton" type="button" onclick="onClick('next')">Next</button>
-          <button class="margin-horizontal" id="lastButton" type="button" onclick="onClick('last')">Last</button>
+        <div class="row" id="bottom-area">
+          <div class="column floating-left">
+            <div class="slidecontainer">
+              <input type="range" min="0" max="0" value="0" class="slider" id="traceSlider" oninput="onSlide(this.value)">
+            </div>
+            <div class="row margin-vertical">
+              <p>Step&nbsp;</p>
+              <p id="indexCounter">0</p>
+              <p id="traceMax">/?</p>
+            </div>
+            <div class="row margin-vertical">
+              <button class="margin-horizontal" id="firstButton" type="button" onclick="onClick('first')">First</button>
+              <button class="margin-horizontal" id="prevButton" type="button" onclick="onClick('prev')">Prev</button>
+              <button class="margin-horizontal" id="nextButton" type="button" onclick="onClick('next')">Next</button>
+              <button class="margin-horizontal" id="lastButton" type="button" onclick="onClick('last')">Last</button>
+            </div>
+          </div>
+          <div class="column floating-right">
+            <pre class="scrollable" id="stdout-log"></pre>
+          </dev>
         </div>
       </body>
       </html>

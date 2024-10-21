@@ -2,6 +2,7 @@ import bdb
 import copy
 from dataclasses import dataclass
 import inspect
+import io
 import json
 import linecache
 import math
@@ -235,13 +236,15 @@ class TraceStep:
     file_path: str
     stack: Stack
     heap: Heap
+    stdout: str
 
     def format(self):
         return {
             "line": self.line,
             "filePath": self.file_path,
             "stack": self.stack.format(),
-            "heap": self.heap.format()
+            "heap": self.heap.format(),
+            "stdout": self.stdout,
         }
 
 
@@ -320,6 +323,8 @@ class PyTraceGenerator(bdb.Bdb):
         self.last_step_was_class = False
         self.prev_num_frames = 0
         self.shown_class_defs = ShownClassDefs()
+        self.accumulated_stdout = ""
+        self.captured_stdout = io.StringIO()
 
     def trace_dispatch(self, frame, event, arg):
         filename = frame.f_code.co_filename
@@ -365,8 +370,9 @@ class PyTraceGenerator(bdb.Bdb):
                 heap = generate_heap(frame, self.filename, self.stack_ignore, return_value=arg)
             else:
                 heap = generate_heap(frame, self.filename, self.stack_ignore)
+            accumulated_stdout = self.accumulated_stdout + self.captured_stdout.getvalue()
 
-            step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap))
+            step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap), accumulated_stdout)
 
             is_annotation = next_source_line.startswith("@")
             should_display_step = not is_annotation
@@ -383,6 +389,8 @@ class PyTraceGenerator(bdb.Bdb):
                     json_len = len(json_str).to_bytes(4, byteorder='big', signed=False)
                     self.trace_socket.sendall(json_len)
                     self.trace_socket.sendall(json_str)
+                self.accumulated_stdout = accumulated_stdout
+                self.clear_stdout_capture()
                 if is_class_def:
                     self.shown_class_defs.append(filename, line)
                 self.last_step_was_class = is_class_def
@@ -397,10 +405,18 @@ class PyTraceGenerator(bdb.Bdb):
 
         return self.trace_dispatch
 
+    def clear_stdout_capture(self):
+        self.captured_stdout.close()
+        self.captured_stdout = io.StringIO()
+        sys.stdout = self.captured_stdout
+
     def run_script(self, filename, script_str):
         self.filename = filename
         code = compile(script_str, self.filename, "exec")
+        real_stdout = sys.stdout
+        sys.stdout = self.captured_stdout
         self.run(code)
+        sys.stdout = real_stdout
 
 
 if len(sys.argv) <= 1:

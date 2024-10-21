@@ -38,7 +38,7 @@ export class HTMLGenerator {
                 ${keys.map((name, index) => this.objectItem(name, values[index])).join('')}
             <div>
         `;
-        return [traceElement.line, frameItems, objectItems, traceElement.filePath];
+        return [traceElement.line, frameItems, objectItems, traceElement.filePath, traceElement.stdout];
     }
 
     private objectItem(name: string, value: HeapValue): string {

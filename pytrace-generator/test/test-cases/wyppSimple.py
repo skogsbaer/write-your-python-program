@@ -9,6 +9,8 @@ def generate_bar():
     return Bar("baz value")
 
 obj1 = Bar("baz value")
+print(obj1.baz)
 obj2 = generate_bar()
+print(obj2.baz)
 
 check(obj1, obj2)

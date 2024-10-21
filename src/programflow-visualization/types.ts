@@ -7,7 +7,7 @@ type Failure = { errorMessage: string };
 
 // State Types for the Frontend
 type FrontendTrace = Array<FrontendTraceElem>;
-type FrontendTraceElem = [number, string, string, string];
+type FrontendTraceElem = [number, string, string, string, string];
 // ############################################################################################
 // State Types for the Backend
 type PartialBackendTrace = {
@@ -20,6 +20,7 @@ type BackendTraceElem = {
   filePath: string,
   stack: Array<StackElem>;
   heap: Map<Address, HeapValue>;
+  stdout: string;
 };
 
 type Address = number;

@@ -67,6 +67,9 @@ function updateVisualization(traceElem) {
   document.getElementById("viz").addEventListener("scroll", () => {
     updateRefArrows(traceElem);
   });
+  const stdoutLog = document.getElementById("stdout-log");
+  stdoutLog.innerHTML = traceElem[4];
+  stdoutLog.scrollTo(0, stdoutLog.scrollHeight);
 }
 
 /**
