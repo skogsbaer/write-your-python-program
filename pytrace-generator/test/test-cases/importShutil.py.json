@@ -1,0 +1,26 @@
+[
+	{
+		"line": 1,
+		"filePath": "importShutil.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 3,
+		"filePath": "importShutil.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	}
+]
