@@ -167,11 +167,10 @@ export class HTMLGenerator {
 
     private frameSubItem(frameName: string, namedValue: NamedValue): string {
         const isReturn = namedValue.name === 'return';
-        const displayName = isReturn ? 'Return value' : namedValue.name;
         return `
             <div class="row frame-item" id="subItem${toID(namedValue.name)}">
                 <div class="name-border${isReturn ? ' return-value' : ''}">
-                    ${escapeHTML(displayName)}
+                    ${escapeHTML(namedValue.name)}
                 </div>
                 <div class="value-border" ${namedValue.type === 'ref' ? `id="${toID(frameName)}${toID(namedValue.name)}Pointer${toID(namedValue.value)}"` : ''}>
                     ${this.getCorrectValueOf(namedValue)}
