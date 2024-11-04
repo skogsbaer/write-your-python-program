@@ -6,6 +6,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Uri } from 'vscode';
 
+import { getProgFlowVizCallback } from './programflow-visualization/main';
+import { initTraceCache } from './programflow-visualization/trace_cache';
+
 const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
 const verboseConfigKey = 'verbose';
@@ -126,6 +129,15 @@ function installCmd(
     installButton(buttonTitle, cmdId);
 }
 
+function initProgramFlowVisualization(context: vscode.ExtensionContext, outChannel: vscode.OutputChannel) {
+    initTraceCache(context);
+    const cmdId = extensionId + ".programflow-visualization";
+    let disposable = vscode.commands.registerCommand(cmdId, getProgFlowVizCallback(context, outChannel));
+    disposables.push(disposable);
+    context.subscriptions.push(disposable);
+    installButton("$(debug-alt-small) Visualize", cmdId);
+}
+
 type PythonCmdResult = {
     kind: "success", cmd: string[]
 } | {
@@ -134,7 +146,7 @@ type PythonCmdResult = {
     kind: "warning", msg: string, cmd: string[]
 };
 
-function getPythonCmd(ext: PythonExtension): PythonCmdResult {
+export function getPythonCmd(ext: PythonExtension): PythonCmdResult {
     const config = vscode.workspace.getConfiguration(extensionId);
     const hasConfig = config && config[python3ConfigKey];
     if (hasConfig) {
@@ -302,7 +314,7 @@ class TerminalLinkProvider implements vscode.TerminalLinkProvider {
 	}
 }
 
-class PythonExtension {
+export class PythonExtension {
     private pyApi: any;
 
     constructor() {
@@ -321,6 +333,9 @@ export function activate(context: vscode.ExtensionContext) {
     disposables.forEach(d => d.dispose());
 
     console.log('Activating extension ' + extensionId);
+
+    const outChannel = vscode.window.createOutputChannel("Write Your Python Program");
+    disposables.push(outChannel);
 
     fixPythonConfig(context);
     const terminals: { [name: string]: TerminalContext } = {};
@@ -382,6 +397,8 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
     );
+
+    initProgramFlowVisualization(context, outChannel);
 
     vscode.window.onDidChangeActiveTextEditor(showHideButtons);
     showHideButtons(vscode.window.activeTextEditor);

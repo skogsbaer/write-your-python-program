@@ -241,6 +241,7 @@ Please report them in the [issue tracker](https://github.com/skogsbaer/write-you
 
 You can debug the extension from Visual Studio Code:
 
+* `npm install`
 * Open the main folder of the plugin with vscode.
 * Open the file `extension.ts`.
 * Choose "Run" from the menu, then "Start Debugging".

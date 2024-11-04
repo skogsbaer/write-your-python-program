@@ -1,0 +1,14 @@
+[
+	{
+		"line": 2,
+		"filePath": "empty.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	}
+]
