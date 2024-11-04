@@ -16,6 +16,14 @@ function toID(s: any) {
     }
 }
 
+function keyToString(key: any) {
+    if (key.type !== undefined) {
+        return key.type === 'ref' ? '' : (key.value ? key.value : key);
+    } else {
+        return key.toString();
+    }
+}
+
 export class HTMLGenerator {
     uniqueId: number = -1;
 
@@ -66,6 +74,7 @@ export class HTMLGenerator {
 
     private heapValue(name: string, heapValue: HeapValue): string {
         let result = '';
+        let keyLen = 0;
         switch (heapValue.type) {
             case 'dict':
                 const metaKeys = Array.from(Object.keys(heapValue.keys));
@@ -73,18 +82,27 @@ export class HTMLGenerator {
                 // -> Conversion required
                 const keyMap = new Map(Object.entries(heapValue.keys));
                 const valueMap = new Map(Object.entries(heapValue.value));
+                keyLen = 0;
+                metaKeys.forEach(metaKey => {
+                    let key = keyMap.get(metaKey)!;
+                    keyLen = Math.max(keyToString(key).length, keyLen);
+                });
                 result = `
                     <div class="column" id="heapEndPointer${name}">
-                        ${metaKeys.map(metaKey => this.dictValue(keyMap.get(metaKey)!, valueMap.get(metaKey)!)).join('')}
+                        ${metaKeys.map(metaKey => this.dictValue(keyLen, keyMap.get(metaKey)!, valueMap.get(metaKey)!)).join('')}
                     </div>
                 `;
                 break;
             case 'instance':
                 const instanceKeys = Array.from(Object.keys(heapValue.value));
                 const instanceValues = Array.from(Object.values(heapValue.value)); // maybe endpointer look for if its exist and if add a second number or key or smth
+                keyLen = 0;
+                instanceKeys.forEach(key => {
+                    keyLen = Math.max(keyToString(key).length, keyLen);
+                });
                 result = `
                     <div class="column" id="heapEndPointer${name}">
-                        ${instanceKeys.map((key, index) => this.dictValue(key, instanceValues[index])).join('')}
+                        ${instanceKeys.map((key, index) => this.dictValue(keyLen, key, instanceValues[index])).join('')}
                     </div>
                 `;
                 break;
@@ -113,15 +131,19 @@ export class HTMLGenerator {
         return result;
     }
 
-    private dictValue(key: any, value: Value): string {
+    private dictValue(maxKeyLen: number, key: any, value: Value): string {
         this.uniqueId++;
+        const keyWidth = Math.min(100, maxKeyLen * 10 + 10);
+        const valWidth = 200 - keyWidth;
         return `
             <div class="row">
-                <div class="box box-content-dict" ${key.type === 'ref' ? `id="${this.uniqueId}startPointer${key.value}"` : ''}>
-                    ${key.type === 'ref' ? '' : escapeHTML(key.value ? key.value : key)}
+                <div class="box box-content-dict box-content-dict-key" ${key.type === 'ref' ? `id="${this.uniqueId}startPointer${key.value}"` : ''}
+                    style="width: ${keyWidth}px">
+                    ${escapeHTML(keyToString(key))}
                 </div>
-                <div class="box box-content-dict" ${value.type === 'ref' ? `id="${this.uniqueId}startPointer${value.value}"` : ''}>
-                    ${value.type === 'ref' ? '' : escapeHTML(value.value)}
+                <div class="box box-content-dict box-content-dict-value" ${value.type === 'ref' ? `id="${this.uniqueId}startPointer${value.value}"` : ''}
+                    style="width: ${valWidth}px">
+                    ${value.type === 'ref' ? '' : this.getCorrectValueOf(value)}
                 </div>
             </div>
         `;
@@ -135,7 +157,7 @@ export class HTMLGenerator {
                     ${index}
                 </div>
                 <div class="row box-content-bottom" ${value.type === 'ref' ? `id="${this.uniqueId}startPointer${value.value}"` : ''}>
-                    ${value.type === 'ref' ? '' : escapeHTML(value.value)}
+                    ${value.type === 'ref' ? '' : this.getCorrectValueOf(value)}
                 </div>
             </div>
         `;
@@ -146,7 +168,7 @@ export class HTMLGenerator {
         return `
             <div class="box box-set column">
                 <div class="row box-content-bottom" ${value.type === 'ref' ? `id="${this.uniqueId}startPointer${value.value}"` : ''}>
-                    ${value.type === 'ref' ? '' : escapeHTML(value.value)}
+                    ${value.type === 'ref' ? '' : this.getCorrectValueOf(value)}
                 </div>
             </div>
         `;
@@ -183,6 +205,8 @@ export class HTMLGenerator {
         switch (value.type) {
             case 'ref':
                 return '';
+            case 'none':
+                return 'None';
             default:
                 return escapeHTML(`${value.value}`);
         }

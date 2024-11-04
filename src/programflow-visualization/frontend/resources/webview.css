@@ -148,26 +148,30 @@ body {
 
 .box {
   color: white;
-  border: 1px solid rgba(109, 89, 89, 1.0);
-  background-color: rgba(69, 69, 69, 0.5);
+  border: 1px solid rgb(209, 209, 209);
+  background-color: rgba(56, 56, 56, 0.8);
 }
 
 .box-content-top {
   margin: 2px 2px 2px 5px;
-  color: grey;
+  color: rgb(184, 184, 184);
 }
 
 .box-content-bottom {
-  margin: 10px 15px 10px 15px;
+  margin: 2px 5px 2px 5px;
 }
 
 .box-content-dict {
-  padding: 10px 15px 10px 15px;
-  max-width: 100px;
-  min-width: 100px;
+  padding: 2px 5px 2px 5px;
+  /* max-width: 100px;
+     min-width: 100px; */
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+}
+
+.box-content-dict-key {
+  text-align: right;
 }
 
 .box-set {
