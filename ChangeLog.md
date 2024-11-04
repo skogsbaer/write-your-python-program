@@ -1,5 +1,9 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.2.0 (2024-11-04)
+  * Support for visualization
+  * Fix handling of lazy annotations in records
+  * Fix output of execution fails but some tests were successful
 * 1.1.0 (2024-10-02)
   * Improve invocation on windows, always use cmd.exe
   * Fixed bugs #132, #133, #134, and #135
