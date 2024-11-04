@@ -37,6 +37,8 @@ class TypedFunctionBuilder(WrappedFunction):
             self.checkers()
         except UntypyNameError:
             pass
+        except NameError:
+            pass
 
         # The self.fast_sig flags tells wether the signature supports fast matching of arguments.
         # We identified (2022-05-05) that self.wrap_arguments is a performence bottleneck.
