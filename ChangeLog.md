@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.2.1 (2024-11-05)
+  * Fix assets for visualization
 * 1.2.0 (2024-11-04)
   * Support for visualization
   * Fix handling of lazy annotations in records
