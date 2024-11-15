@@ -5,7 +5,7 @@ import { HTMLGenerator } from './HTMLGenerator';
 import { MessagePort } from 'worker_threads';
 import { cacheTrace } from '../trace_cache';
 
-const FRONTEND_RESOURCE_PATH = 'src/programflow-visualization/frontend/resources';
+const FRONTEND_RESOURCE_PATH = 'media/programflow-visualization';
 
 export class VisualizationPanel {
   private _panel: vscode.WebviewPanel | undefined;

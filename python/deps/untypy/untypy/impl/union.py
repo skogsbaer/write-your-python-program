@@ -71,7 +71,7 @@ class UnionChecker(TypeChecker):
     def base_type(self) -> list[Any]:
         out = []
         for checker in self.inner:
-            out.append(checker.base_type())
+            out.extend(checker.base_type())
         return out
 
 
