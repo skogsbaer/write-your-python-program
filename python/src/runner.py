@@ -1,4 +1,3 @@
-from __future__ import annotations as anns
 import sys
 import os
 import os.path
@@ -320,7 +319,7 @@ def runCode(fileToRun, globals, args, useUntypy=True, extraDirs=None):
 
     with RunSetup(localDir):
         codeTxt = readFile(fileToRun)
-        flags = 0 | anns.compiler_flag
+        flags = 0
         if useUntypy:
             verbose(f'finding modules imported by {fileToRun}')
             importedMods = findImportedModules([localDir] + extraDirs, fileToRun)
