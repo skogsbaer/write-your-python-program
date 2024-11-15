@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "test-data/testHintParentheses3.py", line 5, in <module>
+  File "test-data/testHintParentheses3.py", line 6, in <module>
     def foo() -> Union(list, str):
 WyppAttributeError: Type annotation of function 'foo' could not be resolved:
 Cannot call Union like a function. Did you mean Union[list, str]?
@@ -7,4 +7,4 @@ Cannot call Union like a function. Did you mean Union[list, str]?
 def foo() -> Union(list, str):                                   
     pass     ^^^^^^^^^^^^^^^^ - Did you mean: 'Union[list, str]'?
 
-declared at: test-data/testHintParentheses3.py:5
+declared at: test-data/testHintParentheses3.py:6
