@@ -11,7 +11,7 @@ export class VisualizationPanel {
   private _panel: vscode.WebviewPanel | undefined;
   private readonly _style: vscode.Uri;
   private readonly _script: vscode.Uri;
-  private readonly _lineScript: vscode.Uri;
+  private readonly _linkerlineBundle: vscode.Uri;
   private readonly _fileHash: string;
   private readonly _tracePort: MessagePort | null;
   private _backendTrace: PartialBackendTrace;
@@ -35,18 +35,21 @@ export class VisualizationPanel {
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,
-        localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, FRONTEND_RESOURCE_PATH))],
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, FRONTEND_RESOURCE_PATH)),
+          vscode.Uri.file(path.join(context.extensionPath, 'out')),
+        ],
       }
     );
 
     // Get path to resource on disk
     const stylesFile = vscode.Uri.file(path.join(context.extensionPath, FRONTEND_RESOURCE_PATH, 'webview.css'));
     const scriptFile = vscode.Uri.file(path.join(context.extensionPath, FRONTEND_RESOURCE_PATH, 'webview.js'));
-    const lineFile = vscode.Uri.file(path.join(context.extensionPath, FRONTEND_RESOURCE_PATH, 'leader-line.min.js'));
+    const linkerlineFile = vscode.Uri.file(path.join(context.extensionPath, 'out/linkerline.bundle.js'));
     // And get the special URI to use with the webview
     this._style = panel.webview.asWebviewUri(stylesFile);
     this._script = panel.webview.asWebviewUri(scriptFile);
-    this._lineScript = panel.webview.asWebviewUri(lineFile);
+    this._linkerlineBundle = panel.webview.asWebviewUri(linkerlineFile);
     this._panel = panel;
 
     this._panel.onDidChangeViewState(async (e) => {
@@ -128,8 +131,8 @@ export class VisualizationPanel {
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <link rel="stylesheet" href="${this._style}">
+          <script src="${this._linkerlineBundle}"></script>
           <script src="${this._script}"></script>
-          <script src="${this._lineScript}"></script>
           <title>Code Visualization</title>
       </head>
       <body onload="onLoad()">
