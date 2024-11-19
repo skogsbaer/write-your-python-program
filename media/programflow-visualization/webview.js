@@ -18,7 +18,7 @@ window.addEventListener("message", (event) => {
       document.querySelector("#lastButton").disabled = !message.last;
       break;
     case "updateContent":
-      const traceMax = message.traceLen - 1;
+      var traceMax = message.traceLen - 1;
       if (traceMax < 0) {
         traceMax = 0;
       }
