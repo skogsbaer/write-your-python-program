@@ -328,6 +328,7 @@ class PyTraceGenerator(bdb.Bdb):
         self.shown_class_defs = ShownClassDefs()
         self.accumulated_stdout = ""
         self.captured_stdout = io.StringIO()
+        self.last_event = ""
 
     def trace_dispatch(self, frame, event, arg):
         filename = frame.f_code.co_filename
@@ -362,7 +363,7 @@ class PyTraceGenerator(bdb.Bdb):
         next_source_line = linecache.getline(filename, line).strip()
         self.import_following = import_regex.search(next_source_line) is not None
 
-        display_return = event == "return" and len(self.stack.frames) > 1
+        display_return = event == "return" and self.last_event != "exception" and len(self.stack.frames) > 1
         if event == "line" or display_return:
             for variable_name in frame.f_locals:
                 if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], self.filename, self.stack_ignore):
@@ -404,7 +405,8 @@ class PyTraceGenerator(bdb.Bdb):
         elif event == "return":
             self.stack.pop_frame()
             self.shown_class_defs.pop_frame()
-        # TODO exception
+
+        self.last_event = event
 
         return self.trace_dispatch
 
