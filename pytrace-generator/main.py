@@ -430,7 +430,7 @@ if len(sys.argv) <= 1:
     exit(1)
 
 filename = os.path.abspath(sys.argv[1])
-with open(filename, "r") as f:
+with open(filename, "r", encoding="utf-8") as f:
     script_str = f.read()
 
 # Add a 'pass' at the end to also get the last trace step

@@ -1,12 +1,12 @@
 Traceback (most recent call last):
-  File "test-data/testRecordSetTypeForwardRef.py", line 14, in <module>
+  File "test-data/testRecordSetTypeForwardRef.py", line 15, in <module>
     m()
-  File "test-data/testRecordSetTypeForwardRef.py", line 12, in m
+  File "test-data/testRecordSetTypeForwardRef.py", line 13, in m
     r.x = "hello"
 WyppTypeError: got value of wrong type
 given:    'hello'
 expected: value of type A
 
-declared at: test-data/testRecordSetTypeForwardRef.py:4
-caused by: test-data/testRecordSetTypeForwardRef.py:12
+declared at: test-data/testRecordSetTypeForwardRef.py:5
+caused by: test-data/testRecordSetTypeForwardRef.py:13
   |     r.x = "hello"

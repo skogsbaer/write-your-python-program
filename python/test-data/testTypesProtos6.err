@@ -1,23 +1,23 @@
 Traceback (most recent call last):
-  File "test-data/testTypesProtos6.py", line 56, in <module>
+  File "test-data/testTypesProtos6.py", line 57, in <module>
     print(computeTotalSize(root))
-  File "test-data/testTypesProtos6.py", line 49, in computeTotalSize
+  File "test-data/testTypesProtos6.py", line 50, in computeTotalSize
     fs.accept(visitor)
-  File "test-data/testTypesProtos6.py", line 18, in accept
+  File "test-data/testTypesProtos6.py", line 19, in accept
     visitor.visitDirectory(self)
-  File "test-data/testTypesProtos6.py", line 40, in visitDirectory
+  File "test-data/testTypesProtos6.py", line 41, in visitDirectory
     c.accept(self)
-  File "test-data/testTypesProtos6.py", line 27, in accept
+  File "test-data/testTypesProtos6.py", line 28, in accept
     visitor.visitFile(self)
 WyppTypeError: TotalSizeVisitor does not implement parent FileSystemVisitor
 given:    <__wypp__.TotalSizeVisitor object at 0x00>
 expected: value of type FileSystemVisitor
 
-declared at: test-data/testTypesProtos6.py:35
-declared at: test-data/testTypesProtos6.py:32
-caused by: test-data/testTypesProtos6.py:35
+declared at: test-data/testTypesProtos6.py:36
+declared at: test-data/testTypesProtos6.py:33
+caused by: test-data/testTypesProtos6.py:36
   | class TotalSizeVisitor(FileSystemVisitor):
-caused by: test-data/testTypesProtos6.py:41
+caused by: test-data/testTypesProtos6.py:42
   |     def visitFile(self, file: str):
 
 Argument file of method visitFile violates the type declared by the parent FileSystemVisitor.
@@ -28,7 +28,7 @@ expected: value of type str
 
 context: visitFile(self: Self, file: str) -> None
                                      ^^^
-declared at: test-data/testTypesProtos6.py:41
-declared at: test-data/testTypesProtos6.py:32
-caused by: test-data/testTypesProtos6.py:41
+declared at: test-data/testTypesProtos6.py:42
+declared at: test-data/testTypesProtos6.py:33
+caused by: test-data/testTypesProtos6.py:42
   |     def visitFile(self, file: str):
