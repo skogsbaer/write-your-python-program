@@ -7,6 +7,6 @@ expected: value of type int
 
 context: record constructor Point(x: int, y: int) -> Self
                                              ^^^
-declared at: test-data/testRecordTypes.py:4
+declared at: test-data/testRecordTypes.py:3
 caused by: test-data/testRecordTypes.py:8
   | p = Point(1, '5')
