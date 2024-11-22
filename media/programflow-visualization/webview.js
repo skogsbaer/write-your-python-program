@@ -18,7 +18,7 @@ window.addEventListener("message", (event) => {
       document.querySelector("#lastButton").disabled = !message.last;
       break;
     case "updateContent":
-      const traceMax = message.traceLen - 1;
+      var traceMax = message.traceLen - 1;
       if (traceMax < 0) {
         traceMax = 0;
       }
@@ -65,9 +65,6 @@ function updateVisualization(traceElem) {
   `;
   const viz = document.getElementById("viz");
   viz.innerHTML = data;
-  viz.addEventListener("scroll", () => {
-    updateRefArrows(traceElem);
-  });
   viz.scrollTo(0, viz.scrollHeight);
   const stdoutLog = document.getElementById("stdout-log");
   stdoutLog.innerHTML = traceElem[4];
@@ -106,7 +103,10 @@ function updateRefArrows(traceElem) {
   refTags = tags
     .filter((tag) => tag.elem1 && tag.elem2)
     .map((tag) => {
-      return new LeaderLine(tag.elem1, tag.elem2, {
+      return new LinkerLine({
+        parent: document.getElementById("viz"),
+        start: tag.elem1,
+        end: tag.elem2, 
         size: 2,
         path: "magnet",
         startSocket: "right",

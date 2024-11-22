@@ -1,0 +1,398 @@
+[
+	{
+		"line": 1,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 9,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 10,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 2,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 2,
+						"name": "i"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 5,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 2,
+						"name": "i"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 2,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 2,
+						"name": "i"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 1,
+						"name": "i"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 5,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 2,
+						"name": "i"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 1,
+						"name": "i"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 2,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 2,
+						"name": "i"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 1,
+						"name": "i"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 0,
+						"name": "i"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 3,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 2,
+						"name": "i"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 1,
+						"name": "i"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 0,
+						"name": "i"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 11,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 12,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	},
+	{
+		"line": 14,
+		"filePath": "divideByZero.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "ref",
+						"value": 0,
+						"name": "bar"
+					}
+				]
+			}
+		],
+		"heap": {
+			"0": {
+				"type": "instance",
+				"value": {},
+				"name": "function"
+			}
+		},
+		"stdout": ""
+	}
+]
