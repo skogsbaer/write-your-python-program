@@ -16,7 +16,7 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 type_name_regex = re.compile("<class '(?:__main__\\.)?(.*)'>")
-import_regex = re.compile(r"^(?:[^'\"]+\s)?import ")
+import_regex = re.compile(r"^(?:[^'\"]+\s)?import[\s*]")
 
 # Frame objects:
 # https://docs.python.org/3/reference/datamodel.html#frame-objects
