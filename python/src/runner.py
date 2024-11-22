@@ -254,7 +254,7 @@ class Lib:
                 if name and name[0] != '_':
                   d[name] = getattr(mod, name)
 
-def prepareLib(onlyCheckRunnable):
+def prepareLib(onlyCheckRunnable, enableTypeChecking):
     libDefs = None
     mod = INSTALLED_MODULE_NAME
     verbose('Attempting to import ' + mod)
@@ -262,6 +262,7 @@ def prepareLib(onlyCheckRunnable):
     libDefs = Lib(wypp, True)
     verbose('Successfully imported module ' + mod + ' from file ' + wypp.__file__)
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
+                       enableTypeChecking=enableTypeChecking,
                        quiet=onlyCheckRunnable)
     return libDefs
 
@@ -534,7 +535,7 @@ Python in version {reqVStr} or newer is required. You are still using version {v
     if not args.checkRunnable and (not args.quiet or args.verbose):
         printWelcomeString(fileToRun, version, useUntypy=args.checkTypes)
 
-    libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable)
+    libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable, enableTypeChecking=args.checkTypes)
 
     globals['__name__'] = '__wypp__'
     sys.modules['__wypp__'] = sys.modules['__main__']

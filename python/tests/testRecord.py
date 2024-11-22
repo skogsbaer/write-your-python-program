@@ -4,6 +4,7 @@ import sys
 import traceback
 import dataclasses
 
+initModule()
 setDieOnCheckFailures(True)
 
 @record
