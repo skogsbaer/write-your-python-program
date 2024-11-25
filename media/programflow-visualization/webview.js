@@ -65,7 +65,18 @@ function updateVisualization(traceElem) {
   `;
   const viz = document.getElementById("viz");
   viz.innerHTML = data;
-  viz.scrollTo(0, viz.scrollHeight);
+
+  // Scroll to the end of the stack
+  const frames = document.getElementById("frames");
+  if (frames.lastElementChild !== null) {
+    const framesHeight = frames.lastElementChild.offsetTop + frames.lastElementChild.offsetHeight;
+    var y = framesHeight - viz.clientHeight;
+    if (y < 0) {
+      y = 0;
+    }
+    viz.scrollTo(0, y);
+  }
+
   const stdoutLog = document.getElementById("stdout-log");
   stdoutLog.innerHTML = traceElem[4];
   stdoutLog.scrollTo(0, stdoutLog.scrollHeight);
