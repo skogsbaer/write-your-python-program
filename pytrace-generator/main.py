@@ -16,6 +16,7 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 type_name_regex = re.compile("<class '(?:__main__\\.)?(.*)'>")
+function_str_regex = re.compile(r"^(<function .+) at .+>")
 import_regex = re.compile(r"^(?:[^'\"]+\s)?import[\s*]")
 
 # Frame objects:
@@ -26,10 +27,11 @@ STACK_TYPES = {
     float: "float",
     bool: "bool",
     str: "str",
-    type(None): "none"
+    type(None): "none",
+    type: "type",
+    types.FunctionType: "function"
 }
 HEAP_TYPES = {
-    type: "type",
     list: "list",
     tuple: "tuple",
     dict: "dict",
@@ -112,6 +114,18 @@ class PrimitiveValue:
             "type": self.type_str,
             "value": self.value
         }
+        if type(d["value"]) == type:
+            type_name = str(d["value"])
+            search_result = type_name_regex.search(type_name)
+            if search_result is not None:
+                type_name = f"<class '{search_result.group(1)}'>"
+            d["value"] = type_name
+        elif inspect.isfunction(d["value"]):
+            function_desc = str(d["value"])
+            search_result = function_str_regex.search(function_desc)
+            if search_result is not None:
+                function_desc = f"{search_result.group(1)}>"
+            d["value"] = function_desc
         if self.variable_name is not None:
             d["name"] = self.variable_name
         return d
@@ -200,11 +214,6 @@ class Heap:
                 stored_value[key_id] = prim_value
                 if prim_value.is_ref():
                     inner_values.append(v)
-        elif value_type == type:
-            stored_value = str(value)
-            search_result = type_name_regex.search(stored_value)
-            if search_result is not None:
-                stored_value = f"<class '{search_result.group(1)}'>"
         elif inspect.isgenerator(value):
             stored_value = {}
         else:

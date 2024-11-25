@@ -19,20 +19,14 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -43,20 +37,14 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -67,8 +55,8 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
@@ -84,13 +72,7 @@
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -101,8 +83,8 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
@@ -118,13 +100,7 @@
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -135,8 +111,8 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
@@ -162,13 +138,7 @@
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -179,8 +149,8 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
@@ -206,13 +176,7 @@
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -223,8 +187,8 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
@@ -260,13 +224,7 @@
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -277,8 +235,8 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
@@ -314,13 +272,7 @@
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -331,20 +283,14 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -355,20 +301,14 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -379,20 +319,14 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "function",
+						"value": "<function bar>",
 						"name": "bar"
 					}
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	}
 ]
