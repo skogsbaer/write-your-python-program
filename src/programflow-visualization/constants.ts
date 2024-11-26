@@ -6,6 +6,13 @@ export namespace Variables {
 }
 
 export const nextLineExecuteHighlightType = vscode.window.createTextEditorDecorationType({
-  backgroundColor: 'rgba(255, 255, 0, 0.25)', // Yellow
+  borderWidth: '1px',
+  borderStyle: 'solid',
   isWholeLine: true,
+  borderColor: 'rgb(40, 40, 40)',
+  backgroundColor: 'rgba(248, 248, 181, 0.75)',
+  dark: {
+    borderColor: 'rgb(215, 215, 215)',
+    backgroundColor: 'rgba(75, 75, 24, 0.75)',
+  }
 });
