@@ -43,19 +43,14 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					}
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -66,29 +61,19 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					},
 					{
-						"type": "ref",
-						"value": 1,
+						"type": "function",
+						"value": "<function generate_bar>",
 						"name": "generate_bar"
 					}
 				]
 			}
 		],
-		"heap": {
-			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			},
-			"1": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			}
-		},
+		"heap": {},
 		"stdout": ""
 	},
 	{
@@ -99,18 +84,18 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					},
 					{
-						"type": "ref",
-						"value": 1,
+						"type": "function",
+						"value": "<function generate_bar>",
 						"name": "generate_bar"
 					},
 					{
 						"type": "ref",
-						"value": 2,
+						"value": 0,
 						"name": "obj1"
 					}
 				]
@@ -118,15 +103,6 @@
 		],
 		"heap": {
 			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			},
-			"1": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			},
-			"2": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -147,18 +123,18 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					},
 					{
-						"type": "ref",
-						"value": 1,
+						"type": "function",
+						"value": "<function generate_bar>",
 						"name": "generate_bar"
 					},
 					{
 						"type": "ref",
-						"value": 2,
+						"value": 0,
 						"name": "obj1"
 					}
 				]
@@ -166,15 +142,6 @@
 		],
 		"heap": {
 			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			},
-			"1": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			},
-			"2": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -195,18 +162,18 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					},
 					{
-						"type": "ref",
-						"value": 1,
+						"type": "function",
+						"value": "<function generate_bar>",
 						"name": "generate_bar"
 					},
 					{
 						"type": "ref",
-						"value": 2,
+						"value": 0,
 						"name": "obj1"
 					}
 				]
@@ -218,15 +185,6 @@
 		],
 		"heap": {
 			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			},
-			"1": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			},
-			"2": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -247,18 +205,18 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					},
 					{
-						"type": "ref",
-						"value": 1,
+						"type": "function",
+						"value": "<function generate_bar>",
 						"name": "generate_bar"
 					},
 					{
 						"type": "ref",
-						"value": 2,
+						"value": 0,
 						"name": "obj1"
 					}
 				]
@@ -268,7 +226,7 @@
 				"locals": [
 					{
 						"type": "ref",
-						"value": 3,
+						"value": 1,
 						"name": "return"
 					}
 				]
@@ -276,15 +234,6 @@
 		],
 		"heap": {
 			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			},
-			"1": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			},
-			"2": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -294,7 +243,7 @@
 				},
 				"name": "Bar"
 			},
-			"3": {
+			"1": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -315,23 +264,23 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					},
 					{
-						"type": "ref",
-						"value": 1,
+						"type": "function",
+						"value": "<function generate_bar>",
 						"name": "generate_bar"
 					},
 					{
 						"type": "ref",
-						"value": 2,
+						"value": 0,
 						"name": "obj1"
 					},
 					{
 						"type": "ref",
-						"value": 3,
+						"value": 1,
 						"name": "obj2"
 					}
 				]
@@ -339,15 +288,6 @@
 		],
 		"heap": {
 			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			},
-			"1": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			},
-			"2": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -357,7 +297,7 @@
 				},
 				"name": "Bar"
 			},
-			"3": {
+			"1": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -378,23 +318,23 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					},
 					{
-						"type": "ref",
-						"value": 1,
+						"type": "function",
+						"value": "<function generate_bar>",
 						"name": "generate_bar"
 					},
 					{
 						"type": "ref",
-						"value": 2,
+						"value": 0,
 						"name": "obj1"
 					},
 					{
 						"type": "ref",
-						"value": 3,
+						"value": 1,
 						"name": "obj2"
 					}
 				]
@@ -402,15 +342,6 @@
 		],
 		"heap": {
 			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			},
-			"1": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			},
-			"2": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -420,7 +351,7 @@
 				},
 				"name": "Bar"
 			},
-			"3": {
+			"1": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -441,23 +372,23 @@
 				"frameName": "<module>",
 				"locals": [
 					{
-						"type": "ref",
-						"value": 0,
+						"type": "type",
+						"value": "<class 'Bar'>",
 						"name": "Bar"
 					},
 					{
-						"type": "ref",
-						"value": 1,
+						"type": "function",
+						"value": "<function generate_bar>",
 						"name": "generate_bar"
 					},
 					{
 						"type": "ref",
-						"value": 2,
+						"value": 0,
 						"name": "obj1"
 					},
 					{
 						"type": "ref",
-						"value": 3,
+						"value": 1,
 						"name": "obj2"
 					}
 				]
@@ -465,15 +396,6 @@
 		],
 		"heap": {
 			"0": {
-				"type": "type",
-				"value": "<class 'Bar'>"
-			},
-			"1": {
-				"type": "instance",
-				"value": {},
-				"name": "function"
-			},
-			"2": {
 				"type": "instance",
 				"value": {
 					"baz": {
@@ -483,7 +405,7 @@
 				},
 				"name": "Bar"
 			},
-			"3": {
+			"1": {
 				"type": "instance",
 				"value": {
 					"baz": {

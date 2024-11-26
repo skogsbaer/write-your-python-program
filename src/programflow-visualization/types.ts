@@ -31,6 +31,8 @@ type Value =
   | { type: 'str'; value: string }
   | { type: 'none'; value: string }
   | { type: 'bool'; value: string }
+  | { type: 'type'; value: string }
+  | { type: 'function'; value: string }
   | { type: 'ref'; value: Address };
 
 type NamedValue = Value & {
@@ -48,7 +50,6 @@ type HeapValue =
   | { type: 'tuple'; value: Array<Value> }
   | { type: 'set'; value: Array<Value> }
   | { type: 'dict'; keys: Map<any, Value>, value: Map<any, Value> }
-  | { type: 'type', value: string }
   | { type: 'instance'; name: string, value: Map<string, Value> };
 // wrapper type -> frontend list elements dodge
 

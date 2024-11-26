@@ -55,11 +55,6 @@ export class HTMLGenerator {
             case 'instance':
                 headline = value.name;
                 break;
-            case 'type':
-                // Types are displayed in the same way as function objects.
-                // This is simply done for consistency, even if it's not quite correct.
-                headline = value.value;
-                break;
             default:
                 headline = value.type;
         }
@@ -113,11 +108,6 @@ export class HTMLGenerator {
                     </div>
                 `;
                 break;
-            case 'type':
-                result = `
-                    <div class="row" id="heapEndPointer${name}">
-                    </div>
-                `;
                 break;
             /* tuple, list, int[], int[][], ...*/
             default:
