@@ -141,7 +141,10 @@ def _patchDataClass(cls, mutable):
 def record(cls=None, mutable=False):
     def wrap(cls):
         newCls = dataclasses.dataclass(cls, frozen=not mutable)
-        return _patchDataClass(newCls, mutable)
+        if _typeCheckingEnabled:
+            return _patchDataClass(newCls, mutable)
+        else:
+            return newCls
     # See if we're being called as @record or @record().
     if cls is None:
         # We're called with parens.
@@ -155,6 +158,7 @@ def record(cls=None, mutable=False):
 _die = False
 
 def setDieOnCheckFailures(b):
+    global _die
     _die = b
 
 def _dieOnCheckFailures():
@@ -162,10 +166,12 @@ def _dieOnCheckFailures():
 
 _testCount = {'total': 0, 'failing': 0}
 _checksEnabled = True
+_typeCheckingEnabled = False
 
-def initModule(enableChecks=True, quiet=False):
-    global _checksEnabled
+def initModule(enableChecks=True, enableTypeChecking=True, quiet=False):
+    global _checksEnabled, _typeCheckingEnabled
     _checksEnabled = enableChecks
+    _typeCheckingEnabled = enableTypeChecking
     resetTestCount()
 
 def resetTestCount():
