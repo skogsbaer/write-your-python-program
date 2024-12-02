@@ -46,7 +46,11 @@ export class HTMLGenerator {
                 ${keys.map((name, index) => this.objectItem(name, values[index])).join('')}
             <div>
         `;
-        return [traceElement.line, frameItems, objectItems, traceElement.filePath, traceElement.stdout];
+        let output = traceElement.stdout;
+        if (traceElement.traceback !== undefined) {
+            output += `<span class="traceback-text">${traceElement.traceback}</span>`;
+        }
+        return [traceElement.line, frameItems, objectItems, traceElement.filePath, output];
     }
 
     private objectItem(name: string, value: HeapValue): string {

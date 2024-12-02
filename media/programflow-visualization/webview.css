@@ -188,3 +188,7 @@ body {
 .return-value {
   color: blue;
 }
+
+.traceback-text {
+  color: red;
+}

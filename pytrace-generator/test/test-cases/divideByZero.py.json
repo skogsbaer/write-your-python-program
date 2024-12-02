@@ -276,7 +276,7 @@
 		"stdout": ""
 	},
 	{
-		"line": 11,
+		"line": 3,
 		"filePath": "divideByZero.py",
 		"stack": [
 			{
@@ -288,45 +288,40 @@
 						"name": "bar"
 					}
 				]
-			}
-		],
-		"heap": {},
-		"stdout": ""
-	},
-	{
-		"line": 12,
-		"filePath": "divideByZero.py",
-		"stack": [
+			},
 			{
-				"frameName": "<module>",
+				"frameName": "bar",
 				"locals": [
 					{
-						"type": "function",
-						"value": "<function bar>",
-						"name": "bar"
+						"type": "int",
+						"value": 2,
+						"name": "i"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 1,
+						"name": "i"
+					}
+				]
+			},
+			{
+				"frameName": "bar",
+				"locals": [
+					{
+						"type": "int",
+						"value": 0,
+						"name": "i"
 					}
 				]
 			}
 		],
 		"heap": {},
-		"stdout": ""
-	},
-	{
-		"line": 14,
-		"filePath": "divideByZero.py",
-		"stack": [
-			{
-				"frameName": "<module>",
-				"locals": [
-					{
-						"type": "function",
-						"value": "<function bar>",
-						"name": "bar"
-					}
-				]
-			}
-		],
-		"heap": {},
-		"stdout": ""
+		"stdout": "",
+		"traceback": "ZeroDivisionError: division by zero\n"
 	}
 ]
