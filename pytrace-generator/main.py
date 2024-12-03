@@ -11,6 +11,7 @@ import re
 import socket
 import sys
 import types
+import typing
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -29,6 +30,7 @@ STACK_TYPES = {
     str: "str",
     type(None): "none",
     type: "type",
+    typing.TypeAliasType: "type",
     types.FunctionType: "function"
 }
 HEAP_TYPES = {
@@ -120,6 +122,8 @@ class PrimitiveValue:
             if search_result is not None:
                 type_name = f"<class '{search_result.group(1)}'>"
             d["value"] = type_name
+        elif type(d["value"]) == typing.TypeAliasType:
+            d["value"] = "<TypeAlias>"
         elif inspect.isfunction(d["value"]):
             function_desc = str(d["value"])
             search_result = function_str_regex.search(function_desc)
