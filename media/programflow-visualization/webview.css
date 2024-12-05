@@ -192,3 +192,7 @@ body {
 .traceback-text {
   color: red;
 }
+
+#bottom-area button {
+  line-height: 18px;
+}
