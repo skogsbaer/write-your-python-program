@@ -169,10 +169,10 @@ export class VisualizationPanel {
               <p id="traceMax">/?</p>
             </div>
             <div class="row margin-vertical">
-              <button class="margin-horizontal" id="firstButton" type="button" onclick="onClick('first')">First</button>
-              <button class="margin-horizontal" id="prevButton" type="button" onclick="onClick('prev')">Prev</button>
-              <button class="margin-horizontal" id="nextButton" type="button" onclick="onClick('next')">Next</button>
-              <button class="margin-horizontal" id="lastButton" type="button" onclick="onClick('last')">Last</button>
+              <button class="margin-horizontal" id="firstButton" type="button" onclick="onClick('first')">&#9198</button>
+              <button class="margin-horizontal" id="prevButton" type="button" onclick="onClick('prev')">&#9664</button>
+              <button class="margin-horizontal" id="nextButton" type="button" onclick="onClick('next')">&#9654</button>
+              <button class="margin-horizontal" id="lastButton" type="button" onclick="onClick('last')">&#9197</button>
             </div>
           </div>
           <div class="column floating-right">
