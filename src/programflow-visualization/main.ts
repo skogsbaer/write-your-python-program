@@ -19,7 +19,7 @@ export function getProgFlowVizCallback(context: vscode.ExtensionContext, outChan
                 vscode.window.showWarningMessage('Not a Python file');
                 return;
             }
-            vscode.window.activeTextEditor?.document.save();
+            await vscode.window.activeTextEditor?.document.save();
 
             const content = await FileHandler.getContentOf(file);
             const fileHash = Md5.hashStr(content);

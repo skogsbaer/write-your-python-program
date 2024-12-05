@@ -1,7 +1,11 @@
 # Write Your Python Program - CHANGELOG
 
-* ? (?)
+* 1.3.0 (2024-12-01)
   * Fix bug with union of unions
+  * Improve scrolling #148
+  * Improve highlighting of current line #155
+  * Improve rendering of classes and functions #154
+  * Several other bugfixes
 * 1.2.1 (2024-11-05)
   * Fix assets for visualization
 * 1.2.0 (2024-11-04)
