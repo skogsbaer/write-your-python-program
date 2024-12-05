@@ -112,6 +112,10 @@ export class VisualizationPanel {
     });
   }
 
+  public dispose() {
+    this._panel?.dispose();
+  }
+
   public static async getVisualizationPanel(
     context: vscode.ExtensionContext,
     filePath: string,
