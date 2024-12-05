@@ -364,7 +364,7 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showWarningMessage('Not a python file');
                 return;
             }
-            vscode.window.activeTextEditor?.document.save();
+            await vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd(pyExt);
             let verboseOpt = "";
             if (isDebug(context)) {
