@@ -10,6 +10,7 @@ import os
 import re
 import socket
 import sys
+import traceback
 import types
 import typing
 
@@ -253,15 +254,19 @@ class TraceStep:
     stack: Stack
     heap: Heap
     stdout: str
+    traceback_text: str
 
     def format(self):
-        return {
+        step = {
             "line": self.line,
             "filePath": self.file_path,
             "stack": self.stack.format(),
             "heap": self.heap.format(),
             "stdout": self.stdout,
         }
+        if self.traceback_text is not None:
+            step["traceback"] = self.traceback_text
+        return step
 
 
 def should_ignore(variable_name, value, script_path, ignore_list = []):
@@ -377,7 +382,8 @@ class PyTraceGenerator(bdb.Bdb):
         self.import_following = import_regex.search(next_source_line) is not None
 
         display_return = event == "return" and self.last_event != "exception" and len(self.stack.frames) > 1
-        if event == "line" or display_return:
+        display_exception = event == "exception" and self.last_event != "return"
+        if event == "line" or display_return or display_exception:
             for variable_name in frame.f_locals:
                 if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], self.filename, self.stack_ignore):
                     continue
@@ -389,7 +395,15 @@ class PyTraceGenerator(bdb.Bdb):
                 heap = generate_heap(frame, self.filename, self.stack_ignore)
             accumulated_stdout = self.accumulated_stdout + self.captured_stdout.getvalue()
 
-            step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap), accumulated_stdout)
+            traceback_text = None
+            if event == "exception":
+                exception_value = arg[1]
+                traceback_text_tmp = io.StringIO()
+                traceback.print_exception(exception_value, limit=0, file=traceback_text_tmp)
+                traceback_text = traceback_text_tmp.getvalue()
+
+
+            step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap), accumulated_stdout, traceback_text)
 
             is_annotation = next_source_line.startswith("@")
             should_display_step = not is_annotation
@@ -412,6 +426,10 @@ class PyTraceGenerator(bdb.Bdb):
                     self.shown_class_defs.append(filename, line)
                 self.last_step_was_class = is_class_def
                 self.prev_num_frames = num_frames
+
+            if event == "exception":
+                # Terminate visualization after first exception in user code
+                self.set_quit()
         if event == "call":
             self.stack.push_frame(frame)
             self.shown_class_defs.push_frame()

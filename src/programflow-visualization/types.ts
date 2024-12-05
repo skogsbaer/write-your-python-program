@@ -21,6 +21,7 @@ type BackendTraceElem = {
   stack: Array<StackElem>;
   heap: Map<Address, HeapValue>;
   stdout: string;
+  traceback: string | undefined;
 };
 
 type Address = number;
