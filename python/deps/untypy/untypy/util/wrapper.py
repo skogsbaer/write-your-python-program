@@ -186,6 +186,9 @@ class ReadOnlyDict(dict):
     update = _readonly
     setdefault = _readonly
 
+# FIXME: get rid off patch. Its evil to change the class of an object after its creation.
+# Further, it causes issues with the GC of python 3.13.
+
 def patch(self, ty, extra):
     # SW (2024-10-18): With python 3.13 there is the behavior that extra is modified after patching
     # the object. I never found out who is doing the modification. By wrapping extra with
