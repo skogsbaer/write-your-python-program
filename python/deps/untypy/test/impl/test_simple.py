@@ -59,6 +59,7 @@ class TestSimple(unittest.TestCase):
         def m(x: A) -> None:
             self.assertEqual(x.foo, 42)
             x.foo = 43
+            self.assertEqual(x.foo, 43)
 
         m(a)
         self.assertEqual(a.foo, 43)

@@ -1,43 +1,10 @@
 import typing
-import abc
 import collections
-from untypy.error import UntypyError
 from untypy.util.debug import debug
 
 def _f():
     yield 0
 generatorType = type(_f())
-
-class WyppWrapError(Exception):
-    pass
-
-def _readonly(self, *args, **kwargs):
-    raise RuntimeError("Cannot modify ReadOnlyDict")
-
-class ReadOnlyDict(dict):
-    __setitem__ = _readonly
-    __delitem__ = _readonly
-    pop = _readonly
-    popitem = _readonly
-    clear = _readonly
-    update = _readonly
-    setdefault = _readonly
-
-def patch(self, ty, extra):
-    # SW (2024-10-18): With python 3.13 there is the behavior that extra is modified after patching
-    # the object. I never found out who is doing the modification. By wrapping extra with
-    # ReadOnlyDict, everything works. Strangely, no error occurs somewhere.
-    self.__extra__ = ReadOnlyDict(extra)
-    w = self.__wrapped__
-    m = None
-    if hasattr(w, '__module__'):
-        m = getattr(w, '__module__')
-    ty.__module__ = m
-    try:
-        self.__class__ = ty
-    except TypeError as e:
-        raise WyppWrapError(f'Cannot wrap {self.__wrapped__} of type {type(self.__wrapped__)} ' \
-            f'at type {ty}. Original error: {e}')
 
 class WrapperBase:
     def __eq__(self, other):
@@ -49,17 +16,7 @@ class WrapperBase:
         return not self.__eq__(other)
     def __hash__(self):
         return hash(self.__wrapped__)
-    def __patch__(self, ms, name=None, extra=None):
-        if extra is None:
-            extra = {}
-        cls = self.__class__
-        if name is None:
-            name = cls.__name__
-        ty = type(name, (cls,), ms)
-        patch(self, ty, extra)
     def __repr__(self):
-        #w = self.__wrapped__
-        #return f"Wrapper(addr=0x{id(self):09x}, wrapped_addr=0x{id(w):09x}, wrapped={repr(w)}"
         return repr(self.__wrapped__)
     def __str__(self):
         return str(self.__wrapped__)
@@ -71,27 +28,6 @@ class WrapperBase:
     def __reduce__(self): return self.__wrapped__.__reduce__()
     def __reduce_ex__(self): return self.__wrapped__.__reduce_ex__()
     def __sizeof__(self): return self.__wrapped__.__sizeof__()
-
-class ObjectWrapper(WrapperBase):
-    def __init__(self, baseObject):
-        self.__dict__ = baseObject.__dict__
-        self.__wrapped__ = baseObject
-    def __patch__(self, ms, name=None, extra=None):
-        if extra is None:
-            extra = {}
-        cls = self.__class__
-        if name is None:
-            name = cls.__name__
-        wrappedCls = type(self.__wrapped__)
-        ty = type(name, (wrappedCls, cls), ms)
-        patch(self, ty, extra)
-
-class ABCObjectWrapper(abc.ABC, ObjectWrapper):
-    pass
-
-# Superclasses in reverse order.
-class ABCObjectWrapperRev(ObjectWrapper, abc.ABC):
-    pass
 
 # A wrapper for list such that the class is a subclass of the builtin list class.
 class ListWrapper(WrapperBase, list): # important: inherit from WrapperBase first
@@ -224,33 +160,10 @@ class TupleWrapper(tuple, WrapperBase):
         self.__wrapped__ = content
         return self
 
-# These methods are not delegated to the wrapped object
-_blacklist = [
-    '__class__', '__delattr__', '__dict__', '__dir__', '__doc__',
-    '__getattribute__', '__get_attr_', '__init_subclass__'
-    '__init__', '__new__', '__del__', '__repr__', '__setattr__', '__str__',
-    '__hash__', '__eq__', '__patch__',
-    '__class_getitem__',  '__subclasshook__',
-    '__firstlineno__', '__static_attributes__']
-
-_extra = ['__next__']
-
 # SimpleWrapper is a fallback for types that cannot be used as base types
 class SimpleWrapper(WrapperBase):
-    def __init__(self, baseObject):
-        self.__wrapped__ = baseObject
-    def __patch__(self, ms, name=None, extra=None):
-        if extra is None:
-            extra = {}
-        cls = self.__class__
-        if name is None:
-            name = cls.__name__
-        baseObject = self.__wrapped__
-        for x in dir(baseObject) + _extra:
-            if x not in ms and x not in _blacklist and hasattr(baseObject, x):
-                ms[x] = getattr(baseObject, x)
-        ty = type(name, (cls,), ms) #
-        patch(self, ty, extra)
+    def __init__(self, wrapped):
+        self.__wrapped__ = wrapped
 
 class ValuesViewWrapper(SimpleWrapper):
     pass
@@ -264,46 +177,99 @@ class KeysViewWrapper(SimpleWrapper):
     pass
 collections.abc.KeysView.register(KeysViewWrapper)
 
+def _wrap(wrapped, methods, mod, name, extra, cls):
+    if extra is None:
+        extra = {}
+    # Dynamically create a new class:
+    # type(class_name, base_classes, class_dict)
+    WrapperClass = type(
+        name,
+        (cls,),
+        methods
+    )
+    WrapperClass.__module__ = mod
+    w = WrapperClass(wrapped)
+    w.__extra__ = extra
+    return w
+
+def wrapSimple(wrapped, methods, name, extra, cls=SimpleWrapper):
+    if name is None:
+        name = cls.__name__
+        mod = None
+    else:
+        if hasattr(wrapped, '__module__'):
+            mod = wrapped.__module__
+        else:
+            mod = None
+    for x in ['__next__', '__iter__']:
+        if x not in methods and hasattr(wrapped, x):
+            attr = getattr(wrapped, x)
+            methods[x] = attr
+    return _wrap(wrapped, methods, mod, name, extra, cls)
+
+def wrapObj(wrapped, methods, name, extra):
+    class BaseWrapper(WrapperBase, wrapped.__class__):
+        def __init__(self, wrapped):
+            self.__dict__ = wrapped.__dict__
+            self.__wrapped__ = wrapped
+    if name is None:
+        name = 'ObjectWrapper'
+    if hasattr(wrapped, '__module__'):
+        mod = getattr(wrapped, '__module__')
+    else:
+        mod = None
+    return _wrap(wrapped, methods, mod, name, extra, BaseWrapper)
+
+def wrapBuiltin(wrapped, methods, name, extra, cls):
+    if name is None:
+        name = cls.__name__
+    return _wrap(wrapped, methods, None, name, extra, cls)
+
 def wrap(obj, methods, name=None, extra=None, simple=False):
     if extra is None:
         extra = {}
+    wrapper = None
     if simple:
-        w = SimpleWrapper(obj)
+        w = wrapSimple(obj, methods, name, extra)
+        wrapper = 'SimpleWrapper'
     elif isinstance(obj, list):
-        w = ListWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, ListWrapper)
+        wrapper = 'ListWrapper'
     elif isinstance(obj, tuple):
-        w = TupleWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, TupleWrapper)
+        wrapper = 'TupleWrapper'
     elif isinstance(obj, dict):
-        w = DictWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, DictWrapper)
+        wrapper = 'DictWrapper'
     elif isinstance(obj, str):
-        w = StringWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, StringWrapper)
+        wrapper = 'StringWrapper'
     elif isinstance(obj, set):
-        w = SetWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, SetWrapper)
+        wrapper = 'SetWrapper'
     elif isinstance(obj, collections.abc.ValuesView):
-        w = ValuesViewWrapper(obj)
+        w = wrapSimple(obj, methods, name, extra, ValuesViewWrapper)
+        wrapper = 'ValuesViewWrapper'
     elif isinstance(obj, collections.abc.KeysView):
-        w = KeysViewWrapper(obj)
+        w = wrapSimple(obj, methods, name, extra, KeysViewWrapper)
+        wrapper = 'KeysViewWrapper'
     elif isinstance(obj, collections.abc.ItemsView):
-        w = ItemsViewWrapper(obj)
+        w = wrapSimple(obj, methods, name, extra, ItemsViewWrapper)
+        wrapper = 'ItemsViewWrapper'
     elif isinstance(obj, typing.Generic):
-        w = SimpleWrapper(obj)
+        w = wrapSimple(obj, methods, name, extra)
+        wrapper = 'SimpleWrapper'
     elif isinstance(obj, generatorType):
-        w = SimpleWrapper(obj)
-    elif isinstance(obj, abc.ABC) and hasattr(obj, '__dict__'):
-        try:
-            w = ABCObjectWrapper(obj)
-        except WyppWrapError:
-            try:
-                w = ABCObjectWrapperRev(obj)
-            except WyppWrapError:
-                w = SimpleWrapper(obj)
+        w = wrapSimple(obj, methods, name, extra)
+        wrapper = 'SimpleWrapper'
     elif hasattr(obj, '__dict__'):
-        w = ObjectWrapper(obj)
+        w = wrapObj(obj, methods, name, extra)
+        wrapper = 'ObjectWrapper'
     else:
-        w = SimpleWrapper(obj)
-    w.__patch__(methods, name, extra)
+        w = wrapSimple(obj, methods, name, extra)
+        wrapper = 'SimpleWrapper'
     wname = name
     if wname is None:
         wname = str(type(w))
-    debug(f"Wrapping {obj} at 0x{id(obj):09x} as {wname}, simple={simple}, wrapper=0x{id(w):09x}")
+    debug(f"Wrapping {obj} at 0x{id(obj):09x} as {wname}, simple={simple}, wrapper=0x{id(w):09x} ({wrapper})")
     return w
