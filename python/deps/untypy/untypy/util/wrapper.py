@@ -162,10 +162,8 @@ class TupleWrapper(tuple, WrapperBase):
 
 # SimpleWrapper is a fallback for types that cannot be used as base types
 class SimpleWrapper(WrapperBase):
-    def __init__(self):
-        pass
-    def __patch__(self, ms, name=None, extra=None):
-        pass
+    def __init__(self, wrapped):
+        self.__wrapped__ = wrapped
 
 class ValuesViewWrapper(SimpleWrapper):
     pass
@@ -179,67 +177,53 @@ class KeysViewWrapper(SimpleWrapper):
     pass
 collections.abc.KeysView.register(KeysViewWrapper)
 
+def _wrap(wrapped, methods, mod, name, extra, cls):
+    if extra is None:
+        extra = {}
+    # Dynamically create a new class:
+    # type(class_name, base_classes, class_dict)
+    WrapperClass = type(
+        name,
+        (cls,),
+        methods
+    )
+    WrapperClass.__module__ = mod
+    w = WrapperClass(wrapped)
+    w.__extra__ = extra
+    return w
+
 def wrapSimple(wrapped, methods, name, extra, cls=SimpleWrapper):
     if name is None:
         name = cls.__name__
-    if extra is None:
-        extra = {}
+        mod = None
+    else:
+        if hasattr(wrapped, '__module__'):
+            mod = wrapped.__module__
+        else:
+            mod = None
     for x in ['__next__', '__iter__']:
         if x not in methods and hasattr(wrapped, x):
             attr = getattr(wrapped, x)
             methods[x] = attr
-    # Dynamically create a new class:
-    # type(class_name, base_classes, class_dict)
-    WrapperClass = type(
-        name,
-        (cls,),
-        methods
-    )
-    if not name.startswith('WyppTypeCheck()') and hasattr(wrapped, '__module__'):
-        WrapperClass.__module__ = getattr(wrapped, '__module__')
-    w = WrapperClass()
-    w.__wrapped__ = wrapped
-    w.__extra__ = extra
-    return w
+    return _wrap(wrapped, methods, mod, name, extra, cls)
 
 def wrapObj(wrapped, methods, name, extra):
     class BaseWrapper(WrapperBase, wrapped.__class__):
-        def __init__(self):
+        def __init__(self, wrapped):
             self.__dict__ = wrapped.__dict__
             self.__wrapped__ = wrapped
     if name is None:
         name = 'ObjectWrapper'
-    if extra is None:
-        extra = {}
-    # Dynamically create a new class:
-    # type(class_name, base_classes, class_dict)
-    WrapperClass = type(
-        name,
-        (BaseWrapper,),
-        methods
-    )
     if hasattr(wrapped, '__module__'):
-        WrapperClass.__module__ = getattr(wrapped, '__module__')
-    w = WrapperClass()
-    w.__extra__ = extra
-    return w
+        mod = getattr(wrapped, '__module__')
+    else:
+        mod = None
+    return _wrap(wrapped, methods, mod, name, extra, BaseWrapper)
 
 def wrapBuiltin(wrapped, methods, name, extra, cls):
     if name is None:
         name = cls.__name__
-    if extra is None:
-        extra = {}
-    # Dynamically create a new class:
-    # type(class_name, base_classes, class_dict)
-    WrapperClass = type(
-        name,
-        (cls,),
-        methods
-    )
-    WrapperClass.__module__ = None
-    w = WrapperClass(wrapped)
-    w.__extra__ = extra
-    return w
+    return _wrap(wrapped, methods, None, name, extra, cls)
 
 def wrap(obj, methods, name=None, extra=None, simple=False):
     if extra is None:
