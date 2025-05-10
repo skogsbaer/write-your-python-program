@@ -1,9 +1,6 @@
 import typing
-import abc
 import collections
-from untypy.error import UntypyError
 from untypy.util.debug import debug
-import types
 
 def _f():
     yield 0
@@ -19,14 +16,6 @@ class WrapperBase:
         return not self.__eq__(other)
     def __hash__(self):
         return hash(self.__wrapped__)
-    def __patch__(self, ms, name=None, extra=None):
-        if extra is None:
-            extra = {}
-        cls = self.__class__
-        if name is None:
-            name = cls.__name__
-        ty = type(name, (cls,), ms)
-        patch(self, ty, extra)
     def __repr__(self):
         return repr(self.__wrapped__)
     def __str__(self):
@@ -171,40 +160,6 @@ class TupleWrapper(tuple, WrapperBase):
         self.__wrapped__ = content
         return self
 
-class WyppWrapError(Exception):
-    pass
-
-def _readonly(self, *args, **kwargs):
-    raise RuntimeError("Cannot modify ReadOnlyDict")
-
-class ReadOnlyDict(dict):
-    __setitem__ = _readonly
-    __delitem__ = _readonly
-    pop = _readonly
-    popitem = _readonly
-    clear = _readonly
-    update = _readonly
-    setdefault = _readonly
-
-# FIXME: get rid off patch. Its evil to change the class of an object after its creation.
-# Further, it causes issues with the GC of python 3.13.
-
-def patch(self, ty, extra):
-    # SW (2024-10-18): With python 3.13 there is the behavior that extra is modified after patching
-    # the object. I never found out who is doing the modification. By wrapping extra with
-    # ReadOnlyDict, everything works. Strangely, no error occurs somewhere.
-    self.__extra__ = ReadOnlyDict(extra)
-    w = self.__wrapped__
-    m = None
-    if hasattr(w, '__module__'):
-        m = getattr(w, '__module__')
-    ty.__module__ = m
-    try:
-        self.__class__ = ty
-    except TypeError as e:
-        raise WyppWrapError(f'Cannot wrap {self.__wrapped__} of type {type(self.__wrapped__)} ' \
-            f'at type {ty}. Original error: {e}')
-
 # SimpleWrapper is a fallback for types that cannot be used as base types
 class SimpleWrapper(WrapperBase):
     def __init__(self):
@@ -252,8 +207,6 @@ def wrapObj(wrapped, methods, name, extra):
         def __init__(self):
             self.__dict__ = wrapped.__dict__
             self.__wrapped__ = wrapped
-        def __patch__(self, ms, name=None, extra=None):
-            pass
     if name is None:
         name = 'ObjectWrapper'
     if extra is None:
@@ -271,6 +224,23 @@ def wrapObj(wrapped, methods, name, extra):
     w.__extra__ = extra
     return w
 
+def wrapBuiltin(wrapped, methods, name, extra, cls):
+    if name is None:
+        name = cls.__name__
+    if extra is None:
+        extra = {}
+    # Dynamically create a new class:
+    # type(class_name, base_classes, class_dict)
+    WrapperClass = type(
+        name,
+        (cls,),
+        methods
+    )
+    WrapperClass.__module__ = None
+    w = WrapperClass(wrapped)
+    w.__extra__ = extra
+    return w
+
 def wrap(obj, methods, name=None, extra=None, simple=False):
     if extra is None:
         extra = {}
@@ -279,19 +249,19 @@ def wrap(obj, methods, name=None, extra=None, simple=False):
         w = wrapSimple(obj, methods, name, extra)
         wrapper = 'SimpleWrapper'
     elif isinstance(obj, list):
-        w = ListWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, ListWrapper)
         wrapper = 'ListWrapper'
     elif isinstance(obj, tuple):
-        w = TupleWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, TupleWrapper)
         wrapper = 'TupleWrapper'
     elif isinstance(obj, dict):
-        w = DictWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, DictWrapper)
         wrapper = 'DictWrapper'
     elif isinstance(obj, str):
-        w = StringWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, StringWrapper)
         wrapper = 'StringWrapper'
     elif isinstance(obj, set):
-        w = SetWrapper(obj)
+        w = wrapBuiltin(obj, methods, name, extra, SetWrapper)
         wrapper = 'SetWrapper'
     elif isinstance(obj, collections.abc.ValuesView):
         w = wrapSimple(obj, methods, name, extra, ValuesViewWrapper)
@@ -314,7 +284,6 @@ def wrap(obj, methods, name=None, extra=None, simple=False):
     else:
         w = wrapSimple(obj, methods, name, extra)
         wrapper = 'SimpleWrapper'
-    w.__patch__(methods, name, extra)
     wname = name
     if wname is None:
         wname = str(type(w))
