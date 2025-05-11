@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
-import setuptools
+from setuptools import setup, find_packages
 import os
 import json
 
@@ -33,7 +32,7 @@ setup(name='wypp',
       author_email='stefan.wehr@hs-offenburg.de',
       url='https://github.com/skogsbaer/write-your-python-program',
       package_dir={'wypp': 'src', 'untypy': 'deps/untypy/untypy'},
-      packages=['wypp'] + setuptools.find_packages("deps/untypy", exclude=['test', 'test.*']),
+      packages=['wypp'] + find_packages("deps/untypy", exclude=['test', 'test.*']),
       python_requires='>=3.12.0',
       scripts=['wypp']
       )

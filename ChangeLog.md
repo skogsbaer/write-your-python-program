@@ -1,5 +1,9 @@
 # Write Your Python Program - CHANGELOG
 
+* 1.3.2 (2025-05-11)
+  * Fix release (version 1.3.1. did no include the latest changes)
+* 1.3.1 (2025-05-10)
+  * Fix bug with python 3.13 and wrappers
 * 1.3.0 (2024-12-01)
   * Fix bug with union of unions
   * Improve scrolling #148
