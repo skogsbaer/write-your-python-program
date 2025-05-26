@@ -65,4 +65,4 @@ else
 fi
 
 echo "Running file tests ..."
-./fileTests
+python3 ./fileTests.py
