@@ -1,6 +1,6 @@
 from wypp import *
 
-def appendSomething(l: list[int]) -> None:
+def appendSomething(l: list[int]):
     l.append("foo")
 
 l = [1,2,3]

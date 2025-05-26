@@ -1,5 +1,6 @@
 import typing
 import collections
+import abc
 from untypy.util.debug import debug
 
 def _f():
@@ -207,18 +208,34 @@ def wrapSimple(wrapped, methods, name, extra, cls=SimpleWrapper):
             methods[x] = attr
     return _wrap(wrapped, methods, mod, name, extra, cls)
 
+_wrapperClasses = {}
+
 def wrapObj(wrapped, methods, name, extra):
-    class BaseWrapper(WrapperBase, wrapped.__class__):
-        def __init__(self, wrapped):
-            self.__dict__ = wrapped.__dict__
-            self.__wrapped__ = wrapped
+    k = wrapped.__class__
+    if k in _wrapperClasses:
+        cls = _wrapperClasses[k]
+    else:
+        if isinstance(wrapped, abc.ABC):
+            class BaseWrapper(WrapperBase, wrapped.__class__, abc.ABC):
+                def __init__(self, wrapped):
+                    self.__dict__ = wrapped.__dict__
+                    self.__wrapped__ = wrapped
+            _wrapperClasses[k] = BaseWrapper
+            cls = BaseWrapper
+        else:
+            class BaseWrapper(WrapperBase, wrapped.__class__):
+                def __init__(self, wrapped):
+                    self.__dict__ = wrapped.__dict__
+                    self.__wrapped__ = wrapped
+            _wrapperClasses[k] = BaseWrapper
+            cls = BaseWrapper
     if name is None:
         name = 'ObjectWrapper'
     if hasattr(wrapped, '__module__'):
         mod = getattr(wrapped, '__module__')
     else:
         mod = None
-    return _wrap(wrapped, methods, mod, name, extra, BaseWrapper)
+    return _wrap(wrapped, methods, mod, name, extra, cls)
 
 def wrapBuiltin(wrapped, methods, name, extra, cls):
     if name is None:

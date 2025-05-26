@@ -1,7 +1,8 @@
 # This test comes from a bug reported by a student, 2025-05-8
 from __future__ import annotations
+import abc
 
-class FileSystemEntry:
+class FileSystemEntry(abc.ABC):
     def __init__(self, name: str):
         self._name = name
     def getName(self) -> str:
