@@ -1,7 +1,10 @@
 {
+    // See https://microsoft.github.io/pyright/#/configuration?id=pyright-configuration
     "reportWildcardImportFromLibrary": false,
     "reportMissingTypeStubs": false,
-    "exclude": ["test-data-2.0"],
-    // "ignore": ["src/asdl", "src/common/pretty.py"],
+    "exclude": ["test-data-2.0", "test-data", "trash"],
+    "ignore": ["src/typeguard", "site-lib"],
+    "extraPaths": ["src"],
     "typeCheckingMode": "basic"
 }
+

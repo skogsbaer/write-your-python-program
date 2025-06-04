@@ -3,7 +3,8 @@ import untypy
 import typing
 import dataclasses
 import inspect
-import types
+import myTypeguard
+import errors
 
 _DEBUG = False
 def _debug(s):
@@ -27,8 +28,6 @@ Mapping = typing.Mapping
 Callable = typing.Callable
 
 dataclass = dataclasses.dataclass
-
-unchecked = untypy.unchecked
 
 intPositive = typing.Annotated[int, lambda i: i > 0, 'intPositive']
 nat = typing.Annotated[int, lambda i: i >= 0, 'nat']
@@ -78,8 +77,8 @@ def _invalidCall(self, *args, **kwds):
             return repr(x)
         else:
             return x
-    argStr = ', '.join([formatArg(untypy.util.typehints.qualname(x)) for x in args])
-    raise untypy.error.WyppTypeError(f"Cannot call {name} like a function. Did you mean {name}[{argStr}]?")
+    argStr = ', '.join([formatArg(myTypeguard.renderTy(x)) for x in args])
+    raise errors.WyppTypeError(f"Cannot call {name} like a function. Did you mean {name}[{argStr}]?")
 
 # Dirty hack ahead: we patch some methods of internal class of the typing module.
 
@@ -134,7 +133,7 @@ def _patchDataClass(cls, mutable):
             elif k in fields:
                 oldSetattr(obj, k, v)
             else:
-                raise untypy.error.WyppAttributeError(f'Unknown attribute {k} for record {cls.__name__}')
+                raise errors.WyppAttributeError(f'Unknown attribute {k} for record {cls.__name__}')
         setattr(cls, "__setattr__", _setattr)
     return cls
 
