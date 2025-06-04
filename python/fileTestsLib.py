@@ -185,6 +185,7 @@ def _check(testFile: str,
           args: list[str],
           pythonPath: list[str],
           minVersion: Optional[tuple[int, int]],
+          checkOutputs: bool,
           ctx: TestContext,
           what: str) -> TestStatus:
     if shouldSkip(testFile, ctx, minVersion):
@@ -227,10 +228,11 @@ def _check(testFile: str,
         fixOutput(actualStderrFile)
 
         # Checkout outputs
-        if not checkOutputOk(testFile + what, 'stdout', expectedStdoutFile, actualStdoutFile):
-            return 'failed'
-        if not checkOutputOk(testFile + what, 'stderr', expectedStderrFile, actualStderrFile):
-            return 'failed'
+        if checkOutputs:
+            if not checkOutputOk(testFile + what, 'stdout', expectedStdoutFile, actualStdoutFile):
+                return 'failed'
+            if not checkOutputOk(testFile + what, 'stderr', expectedStderrFile, actualStderrFile):
+                return 'failed'
 
     # If all checks pass
     print(f"{testFile}{what} OK")
@@ -242,9 +244,10 @@ def check(testFile: str,
           args: list[str] = [],
           pythonPath: list[str] = [],
           minVersion: Optional[tuple[int, int]] = None,
+          checkOutputs: bool = True,
           ctx: TestContext = globalCtx,
           what: str = ''):
-    status = _check(testFile, exitCode, typecheck, args, pythonPath, minVersion, ctx, what)
+    status = _check(testFile, exitCode, typecheck, args, pythonPath, minVersion, checkOutputs, ctx, what)
     ctx.results.record(testFile, status)
     if status == 'failed':
         if not ctx.opts.keepGoing:
@@ -257,3 +260,10 @@ def checkBoth(testFile: str,
               ctx: TestContext = globalCtx):
     check(testFile, exitCode, typecheck=True, args=args, minVersion=minVersion, ctx=ctx, what=' (typecheck)')
     check(testFile, exitCode, typecheck=False, args=args, minVersion=minVersion, ctx=ctx, what=' (no typecheck)')
+
+def checkBasic(testFile: str, ctx: TestContext = globalCtx):
+    if testFile.endswith('_ok.py'):
+        expectedExitCode = 0
+    else:
+        expectedExitCode = 1
+    check(testFile, exitCode=expectedExitCode, checkOutputs=False, ctx=ctx)
