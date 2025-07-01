@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  ...
+
+WyppTypeError: got value of wrong type
+Given:    1
+Expected: value of type Iterator[int]
+
+Location: test-data-2.0/iterator.err, line 4
+
+Context:
+
+3| def my_generator() -> <<decl:Iterator[int]>>:
+4|     return <<value:1>>

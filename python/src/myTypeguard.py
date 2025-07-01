@@ -1,8 +1,8 @@
 # Wrapper module for typeguard. Do not import typeguard directly but always via myTypeguard
 
 from typing import Any
-import typeguard.src.typeguard as typeguard
-
+# We externally adjust the PYTHONPATH so that the typeguard module can be resolved
+import typeguard # type: ignore
 
 def matchesTy(a: Any, ty: Any) -> bool:
     try:
@@ -12,5 +12,5 @@ def matchesTy(a: Any, ty: Any) -> bool:
         return False
 
 def renderTy(t: Any) -> str:
-    return typeguard._utils.qualified_name(t)
+    return typeguard._utils.get_type_name(t)
 

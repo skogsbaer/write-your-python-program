@@ -30,7 +30,6 @@ record = w.record
 T = w.T
 todo = w.todo
 U = w.U
-unchecked = w.unchecked
 V = w.V
 
 __all__ = [
@@ -63,7 +62,6 @@ __all__ = [
     'T',
     'todo',
     'U',
-    'unchecked',
     'V'
 ]
 

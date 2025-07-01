@@ -1,10 +1,10 @@
 # FIXME: make exceptions nicer
-import untypy
 import typing
 import dataclasses
 import inspect
 import myTypeguard
 import errors
+import typecheck
 
 _DEBUG = False
 def _debug(s):
@@ -83,8 +83,9 @@ def _invalidCall(self, *args, **kwds):
 # Dirty hack ahead: we patch some methods of internal class of the typing module.
 
 # This patch is needed to be able to use a literal L to check whether a value x
-# is an instance of this literal: instanceof(x, L)
-setattr(typing._LiteralGenericAlias, '__instancecheck__', _literalInstanceOf)
+# is an instance of this literal: isinstance(x, L)
+# pyright does not know about typing._LiteralGenericAlias, we do not typecheck the following line.
+setattr(typing._LiteralGenericAlias, '__instancecheck__', _literalInstanceOf) # type: ignore
 
 # This patch is needed to provide better error messages if a student passes type arguments
 # with paranthesis instead of square brackets
@@ -107,7 +108,7 @@ def _patchDataClass(cls, mutable):
         cls.__kind = 'record'
         cls.__init__.__annotations__ = _collectDataClassAttributes(cls)
         cls.__init__.__original = cls # mark class as source of annotation
-        cls.__init__ = untypy.typechecked(cls.__init__)
+        cls.__init__ = typecheck.wrapTypecheck(cls.__init__)
 
     if mutable:
         # prevent new fields being added
@@ -118,12 +119,12 @@ def _patchDataClass(cls, mutable):
         #       So no handling in this code is required.
         for name in fields:
             if name in cls.__annotations__:
-                # This the type is wrapped in an lambda expression to allow for Forward Ref.
-                # Would the lambda expression be called at this moment, it may cause an name error
-                # untypy.checker fetches the annotation lazily.
-                checker[name] = untypy.checker(\
-                    lambda cls=cls,name=name: typing.get_type_hints(cls, include_extras=True)[name],
-                    cls)
+                ty = typing.get_type_hints(cls, include_extras=True)[name]
+                def check(v):
+                    if not myTypeguard.matchesTy(v, ty):
+                        raise TypeError(f'Expected argument of type {myTypeguard.renderTy(ty)} ' \
+                            f'for attribute {name}, got {myTypeguard.renderTy(type(v))}: {v}')
+                checker[name] = check
 
         oldSetattr = cls.__setattr__
         def _setattr(obj, k, v):
@@ -258,8 +259,11 @@ def checkFail(msg: str):
 
 def uncoveredCase():
     stack = inspect.stack()
-    caller = stack[1] if len(stack) > 1 else None
-    raise Exception(f"{caller.filename}, Zeile {caller.lineno}: ein Fall ist nicht abgedeckt")
+    if len(stack) > 1:
+        caller = stack[1]
+        raise Exception(f"{caller.filename}, Zeile {caller.lineno}: ein Fall ist nicht abgedeckt")
+    else:
+        raise Exception(f"Ein Fall ist nicht abgedeckt")
 
 #
 # Deep equality
@@ -353,7 +357,7 @@ def deepEq(v1, v2, **flags):
             return False # v1 == v2 already checked
     return False
 
-class TodoError(Exception, untypy.error.DeliberateError):
+class TodoError(Exception, errors.DeliberateError):
     pass
 
 def todo(msg=None):
@@ -361,7 +365,7 @@ def todo(msg=None):
         msg = 'TODO'
     raise TodoError(msg)
 
-class ImpossibleError(Exception, untypy.error.DeliberateError):
+class ImpossibleError(Exception, errors.DeliberateError):
     pass
 
 def impossible(msg=None):

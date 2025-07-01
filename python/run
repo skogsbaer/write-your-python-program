@@ -1,6 +1,8 @@
 #!/bin/bash
 
-PY=python3.13 
+if [ -z "$PY" ]; then
+    PY=python3.13
+fi
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 OPTS="--quiet"

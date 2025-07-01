@@ -1,0 +1,68 @@
+import abc
+from typing import Any, Optional, Callable
+
+from untypy.error import UntypyTypeError
+from untypy.impl.protocol import ProtocolChecker
+from untypy.interfaces import TypeChecker, TypeCheckerFactory, CreationContext, ExecutionContext
+
+
+class SimpleFactory(TypeCheckerFactory):
+
+    def create_from(self, annotation: Any, ctx: CreationContext) -> Optional[TypeChecker]:
+        ta = type(annotation)
+        if ta is type or ta is abc.ABCMeta or annotation is Callable:
+            return SimpleChecker(annotation, ctx)
+        else:
+            return None
+
+
+class ParentProtocolChecker(ProtocolChecker):
+    def protocol_type(self) -> str:
+        return "parent"
+
+def simpleTypeCompat(x: Any, ty: type):
+    xTy = type(x)
+    return xTy is ty or (ty is float and xTy is int) or \
+        (ty is complex and (xTy is int or xTy is float))
+
+class SimpleChecker(TypeChecker):
+    annotation: type
+    always_wrap: bool = False
+    parent_checker: Optional[Callable[[Any, ExecutionContext], Any]]
+
+    def __init__(self, annotation: type, ctx: CreationContext):
+        self.annotation = annotation
+        self.always_wrap = False
+
+        # use protocol like wrapping only if there are some signatures
+        if ctx.should_be_inheritance_checked(annotation):
+            if hasattr(annotation, '__patched'):
+                p = ParentProtocolChecker(annotation, ctx)
+                self.parent_checker = p.check_and_wrap
+        else:
+            self.parent_checker = None
+
+
+    def may_be_wrapped(self) -> bool:
+        return True
+
+    def check_and_wrap(self, arg: Any, ctx: ExecutionContext) -> Any:
+        if simpleTypeCompat(arg, self.annotation) and not self.always_wrap:
+            return arg
+        if isinstance(arg, self.annotation):
+            if self.parent_checker is None:
+                return arg
+            else:
+                return self.parent_checker(arg, ctx)
+        else:
+            raise ctx.wrap(UntypyTypeError(arg, self.describe()))
+
+    def describe(self) -> str:
+        a = self.annotation
+        if hasattr(a, '__name__'):
+            return a.__name__
+        else:
+            return str(a)
+
+    def base_type(self) -> Any:
+        return [self.annotation]

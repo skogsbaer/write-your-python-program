@@ -13,30 +13,22 @@ import ast
 from modulefinder import ModuleFinder
 from pathlib import Path
 import subprocess
+from myLogging import *
+import errors
 
 __wypp_runYourProgram = 1
 
-def die(ecode=1):
+def die(ecode: str | int | None = 1):
+    if isinstance(ecode, str):
+        sys.stderr.write(ecode)
+        sys.stderr.write('\n')
+        ecode = 1
+    elif ecode == None:
+        ecode = 0
     if sys.flags.interactive:
         os._exit(ecode)
     else:
         sys.exit(ecode)
-
-def getEnv(name, conv, default):
-    s = os.getenv(name)
-    if s is None:
-        return default
-    try:
-        return conv(s)
-    except:
-        return default
-
-VERBOSE = False # set via commandline
-DEBUG = getEnv("WYPP_DEBUG", bool, False)
-
-def enableVerbose():
-    global VERBOSE
-    VERBOSE = True
 
 LIB_DIR = os.path.dirname(__file__)
 INSTALLED_MODULE_NAME = 'wypp'
@@ -45,13 +37,6 @@ FILES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
 UNTYPY_DIR = os.path.join(LIB_DIR, "..", "deps", "untypy", "untypy")
 UNTYPY_MODULE_NAME = 'untypy'
 SITELIB_DIR = os.path.join(LIB_DIR, "..", "site-lib")
-
-def verbose(s):
-    if VERBOSE or DEBUG:
-        printStderr('[V] ' + str(s))
-
-def printStderr(s=''):
-    sys.stderr.write(s + '\n')
 
 class InstallMode:
     dontInstall = 'dontInstall'
@@ -260,7 +245,7 @@ def prepareLib(onlyCheckRunnable, enableTypeChecking):
     verbose('Attempting to import ' + mod)
     wypp = importlib.import_module(mod)
     libDefs = Lib(wypp, True)
-    verbose('Successfully imported module ' + mod + ' from file ' + wypp.__file__)
+    verbose(f'Successfully imported module {mod} from file {wypp.__file__}')
     libDefs.initModule(enableChecks=not onlyCheckRunnable,
                        enableTypeChecking=enableTypeChecking,
                        quiet=onlyCheckRunnable)
@@ -429,9 +414,9 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     if frameList and getattr(val, '__wrapped__', False):
         # We remove the stack frame of the wrapper
         frameList = frameList[:-1]
-    isWyppError = isinstance(val, untypy.error.UntypyError)
+    isWyppError = isinstance(val, errors.WyppError)
     isBug = not isWyppError and not isinstance(val, SyntaxError) and \
-        not isinstance(val, untypy.error.DeliberateError) and frameList \
+        not isinstance(val, errors.DeliberateError) and frameList \
         and isWyppFrame(frameList[-1])
     stackSummary = limitTraceback(frameList, isBug)
     header = False
@@ -440,7 +425,7 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
             file.write('Traceback (most recent call last):\n')
             header = True
         file.write(x)
-    if isinstance(val, untypy.error.UntypyError):
+    if isWyppError:
         name = 'Wypp' + val.simpleName()
         file.write(name)
         s = str(val)
