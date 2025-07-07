@@ -25,7 +25,7 @@ class Configs:
 def transformStmt(stmt: ast.stmt, insideClass: bool) -> ast.stmt:
     # FIXME: static methods
     cfg = Configs.methodConfig if insideClass else Configs.funConfig
-    wrapExp = ast.Call(ast.Name(id='wrapTypechecked', ctx=ast.Load()), [cfg], [])
+    wrapExp = ast.Call(ast.Name(id='wrapTypecheck', ctx=ast.Load()), [cfg], [])
     match stmt:
         case ast.FunctionDef(name, args, body, decorators, returns, tyComment, tyParams):
             return ast.FunctionDef(name, args, body, decorators + [wrapExp], returns, tyComment, tyParams)

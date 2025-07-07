@@ -9,10 +9,16 @@ import site
 import importlib
 import re
 import code
-import ast
 from modulefinder import ModuleFinder
 from pathlib import Path
 import subprocess
+import runpy
+import types
+from dataclasses import dataclass
+
+# local imports
+import typecheck
+import instrument
 from myLogging import *
 import errors
 
@@ -34,8 +40,8 @@ LIB_DIR = os.path.dirname(__file__)
 INSTALLED_MODULE_NAME = 'wypp'
 FILES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
 
-UNTYPY_DIR = os.path.join(LIB_DIR, "..", "deps", "untypy", "untypy")
-UNTYPY_MODULE_NAME = 'untypy'
+TYPEGUARD_DIR = os.path.join(LIB_DIR, "..", "deps", "typeguard")
+TYPEGUARD_MODULE_NAME = 'typeguard'
 SITELIB_DIR = os.path.join(LIB_DIR, "..", "site-lib")
 
 class InstallMode:
@@ -142,14 +148,14 @@ def readVersion():
         pass
     return version
 
-def printWelcomeString(file, version, useUntypy):
+def printWelcomeString(file, version, doTypecheck):
     cwd = os.getcwd() + "/"
     if file.startswith(cwd):
         file = file[len(cwd):]
     versionStr = '' if not version else 'Version %s, ' % version
     pythonVersion = sys.version.split()[0]
     tycheck = ''
-    if not useUntypy:
+    if not doTypecheck:
         tycheck = ', no typechecking'
     printStderr('=== WELCOME to "Write Your Python Program" ' +
                 '(%sPython %s, %s%s) ===' % (versionStr, pythonVersion, file, tycheck))
@@ -202,7 +208,7 @@ def installLib(mode):
     targetDir = os.getenv('WYPP_INSTALL_DIR', site.USER_SITE)
     try:
         allEq1 = installFromDir(LIB_DIR, targetDir, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
-        allEq2 = installFromDir(UNTYPY_DIR, targetDir, UNTYPY_MODULE_NAME)
+        allEq2 = installFromDir(TYPEGUARD_DIR, targetDir, TYPEGUARD_MODULE_NAME)
         if allEq1 and allEq2:
             verbose(f'WYPP library in {targetDir} already up to date')
             if mode == InstallMode.installOnly:
@@ -274,8 +280,8 @@ def findImportedModules(path, file):
     realdirs = [os.path.realpath(p) for p in path]
     res = []
     for name, mod in finder.modules.items():
-        if name != '__main__' and mod.__file__:
-            realp = os.path.realpath(mod.__file__)
+        if name != '__main__' and (f := mod.__file__):    # type: ignore
+            realp = os.path.realpath(f)
             good = False
             for d in realdirs:
                 if realp.startswith(d):
@@ -285,51 +291,40 @@ def findImportedModules(path, file):
                 res.append(name)
     return res
 
+@dataclass
 class RunSetup:
-    def __init__(self, sysPath):
-        self.sysPath = sysPath
+    def __init__(self, pathDir: str, args: list[str]):
+        self.pathDir = pathDir
+        self.args = args
         self.sysPathInserted = False
+        self.oldArgs = sys.argv
     def __enter__(self):
-        if self.sysPath not in sys.path:
-            sys.path.insert(0, self.sysPath)
+        if self.pathDir not in sys.path:
+            sys.path.insert(0, self.pathDir)
             self.sysPathInserted = True
+        self.argv = self.args
     def __exit__(self, exc_type, value, traceback):
         if self.sysPathInserted:
-            sys.path.remove(self.sysPath)
+            sys.path.remove(self.pathDir)
             self.sysPathInserted = False
+        self.argv = self.oldArgs
 
-def runCode(fileToRun, globals, args, useUntypy=True, extraDirs=None):
+def runCode(fileToRun, globals, args, doTypecheck=True, extraDirs=None):
     if not extraDirs:
         extraDirs = []
-    localDir = os.path.dirname(fileToRun)
-
-    with RunSetup(localDir):
-        codeTxt = readFile(fileToRun)
-        flags = 0
-        if useUntypy:
-            verbose(f'finding modules imported by {fileToRun}')
-            importedMods = findImportedModules([localDir] + extraDirs, fileToRun)
-            verbose('finished finding modules, now installing import hook on ' + repr(importedMods))
-            untypy.enableDebug(DEBUG)
-            untypy.just_install_hook(importedMods + ['__wypp__'])
-            verbose(f"transforming {fileToRun} for typechecking")
-            tree = compile(codeTxt, fileToRun, 'exec', flags=(flags | ast.PyCF_ONLY_AST),
-                            dont_inherit=True, optimize=-1)
-            untypy.transform_tree(tree, fileToRun)
-            verbose(f'done with transformation of {fileToRun}')
-            code = tree
+    modDir = os.path.dirname(fileToRun)
+    with RunSetup(modDir, [fileToRun] + args):
+        instrument.setupFinder(modDir)
+        modName = os.path.basename(os.path.splitext(fileToRun)[0])
+        if doTypecheck:
+            globals['wrapTypecheck'] = typecheck.wrapTypecheck
         else:
-            code = codeTxt
-        compiledCode = compile(code, fileToRun, 'exec', flags=flags, dont_inherit=True)
-        oldArgs = sys.argv
-        try:
-            sys.argv = [fileToRun] + args
-            exec(compiledCode, globals)
-        finally:
-            sys.argv = oldArgs
+            globals['wrapTypecheck'] = typecheck.wrapNoTypecheck
+        sys.dont_write_bytecode = True # FIXME: remove
+        runpy.run_module(modName, init_globals=globals, run_name=modName)
 
-def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True, extraDirs=None):
-    doRun = lambda: runCode(fileToRun, globals, args, useUntypy=useUntypy, extraDirs=extraDirs)
+def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, doTypecheck=True, extraDirs=None):
+    doRun = lambda: runCode(fileToRun, globals, args, doTypecheck=doTypecheck, extraDirs=extraDirs)
     if onlyCheckRunnable:
         try:
             doRun()
@@ -341,18 +336,18 @@ def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, useUntypy=True, 
     doRun()
 
 # globals already contain libDefs
-def runTestsInFile(testFile, globals, libDefs, useUntypy=True, extraDirs=[]):
+def runTestsInFile(testFile, globals, libDefs, doTypecheck=True, extraDirs=[]):
     printStderr()
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
     try:
-        runCode(testFile, globals, [], useUntypy=useUntypy, extraDirs=extraDirs)
+        runCode(testFile, globals, [], doTypecheck=doTypecheck, extraDirs=extraDirs)
     except:
         handleCurrentException()
     return libDefs.dict['printTestResults']('Tutor:  ')
 
 # globals already contain libDefs
-def performChecks(check, testFile, globals, libDefs, useUntypy=True, extraDirs=None, loadingFailed=False):
+def performChecks(check, testFile, globals, libDefs, doTypecheck=True, extraDirs=None, loadingFailed=False):
     prefix = ''
     if check and testFile:
         prefix = 'Student: '
@@ -360,7 +355,7 @@ def performChecks(check, testFile, globals, libDefs, useUntypy=True, extraDirs=N
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
-            testResultsInstr = runTestsInFile(testFile, globals, libDefs, useUntypy=useUntypy,
+            testResultsInstr = runTestsInFile(testFile, globals, libDefs, doTypecheck=doTypecheck,
                                               extraDirs=extraDirs)
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
         die(0 if failingSum < 1 else 1)
@@ -380,43 +375,49 @@ def enterInteractive(userDefs):
         globals()[k] = v
     print()
 
-def tbToFrameList(tb):
+def tbToFrameList(tb: types.TracebackType) -> list[types.FrameType]:
     cur = tb
-    res = []
+    res: list[types.FrameType] = []
     while cur:
         res.append(cur.tb_frame)
         cur = cur.tb_next
     return res
 
-def isWyppFrame(frame):
+def isCallWithFramesRemoved(frame: types.FrameType):
+    return frame.f_code.co_name == '_call_with_frames_removed'
+
+def isWyppFrame(frame: types.FrameType):
     modName = frame.f_globals["__name__"]
     return '__wypp_runYourProgram' in frame.f_globals or \
-        modName == 'untypy' or modName.startswith('untypy.') or \
+        modName == 'typeguard' or modName.startswith('typeguard.') or \
         modName == 'wypp' or modName.startswith('wypp.')
 
-def ignoreFrame(frame):
-    if DEBUG:
-        return False
-    return isWyppFrame(frame)
+def isRunpyFrame(frame: types.FrameType):
+    return frame.f_code.co_filename == '<frozen runpy>'
 
-# Returns a StackSummary object
-def limitTraceback(frameList, isBug):
-    frames = [(f, f.f_lineno) for f in frameList if isBug or not ignoreFrame(f)]
+# Returns a StackSummary object. Filters the trackback by removing leading wypp or typeguard
+# frames and by removing trailing frames behind _call_with_frames_removed
+def limitTraceback(frameList: list[types.FrameType], isBug: bool) -> traceback.StackSummary:
+    if not isBug:
+        endIdx = len(frameList)
+        for i in range(endIdx - 1, 0, -1):
+            if isCallWithFramesRemoved(frameList[i]):
+                endIdx = i - 1
+                break
+        frameList = utils.dropWhile(frameList[:endIdx], lambda f: isWyppFrame(f) or isRunpyFrame(f))
+    frames = [(f, f.f_lineno) for f in frameList]
     return traceback.StackSummary.extract(frames)
 
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
     if isinstance(val, SystemExit):
         die(val.code)
-    frameList = tbToFrameList(tb)
+    frameList = tbToFrameList(tb) if tb is not None else []
     if frameList and removeFirstTb:
         frameList = frameList[1:]
-    if frameList and getattr(val, '__wrapped__', False):
-        # We remove the stack frame of the wrapper
-        frameList = frameList[:-1]
     isWyppError = isinstance(val, errors.WyppError)
     isBug = not isWyppError and not isinstance(val, SyntaxError) and \
-        not isinstance(val, errors.DeliberateError) and frameList \
+        not isinstance(val, errors.DeliberateError) and len(frameList) > 0 \
         and isWyppFrame(frameList[-1])
     stackSummary = limitTraceback(frameList, isBug)
     header = False
@@ -426,7 +427,7 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
             header = True
         file.write(x)
     if isWyppError:
-        name = 'Wypp' + val.simpleName()
+        name = 'Wypp' + val.simpleName()  # type: ignore
         file.write(name)
         s = str(val)
         if s and s[0] != '\n':
@@ -453,13 +454,13 @@ def getHistoryFilePath():
     else:
         return None
 
-# We cannot import untypy at the top of the file because we might have to install it first.
-def importUntypy():
-    global untypy
+# We cannot import typeguard at the top of the file because we might have to install it first.
+def importTypeguard():
+    global typeguard
     try:
-        import untypy
+        import typeguard  # type: ignore
     except ModuleNotFoundError as e:
-        printStderr(f"Module untypy not found, sys.path={sys.path}: {e}")
+        printStderr(f"Module typeguard not found, sys.path={sys.path}: {e}")
         die(1)
 
 requiredVersion = (3, 12, 0)
@@ -498,12 +499,12 @@ Python in version {reqVStr} or newer is required. You are still using version {v
             sys.path.insert(0, SITELIB_DIR)
     else:
         if site.USER_SITE not in sys.path:
-            if not site.ENABLE_USER_SITE:
-                printStderr(f"User site-packages disabled ({site.USER_SITE}. This might cause problems importing wypp or untypy.")
+            if not site.ENABLE_USER_SITE or site.USER_SITE is None:
+                printStderr(f"User site-packages disabled ({site.USER_SITE}. This might cause problems importing wypp or typeguard.")
             else:
                 verbose(f"Adding user site-package directory {site.USER_SITE} to sys.path")
                 sys.path.append(site.USER_SITE)
-    importUntypy()
+    importTypeguard()
 
     fileToRun = args.file
     if args.changeDir:
@@ -518,7 +519,7 @@ Python in version {reqVStr} or newer is required. You are still using version {v
     if fileToRun is None:
         return
     if not args.checkRunnable and (not args.quiet or args.verbose):
-        printWelcomeString(fileToRun, version, useUntypy=args.checkTypes)
+        printWelcomeString(fileToRun, version, doTypecheck=args.checkTypes)
 
     libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable, enableTypeChecking=args.checkTypes)
 
@@ -529,13 +530,13 @@ Python in version {reqVStr} or newer is required. You are still using version {v
         verbose(f'running code in {fileToRun}')
         globals['__file__'] = fileToRun
         runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
-                       useUntypy=args.checkTypes, extraDirs=args.extraDirs)
+                       doTypecheck=args.checkTypes, extraDirs=args.extraDirs)
     except Exception as e:
         verbose(f'Error while running code in {fileToRun}: {e}')
         handleCurrentException(exit=not isInteractive)
         loadingFailed = True
 
-    performChecks(args.check, args.testFile, globals, libDefs, useUntypy=args.checkTypes,
+    performChecks(args.check, args.testFile, globals, libDefs, doTypecheck=args.checkTypes,
                   extraDirs=args.extraDirs, loadingFailed=loadingFailed)
 
     if isInteractive:
@@ -563,27 +564,29 @@ Python in version {reqVStr} or newer is required. You are still using version {v
                 readline.write_history_file(historyFile)
 
 class TypecheckedInteractiveConsole(code.InteractiveConsole):
+    pass
 
-    def showtraceback(self) -> None:
-        handleCurrentException(exit=False, removeFirstTb=True, file=sys.stdout)
+    # FIXME
+    # def showtraceback(self) -> None:
+    #     handleCurrentException(exit=False, removeFirstTb=True, file=sys.stdout)
 
-    def runsource(self, source, filename="<input>", symbol="single"):
-        try:
-            code = self.compile(source, filename, symbol)
-        except (OverflowError, SyntaxError, ValueError):
-            self.showsyntaxerror(filename)
-            return False
-        if code is None:
-            return True
-        try:
-            import ast
-            tree = compile("\n".join(self.buffer), filename, symbol, flags=ast.PyCF_ONLY_AST, dont_inherit=True, optimize=-1)
-            untypy.transform_tree(tree, filename)
-            code = compile(tree, filename, symbol)
-        except Exception as e:
-            if hasattr(e, 'text') and e.text == "":
-                pass
-            else:
-                traceback.print_tb(e.__traceback__)
-        self.runcode(code)
-        return False
+    # def runsource(self, source, filename="<input>", symbol="single"):
+    #     try:
+    #         code = self.compile(source, filename, symbol)
+    #     except (OverflowError, SyntaxError, ValueError):
+    #         self.showsyntaxerror(filename)
+    #         return False
+    #     if code is None:
+    #         return True
+    #     try:
+    #         import ast
+    #         tree = compile("\n".join(self.buffer), filename, symbol, flags=ast.PyCF_ONLY_AST, dont_inherit=True, optimize=-1)
+    #         untypy.transform_tree(tree, filename)
+    #         code = compile(tree, filename, symbol)
+    #     except Exception as e:
+    #         if hasattr(e, 'text') and e.text == "":
+    #             pass
+    #         else:
+    #             traceback.print_tb(e.__traceback__)
+    #     self.runcode(code)
+    #     return False

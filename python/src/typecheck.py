@@ -57,9 +57,14 @@ def wrapTypecheck(cfg: dict) -> Callable[[Callable[P, T]], Callable[P, T]]:
     def _wrap(f: Callable[P, T]) -> Callable[P, T]:
         sig = inspect.signature(f)
         def wrapped(*args, **kwargs) -> T:
-            checkArguments(sig, args, kwargs, checkCfg)
-            result = utils._call_with_frames_removed(f, *args, **kwargs)
-            checkReturn(sig, result)
+            utils._call_with_frames_removed(checkArguments, sig, args, kwargs, checkCfg)
+            result = f(*args, **kwargs)
+            utils._call_with_frames_removed(checkReturn, sig, result)
             return result
         return wrapped
+    return _wrap
+
+def wrapNoTypecheck(cfg: dict) -> Callable[[Callable[P, T]], Callable[P, T]]:
+    def _wrap(f: Callable[P, T]) -> Callable[P, T]:
+        return f
     return _wrap

@@ -13,5 +13,5 @@ if not pythonVersion.startswith('3.'):
         sys.exit(1)
 
 if __name__ == '__main__':
-    import runner3 as r
+    import runner as r
     r.main(globals())

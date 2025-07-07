@@ -10,7 +10,6 @@ def _call_with_frames_removed(
 ) -> T:
     return f(*args, **kwargs)
 
-
 def getEnv(name, conv, default):
     s = os.getenv(name)
     if s is None:
@@ -19,3 +18,11 @@ def getEnv(name, conv, default):
         return conv(s)
     except:
         return default
+
+def dropWhile(l: list, f: Callable[[Any], bool]) -> list:
+    if not l:
+        return l
+    for i in range(len(l)):
+        if not f(l[i]):
+            break
+    return l[i:]

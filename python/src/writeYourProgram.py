@@ -108,7 +108,7 @@ def _patchDataClass(cls, mutable):
         cls.__kind = 'record'
         cls.__init__.__annotations__ = _collectDataClassAttributes(cls)
         cls.__init__.__original = cls # mark class as source of annotation
-        cls.__init__ = typecheck.wrapTypecheck(cls.__init__)
+        cls.__init__ = typecheck.wrapTypecheck({'kind': 'method'})(cls.__init__)
 
     if mutable:
         # prevent new fields being added
@@ -125,6 +125,8 @@ def _patchDataClass(cls, mutable):
                         raise TypeError(f'Expected argument of type {myTypeguard.renderTy(ty)} ' \
                             f'for attribute {name}, got {myTypeguard.renderTy(type(v))}: {v}')
                 checker[name] = check
+            else:
+                raise errors.WyppTypeError(f'No type annotation for attribute {name}')
 
         oldSetattr = cls.__setattr__
         def _setattr(obj, k, v):

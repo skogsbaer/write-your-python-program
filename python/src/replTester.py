@@ -3,7 +3,7 @@ import doctest
 import os
 import argparse
 from dataclasses import dataclass
-from runner import runCode, importUntypy, verbose, enableVerbose
+from runner import runCode, importTypeguard, verbose, enableVerbose
 
 usage = """python3 replTester.py [ ARGUMENTS ] LIB_1 ... LIB_n --repl SAMPLE_1 ... SAMPLE_m
 
@@ -56,7 +56,7 @@ if opts.verbose:
 libDir = os.path.dirname(__file__)
 libFile = os.path.join(libDir, 'writeYourProgram.py')
 defs = globals()
-importUntypy()
+importTypeguard()
 # runCode(libFile, defs, [])
 
 for lib in opts.libs:
@@ -79,9 +79,9 @@ if opts.diffOutput:
 # We use our own DocTestParser to replace exception names in stacktraces
 class MyDocTestParser(doctest.DocTestParser):
     def get_examples(self, string, name='<string>'):
-        prefs = {'WyppTypeError: ': 'untypy.error.UntypyTypeError: ',
-                 'WyppNameError: ': 'untypy.error.UntypyNameError: ',
-                 'WyppAttributeError: ': 'untypy.error.UntypyAttributeError: '}
+        prefs = {'WyppTypeError: ': 'errors.WyppTypeError: ',
+                 'WyppNameError: ': 'errors.WyppNameError: ',
+                 'WyppAttributeError: ': 'errors.WyppAttributeError: '}
         lines = []
         for l in string.split('\n'):
             for pref,repl in prefs.items():
