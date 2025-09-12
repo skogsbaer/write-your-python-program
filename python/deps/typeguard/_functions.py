@@ -24,7 +24,6 @@ else:
 T = TypeVar("T")
 TypeCheckFailCallback: TypeAlias = Callable[[TypeCheckError, TypeCheckMemo], Any]
 
-
 @overload
 def check_type(
     value: object,
@@ -33,6 +32,7 @@ def check_type(
     forward_ref_policy: ForwardRefPolicy = ...,
     typecheck_fail_callback: TypeCheckFailCallback | None = ...,
     collection_check_strategy: CollectionCheckStrategy = ...,
+    ns: tuple[dict, dict] | None = None,
 ) -> T: ...
 
 
@@ -44,6 +44,7 @@ def check_type(
     forward_ref_policy: ForwardRefPolicy = ...,
     typecheck_fail_callback: TypeCheckFailCallback | None = ...,
     collection_check_strategy: CollectionCheckStrategy = ...,
+    ns: tuple[dict, dict] | None = None,
 ) -> Any: ...
 
 
@@ -58,6 +59,7 @@ def check_type(
     collection_check_strategy: CollectionCheckStrategy = (
         TypeCheckConfiguration().collection_check_strategy
     ),
+    ns: tuple[dict, dict] | None = None,
 ) -> Any:
     """
     Ensure that ``value`` matches ``expected_type``.
@@ -101,8 +103,11 @@ def check_type(
     if _suppression.type_checks_suppressed or expected_type is Any:
         return value
 
-    frame = sys._getframe(1)
-    memo = TypeCheckMemo(frame.f_globals, frame.f_locals, config=config)
+    if ns:
+        memo = TypeCheckMemo(ns[0], ns[1], config=config)
+    else:
+        frame = sys._getframe(1)
+        memo = TypeCheckMemo(frame.f_globals, frame.f_locals, config=config)
     try:
         check_type_internal(value, expected_type, memo)
     except TypeCheckError as exc:

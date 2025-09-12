@@ -885,6 +885,9 @@ def check_paramspec(
 ) -> None:
     pass  # No-op for now
 
+def resolve_annotation_str(s: str, globalns: dict, localns: dict):
+    Tmp = type("_Tmp", (), {"__annotations__": {"x": s}})
+    return typing.get_type_hints(Tmp, globalns=globalns, localns=localns)["x"]
 
 def check_type_internal(
     value: Any,
@@ -915,8 +918,9 @@ def check_type_internal(
                     TypeHintWarning,
                     stacklevel=get_stacklevel(),
                 )
-
             return
+    if isinstance(annotation, str):
+        annotation = resolve_annotation_str(annotation, memo.globals, memo.locals)
 
     if annotation is Any or annotation is SubclassableAny or isinstance(value, Mock):
         return
