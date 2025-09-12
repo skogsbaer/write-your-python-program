@@ -6,7 +6,7 @@ import inspect
 import typing
 from dataclasses import dataclass
 import utils
-from myTypeguard import matchesTy, renderTy
+from myTypeguard import matchesTy, Namespaces
 import stacktrace
 import location
 import errors
@@ -49,7 +49,7 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
             raise errors.WyppTypeError.partialAnnotationError(code.name, name, locDecl)
         else:
             a = args[i]
-            if not matchesTy(a, t):
+            if not matchesTy(a, t, cfg.ns):
                 fi = stacktrace.callerOutsideWypp()
                 if fi is not None:
                     locArg = location.locationOfArgument(fi, i)
@@ -59,11 +59,11 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
                 raise errors.WyppTypeError.argumentError(mkCallableName(code), name, i - offset, locDecl, t, a, locArg)
 
 def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo],
-                result: Any, code: location.CallableInfo) -> None:
+                result: Any, code: location.CallableInfo, cfg: CheckCfg) -> None:
     t = sig.return_annotation
     if isEmptyAnnotation(t):
         t = None
-    if not matchesTy(result, t):
+    if not matchesTy(result, t, cfg.ns):
         fi = stacktrace.callerOutsideWypp()
         if fi is not None:
             locRes = location.Loc.fromFrameInfo(fi)
@@ -77,9 +77,10 @@ def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo]
                                                locRes, extraFrames)
 
 
-@dataclass
+@dataclass(frozen=True)
 class CheckCfg:
     kind: location.CallableKind
+    ns: Namespaces
     @staticmethod
     def fromDict(d: dict) -> CheckCfg:
         k = d['kind']
@@ -88,14 +89,24 @@ class CheckCfg:
                 kind = 'function'
             case 'method':
                 kind = location.ClassMember('method', d['className'])
-        return CheckCfg(kind=kind)
+        return CheckCfg(kind=kind, ns=Namespaces.empty())
+    def setNamespaces(self, ns: Namespaces) -> CheckCfg:
+        return CheckCfg(kind=self.kind, ns=ns)
 
 P = ParamSpec("P")
 T = TypeVar("T")
 
+def getNamespacesOfCallable(func: Callable):
+    globals = func.__globals__
+    # if it's a method, let it see the owning class namespace
+    owner = getattr(func, "__qualname__", "").split(".")[0]
+    locals = globals.get(owner, {})
+    return Namespaces(globals, locals)
+
 def wrapTypecheck(cfg: dict, outerCode: Optional[location.CallableInfo]=None) -> Callable[[Callable[P, T]], Callable[P, T]]:
-    checkCfg = CheckCfg.fromDict(cfg)
+    outerCheckCfg = CheckCfg.fromDict(cfg)
     def _wrap(f: Callable[P, T]) -> Callable[P, T]:
+        checkCfg = outerCheckCfg.setNamespaces(getNamespacesOfCallable(f))
         sig = inspect.signature(f)
         if outerCode is None:
             code = location.StdCallableInfo(f, checkCfg.kind)
@@ -106,7 +117,7 @@ def wrapTypecheck(cfg: dict, outerCode: Optional[location.CallableInfo]=None) ->
             utils._call_with_frames_removed(checkArguments, sig, args, kwargs, code, checkCfg)
             result = f(*args, **kwargs)
             utils._call_with_frames_removed(
-                checkReturn, sig, returnTracker.getReturnFrame(), result, code
+                checkReturn, sig, returnTracker.getReturnFrame(), result, code, checkCfg
             )
             return result
         return wrapped

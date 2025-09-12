@@ -322,7 +322,7 @@ def runCode(fileToRun, globals, args, doTypecheck=True, extraDirs=None):
         else:
             globals['wrapTypecheck'] = typecheck.wrapNoTypecheck
         sys.dont_write_bytecode = True # FIXME: remove
-        runpy.run_module(modName, init_globals=globals, run_name=modName)
+        runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=True)
 
 def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, doTypecheck=True, extraDirs=None):
     doRun = lambda: runCode(fileToRun, globals, args, doTypecheck=doTypecheck, extraDirs=extraDirs)
