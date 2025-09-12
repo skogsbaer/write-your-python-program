@@ -1,5 +1,10 @@
-* support for records is missing
-* partial annotations are supported, not flagged as an error.
-  * main problem: no return type annotation is not interprete as 'None'
-* iterator broken
-* check: caching in __pycache__ could hurt us when the instrumentation code changes
+* ./run test-data-2.0/forwardRefs_ok.py
+* Finetuning error messages
+* Unit tests:
+  * FunctionCode class
+  * locationOfArgument
+  * ReturnTracker
+* German translation of error messages?
+* Fix unit tests in test-data
+* Typechecked console
+* Debug slow startup times

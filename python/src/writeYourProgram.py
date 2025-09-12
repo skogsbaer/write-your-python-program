@@ -1,4 +1,3 @@
-# FIXME: make exceptions nicer
 import typing
 import dataclasses
 import inspect
@@ -99,7 +98,7 @@ def _collectDataClassAttributes(cls):
     return result
 
 
-def _patchDataClass(cls, mutable):
+def _patchDataClass(cls, mutable: bool):
     fieldNames = [f.name for f in dataclasses.fields(cls)]
     setattr(cls, EQ_ATTRS_ATTR, fieldNames)
 
@@ -107,8 +106,7 @@ def _patchDataClass(cls, mutable):
         # add annotions for type checked constructor.
         cls.__kind = 'record'
         cls.__init__.__annotations__ = _collectDataClassAttributes(cls)
-        cls.__init__.__original = cls # mark class as source of annotation
-        cls.__init__ = typecheck.wrapTypecheck({'kind': 'method'})(cls.__init__)
+        cls.__init__ = typecheck.wrapTypecheckRecordConstructor(cls)
 
     if mutable:
         # prevent new fields being added
@@ -140,8 +138,9 @@ def _patchDataClass(cls, mutable):
         setattr(cls, "__setattr__", _setattr)
     return cls
 
-def record(cls=None, mutable=False):
-    def wrap(cls):
+@typing.dataclass_transform()
+def record(cls, mutable=False):
+    def wrap(cls: type):
         newCls = dataclasses.dataclass(cls, frozen=not mutable)
         if _typeCheckingEnabled:
             return _patchDataClass(newCls, mutable)
@@ -359,7 +358,7 @@ def deepEq(v1, v2, **flags):
             return False # v1 == v2 already checked
     return False
 
-class TodoError(Exception, errors.DeliberateError):
+class TodoError(Exception, errors.WyppError):
     pass
 
 def todo(msg=None):
@@ -367,7 +366,7 @@ def todo(msg=None):
         msg = 'TODO'
     raise TodoError(msg)
 
-class ImpossibleError(Exception, errors.DeliberateError):
+class ImpossibleError(Exception, errors.WyppError):
     pass
 
 def impossible(msg=None):

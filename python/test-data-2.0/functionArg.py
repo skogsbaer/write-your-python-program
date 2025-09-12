@@ -1,4 +1,5 @@
-def foo(i: int) -> int:
+def foo(i: int, j: int) -> int:
     return i + 1
 
-foo("1")
+if True:
+    print(foo(foo(1, "1"), 42))

@@ -15,6 +15,7 @@ import subprocess
 import runpy
 import types
 from dataclasses import dataclass
+import stacktrace
 
 # local imports
 import typecheck
@@ -375,51 +376,22 @@ def enterInteractive(userDefs):
         globals()[k] = v
     print()
 
-def tbToFrameList(tb: types.TracebackType) -> list[types.FrameType]:
-    cur = tb
-    res: list[types.FrameType] = []
-    while cur:
-        res.append(cur.tb_frame)
-        cur = cur.tb_next
-    return res
-
-def isCallWithFramesRemoved(frame: types.FrameType):
-    return frame.f_code.co_name == '_call_with_frames_removed'
-
-def isWyppFrame(frame: types.FrameType):
-    modName = frame.f_globals["__name__"]
-    return '__wypp_runYourProgram' in frame.f_globals or \
-        modName == 'typeguard' or modName.startswith('typeguard.') or \
-        modName == 'wypp' or modName.startswith('wypp.')
-
-def isRunpyFrame(frame: types.FrameType):
-    return frame.f_code.co_filename == '<frozen runpy>'
-
-# Returns a StackSummary object. Filters the trackback by removing leading wypp or typeguard
-# frames and by removing trailing frames behind _call_with_frames_removed
-def limitTraceback(frameList: list[types.FrameType], isBug: bool) -> traceback.StackSummary:
-    if not isBug:
-        endIdx = len(frameList)
-        for i in range(endIdx - 1, 0, -1):
-            if isCallWithFramesRemoved(frameList[i]):
-                endIdx = i - 1
-                break
-        frameList = utils.dropWhile(frameList[:endIdx], lambda f: isWyppFrame(f) or isRunpyFrame(f))
-    frames = [(f, f.f_lineno) for f in frameList]
-    return traceback.StackSummary.extract(frames)
 
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
     if isinstance(val, SystemExit):
         die(val.code)
-    frameList = tbToFrameList(tb) if tb is not None else []
+    isWyppError = isinstance(val, errors.WyppError)
+    if isWyppError:
+        extra = val.extraFrames
+    else:
+        extra = []
+    frameList = (stacktrace.tbToFrameList(tb) if tb is not None else [])
     if frameList and removeFirstTb:
         frameList = frameList[1:]
-    isWyppError = isinstance(val, errors.WyppError)
     isBug = not isWyppError and not isinstance(val, SyntaxError) and \
-        not isinstance(val, errors.DeliberateError) and len(frameList) > 0 \
-        and isWyppFrame(frameList[-1])
-    stackSummary = limitTraceback(frameList, isBug)
+        len(frameList) > 0 and stacktrace.isWyppFrame(frameList[-1])
+    stackSummary = stacktrace.limitTraceback(frameList, extra, not isBug and not DEBUG)
     header = False
     for x in stackSummary.format():
         if not header:
@@ -427,11 +399,9 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
             header = True
         file.write(x)
     if isWyppError:
-        name = 'Wypp' + val.simpleName()  # type: ignore
-        file.write(name)
         s = str(val)
         if s and s[0] != '\n':
-            file.write(': ')
+            file.write('\n')
         file.write(s)
         file.write('\n')
     else:

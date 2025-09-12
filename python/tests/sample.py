@@ -17,8 +17,7 @@ def canDrink(d: Drink) -> int:
 # - a circle (Circle)
 # - a square (Square)
 # - an overlay of two shapes (Overlay)
-Shape = typing.Union[typing.ForwardRef('Circle'), typing.ForwardRef('Square'), typing.ForwardRef('Overlay')]
-Shape = typing.Union['Circle', 'Square', 'Overlay']
+type Shape = typing.Union['Circle', 'Square', 'Overlay']
 
 # A point consists of
 # - x (float)
@@ -121,4 +120,4 @@ def pointInShape(point: Point, shape: Shape) -> bool:
     elif type(shape) == Overlay:
         return pointInShape(point, shape.top) or pointInShape(point, shape.bottom)
     else:
-        uncoveredCase()
+        return uncoveredCase()

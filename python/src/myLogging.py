@@ -18,3 +18,6 @@ def verbose(s):
 def debug(s):
     if DEBUG:
         printStderr('[D] ' + str(s))
+
+def warn(s: str):
+    printStderr('WARN: ' + str(s))

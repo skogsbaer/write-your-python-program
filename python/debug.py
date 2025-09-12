@@ -1,4 +1,4 @@
-# Run this file with the debugger to debug wypp and untypy.
+# Run this file with the debugger to debug wypp.
 # Before running, set FILE to the input file that you want
 # to use for debugging.
 
@@ -13,5 +13,5 @@ args = [file]
 
 sys.path.insert(0, os.path.join(thisDir, 'site-lib'))
 
-from wypp import runner
+from wypp import runner # type: ignore
 runner.main(globals(), args)

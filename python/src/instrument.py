@@ -20,25 +20,26 @@ def parseExp(s: str) -> ast.expr:
 
 class Configs:
     funConfig: ast.expr = parseExp("{'kind': 'function'}")
-    methodConfig: ast.expr = parseExp("{'kind': 'method'}")
+    @staticmethod
+    def methodConfig(clsName: str) -> ast.expr:
+        return parseExp("{'kind': 'method', 'className': " + repr(clsName) + "}")
 
-def transformStmt(stmt: ast.stmt, insideClass: bool) -> ast.stmt:
-    # FIXME: static methods
-    cfg = Configs.methodConfig if insideClass else Configs.funConfig
+def transformStmt(stmt: ast.stmt, outerClassName: Optional[str]) -> ast.stmt:
+    cfg = Configs.methodConfig(outerClassName) if outerClassName else Configs.funConfig
     wrapExp = ast.Call(ast.Name(id='wrapTypecheck', ctx=ast.Load()), [cfg], [])
     match stmt:
         case ast.FunctionDef(name, args, body, decorators, returns, tyComment, tyParams):
             return ast.FunctionDef(name, args, body, decorators + [wrapExp], returns, tyComment, tyParams)
-        case ast.ClassDef(name, bases, keywords, body, decorator_list, type_params):
-            newBody = [transformStmt(s, insideClass=True) for s in body]
-            return ast.ClassDef(name, bases, keywords, newBody, decorator_list, type_params)
+        case ast.ClassDef(className, bases, keywords, body, decorator_list, type_params):
+            newBody = [transformStmt(s, outerClassName=className) for s in body]
+            return ast.ClassDef(className, bases, keywords, newBody, decorator_list, type_params)
         case _:
             return stmt
 
 def transformModule(m: ast.Module | ast.Expression | ast.Interactive) -> ast.Module | ast.Expression | ast.Interactive:
     match m:
         case ast.Module(body, type_ignores):
-            newStmts = [transformStmt(stmt, insideClass=False) for stmt in body]
+            newStmts = [transformStmt(stmt, outerClassName=None) for stmt in body]
             return ast.Module(newStmts, type_ignores)
         case _:
             return m
