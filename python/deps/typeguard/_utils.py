@@ -52,7 +52,7 @@ else:
             raise
 
 
-def get_type_name(type_: Any) -> str:
+def get_type_name(type_: Any, noPrefix: list[str]=[]) -> str:
     name: str
     for attrname in "__name__", "_name", "__forward_arg__":
         candidate = getattr(type_, attrname, None)
@@ -84,7 +84,7 @@ def get_type_name(type_: Any) -> str:
         module = type_.__forward_module__
     else:
         module = getattr(type_, "__module__", None)
-    if module and module not in (None, "typing", "typing_extensions", "builtins"):
+    if module and module not in (None, "typing", "typing_extensions", "builtins") + tuple(noPrefix):
         name = module + "." + name
 
     return name
