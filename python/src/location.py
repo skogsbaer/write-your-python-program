@@ -112,6 +112,14 @@ class ClassMember:
 
 type CallableKind = Literal['function'] | ClassMember
 
+@dataclass
+class CallableName:
+    name: str
+    kind: CallableKind
+    @staticmethod
+    def mk(c: CallableInfo) -> CallableName:
+        return CallableName(c.name, c.kind)
+
 class CallableInfo(abc.ABC):
     """
     Class giving access to various properties of a function, method or constructor.

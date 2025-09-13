@@ -18,9 +18,6 @@ def printVars(what: str, *l):
 def isEmptyAnnotation(t: Any) -> bool:
     return t is inspect.Signature.empty or t is inspect.Parameter.empty
 
-def mkCallableName(c: location.CallableInfo) -> errors.CallableName:
-    return errors.CallableName(c.name, c.kind)
-
 def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
                    code: location.CallableInfo, cfg: CheckCfg) -> None:
     params = list(sig.parameters)
@@ -46,7 +43,7 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
             pass
         elif i != 0 and isEmptyAnnotation(t):
             locDecl = code.getParamSourceLocation(name)
-            raise errors.WyppTypeError.partialAnnotationError(code.name, name, locDecl)
+            raise errors.WyppTypeError.partialAnnotationError(location.CallableName.mk(code), name, locDecl)
         else:
             a = args[i]
             if not matchesTy(a, t, cfg.ns):
@@ -56,7 +53,13 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
                 else:
                     locArg = None
                 locDecl = code.getParamSourceLocation(name)
-                raise errors.WyppTypeError.argumentError(mkCallableName(code), name, i - offset, locDecl, t, a, locArg)
+                raise errors.WyppTypeError.argumentError(location.CallableName.mk(code),
+                                                         name,
+                                                         i - offset,
+                                                         locDecl,
+                                                         t,
+                                                         a,
+                                                         locArg)
 
 def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo],
                 result: Any, code: location.CallableInfo, cfg: CheckCfg) -> None:
@@ -73,7 +76,7 @@ def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo]
         if returnFrame:
             returnLoc = location.Loc.fromFrameInfo(returnFrame)
             extraFrames = [returnFrame]
-        raise errors.WyppTypeError.resultError(mkCallableName(code), locDecl, t, returnLoc, result,
+        raise errors.WyppTypeError.resultError(location.CallableName.mk(code), locDecl, t, returnLoc, result,
                                                locRes, extraFrames)
 
 
