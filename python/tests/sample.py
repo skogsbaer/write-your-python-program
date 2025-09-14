@@ -1,6 +1,5 @@
 from writeYourProgram import *
 import math
-from untypy import typechecked
 import typing
 
 Drink = Literal["Tea", "Coffee"]

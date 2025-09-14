@@ -5,11 +5,11 @@ set -u
 
 cd $(dirname $0)
 
-unit_test_path=src:tests:deps/untypy
+unit_test_path=src:tests:deps
 
 function prepare_integration_tests()
 {
-    echo "Preparing integration tests by install the WYPP library"
+    echo "Preparing integration tests by installing the WYPP library"
     local d=$(mktemp -d)
     trap "rm -rf $d" EXIT
     WYPP_INSTALL_DIR=$d python3 src/runYourProgram.py --install-mode installOnly
@@ -22,47 +22,53 @@ function usage()
     exit 1
 }
 
-if [ -z "${1:-}" ]; then
-    echo "Python version:"
-    python3 --version
-    echo "Running untypy tests"
-    pushd deps/untypy > /dev/null
-    ./runtests.sh || exit 1
-    popd > /dev/null
-    echo "Done with untypy tests"
-    echo "Running all unit tests, PYTHONPATH=$unit_test_path"
-    PYTHONPATH=$unit_test_path python3 -m unittest tests/test*.py
+function run_unit_tests()
+{
+    echo "Running unit tests, PYTHONPATH=$unit_test_path"
+    if [ -z "${1:-}" ]; then
+        PYTHONPATH=$unit_test_path python3 -m unittest tests/test*.py
+        ecode=$?
+    else
+        PYTHONPATH=$unit_test_path python3 -m unittest "$@"
+        ecode=$?
+    fi
     echo "Done with unit tests"
-    echo
+}
+
+function run_integration_tests()
+{
     prepare_integration_tests
     echo "Running all integration tests, PYTHONPATH=$integ_test_path"
-    PYTHONPATH=$integ_test_path python3 -m unittest integration-tests/test*.py
-    echo "Done with integration tests"
-else
-    if [ "$1" == "--unit" ]; then
-        what="unit"
-        dir=tests
-        p=$unit_test_path
-    elif [ "$1" == "--integration" ]; then
-        what="integration"
-        dir=integration-tests
-        prepare_integration_tests
-        p=$integ_test_path
-    else
-        usage
-    fi
-    shift
-    echo "Running $what tests $@ with PYTHONPATH=$p"
     if [ -z "${1:-}" ]; then
-        PYTHONPATH=$p python3 -m unittest $dir/test*.py
+        PYTHONPATH=$integ_test_path python3 -m unittest integration-tests/test*.py
         ecode=$?
     else
-        PYTHONPATH=$p python3 -m unittest "$@"
+        PYTHONPATH=$integ_test_path python3 -m unittest "$@"
         ecode=$?
     fi
-    echo "$what tests finished with exit code $ecode"
+    echo "Done with integration tests"
+}
+
+
+echo "Python version:"
+python3 --version
+
+if [ -z "${1:-}" ]; then
+    run_unit_tests
+    echo
+    run_integration_tests
+    echo
+    echo "Running file tests ..."
+    python3 ./fileTests.py
+elif [ "$1" == "--unit" ]; then
+    shift
+    run_unit_tests
     exit $ecode
+elif [ "$1" == "--integration" ]; then
+    shift
+    run_integration_tests
+    exit $ecode
+else
+    usage
 fi
 
-echo "Running file tests ..."
-python3 ./fileTests.py

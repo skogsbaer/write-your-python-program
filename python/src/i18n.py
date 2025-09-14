@@ -59,6 +59,9 @@ DE = {
         'Parameter `{param}` der Methode `{fun}` aus Klasse `{cls}` benötigt eine Typangabe',
     'Parameter `{param}` of the constructor of class `{cls}` requires a type annotation':
         'Parameter `{param}` des Konstruktors der Klasse `{cls}` benötigt eine Typangabe',
+
+    'Attribute `{name}` of record `{record}` required a type annotation':
+        'Attribut `{name}` des Records `{record}` benötigt eine Typannotation'
 }
 
 def expectingNoReturn(cn: location.CallableName) -> str:
@@ -144,5 +147,9 @@ def expectingTypeAnnotation(cn: location.CallableName, param: str) -> str:
             return tr('Parameter `{param}` of the constructor of class `{cls}` requires a type annotation',
                         cls=cls, param=param)
     raise ValueError(f'Unexpected: {cn}')
+
+def noTypeAnnotationForAttribute(attrName: str, recordName: str) -> str:
+    return tr('Attribute `{name}` of record `{record}` required a type annotation',
+              name=attrName, record=recordName)
 
 # TODO: write automatic tests to ensure all keys are defined and the all string parameters are defined

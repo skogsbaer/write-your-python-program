@@ -122,5 +122,9 @@ class WyppTypeError(TypeError, WyppError):
             lines.append(renderLoc(paramLoc))
         raise WyppTypeError('\n'.join(lines))
 
+    @staticmethod
+    def noTypeAnnotationForRecordAttribute(attrName: str, recordName: str) -> WyppTypeError:
+        return WyppTypeError(i18n.noTypeAnnotationForAttribute(attrName, recordName))
+
 class WyppAttributeError(AttributeError, WyppError):
     pass

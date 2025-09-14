@@ -1,6 +1,7 @@
 import typing
 import dataclasses
 import inspect
+import sys
 import myTypeguard
 import errors
 import typecheck
@@ -42,10 +43,8 @@ floatNonPositive = typing.Annotated[float, lambda x: x <= 0, 'floatNonPositive']
 class Lock(Protocol):
     def acquire(self, blocking: bool = True, timeout:int = -1) -> Any:
        pass
-
     def release(self) -> Any:
         pass
-
     def locked(self) -> Any:
         pass
 
@@ -97,6 +96,12 @@ def _collectDataClassAttributes(cls):
             result = c.__annotations__ | result
     return result
 
+def _getNamespacesOfClass(cls):
+    mod = sys.modules.get(cls.__module__) or inspect.getmodule(cls)
+    globals = vars(mod) if mod else {}
+    owner = getattr(cls, "__qualname__", "").split(".")[0]
+    locals = globals.get(owner, {})
+    return myTypeguard.Namespaces(globals, locals)
 
 def _patchDataClass(cls, mutable: bool):
     fieldNames = [f.name for f in dataclasses.fields(cls)]
@@ -111,20 +116,21 @@ def _patchDataClass(cls, mutable: bool):
     if mutable:
         # prevent new fields being added
         fields = set(fieldNames)
+        ns = _getNamespacesOfClass(cls)
 
         checker = {}
-        # Note: Partial annotations are disallowed by untypy.typechecked(cls.__init__)
-        #       So no handling in this code is required.
+        # Note: Partial annotations are disallowed, so no handling in this code is required.
         for name in fields:
             if name in cls.__annotations__:
-                ty = typing.get_type_hints(cls, include_extras=True)[name]
                 def check(v):
-                    if not myTypeguard.matchesTy(v, ty):
+                    ty = typing.get_type_hints(cls, include_extras=True)[name]
+                    if not myTypeguard.matchesTy(v, ty, ns):
                         raise TypeError(f'Expected argument of type {myTypeguard.renderTy(ty)} ' \
                             f'for attribute {name}, got {myTypeguard.renderTy(type(v))}: {v}')
+                    return v
                 checker[name] = check
             else:
-                raise errors.WyppTypeError(f'No type annotation for attribute {name}')
+                raise errors.WyppTypeError.noTypeAnnotationForRecordAttribute(name, cls.__name__)
 
         oldSetattr = cls.__setattr__
         def _setattr(obj, k, v):
@@ -139,7 +145,7 @@ def _patchDataClass(cls, mutable: bool):
     return cls
 
 @typing.dataclass_transform()
-def record(cls, mutable=False):
+def record(cls=None, mutable=False):
     def wrap(cls: type):
         newCls = dataclasses.dataclass(cls, frozen=not mutable)
         if _typeCheckingEnabled:
@@ -153,6 +159,25 @@ def record(cls, mutable=False):
     else:
         # We're called as @dataclass without parens.
         return wrap(cls)
+
+def typechecked(func=None):
+    def wrap(func):
+        if hasattr(func, '__qualname__'):
+            q = getattr(func, "__qualname__").split('.')
+            if len(q) >= 2:
+                className = q[-2]
+                cfg = {'kind': 'method', 'className': className}
+            else:
+                cfg = {'kind': 'function'}
+        else:
+            cfg = {'kind': 'function'}
+        return typecheck.wrapTypecheck(cfg)(func)
+    if func is None:
+        # We're called with parens.
+        return wrap
+    else:
+        # We're called as @dataclass without parens.
+        return wrap(func)
 
 # Tests
 
