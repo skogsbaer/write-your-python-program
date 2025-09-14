@@ -1,14 +1,30 @@
 from dataclasses import dataclass
 import location
 from typing import *
+from contextlib import contextmanager
 
 type Lang = Literal['en', 'de']
 
-def lang() -> Lang:
-    return 'de'
+allLanguages: list[Lang] = ['en', 'de']
+
+_lang: Lang = 'de'
+
+@contextmanager
+def lang(newLang: Lang):
+    """Context manager to temporarily set the language."""
+    global _lang
+    oldLang = _lang
+    _lang = newLang
+    try:
+        yield
+    finally:
+        _lang = oldLang
+
+def getLang() -> Lang:
+    return _lang
 
 def tr(key, **kws) -> str:
-    match lang():
+    match getLang():
         case 'en':
             tmpl = key
         case 'de':
@@ -53,15 +69,15 @@ DE = {
     'Problematic call in line': 'Fehlerhafter Aufruf in Zeile',
     'Call causing the problematic return in line': 'Aufruf, der das fehlerhafte return verursacht, in Zeile',
 
-    'Parameter `{param}` of function `{fun}` requires a type annotation':
-        'Parameter `{param}` der Funktion `{fun}` benötigt eine Typangabe',
-    'Parameter `{param}` of method `{method}` from class `{cls}` requires a type annotation':
-        'Parameter `{param}` der Methode `{fun}` aus Klasse `{cls}` benötigt eine Typangabe',
-    'Parameter `{param}` of the constructor of class `{cls}` requires a type annotation':
-        'Parameter `{param}` des Konstruktors der Klasse `{cls}` benötigt eine Typangabe',
+    'Parameter `{param}` of function `{fun}` requires a type annotation.':
+        'Parameter `{param}` der Funktion `{fun}` benötigt eine Typangabe.',
+    'Parameter `{param}` of method `{method}` from class `{cls}` requires a type annotation.':
+        'Parameter `{param}` der Methode `{method}` aus Klasse `{cls}` benötigt eine Typangabe.',
+    'Parameter `{param}` of the constructor of class `{cls}` requires a type annotation.':
+        'Parameter `{param}` des Konstruktors der Klasse `{cls}` benötigt eine Typangabe.',
 
-    'Attribute `{name}` of record `{record}` required a type annotation':
-        'Attribut `{name}` des Records `{record}` benötigt eine Typannotation'
+    'Attribute `{name}` of record `{record}` required a type annotation.':
+        'Attribut `{name}` des Records `{record}` benötigt eine Typannotation.'
 }
 
 def expectingNoReturn(cn: location.CallableName) -> str:
@@ -83,13 +99,13 @@ def wrongReturnValue(ty: str) -> str:
 def expectingReturnOfType(cn: location.CallableName, ty: str) -> str:
     match cn.kind:
         case 'function':
-            return tr('Expecting return value of type `{ty}` when calling function `{fun}`',
+            return tr('Expecting return value of type `{ty}` when calling function `{fun}`.',
                     fun=cn.name, ty=ty)
         case location.ClassMember('method', cls):
-            return tr('Expecting return value of type `{ty}` when calling method `{method}` of class `{cls}`',
+            return tr('Expecting return value of type `{ty}` when calling method `{method}` of class `{cls}`.',
                     method=cn.name, cls=cls, ty=ty)
         case location.ClassMember('constructor', cls):
-            return tr('Expecting return value of type `{ty}` when calling constructor of class `{cls}`',
+            return tr('Expecting return value of type `{ty}` when calling constructor of class `{cls}`.',
                     cls=cls, ty=ty)
     raise ValueError(f'Unexpected: {cn}')
 
@@ -97,7 +113,7 @@ def noReturnValue() -> str:
     return tr('But no return found.')
 
 def transArg(pos: int):
-    match lang():
+    match getLang():
         case 'en':
             match pos:
                 case 1: '1st argument'
@@ -128,7 +144,7 @@ def expectingArgumentOfTy(cn: location.CallableName, ty: str, pos: int) -> str:
             return tr('The call of method `{method}` of class `{cls}` expects value of type `{ty}` as {arg}.',
                     method=cn.name, cls=cls, ty=ty, arg=arg)
         case location.ClassMember('constructor', cls):
-            return tr('The call of method `{method}` of class `{cls}` expects value of type `{ty}` as {arg}.',
+            return tr('The call of the constructor of class `{cls}` expects value of type `{ty}` as {arg}.',
                     cls=cls, ty=ty, arg=arg)
     raise ValueError(f'Unexpected: {cn}')
 
@@ -138,18 +154,18 @@ def realArgumentTy(ty: str) -> str:
 def expectingTypeAnnotation(cn: location.CallableName, param: str) -> str:
     match cn.kind:
         case 'function':
-            return tr('Parameter `{param}` of function `{fun}` requires a type annotation',
+            return tr('Parameter `{param}` of function `{fun}` requires a type annotation.',
                         fun=cn.name, param=param)
         case location.ClassMember('method', cls):
-            return tr('Parameter `{param}` of method `{method}` from class `{cls}` requires a type annotation',
+            return tr('Parameter `{param}` of method `{method}` from class `{cls}` requires a type annotation.',
                         method=cn.name, cls=cls, param=param)
         case location.ClassMember('constructor', cls):
-            return tr('Parameter `{param}` of the constructor of class `{cls}` requires a type annotation',
+            return tr('Parameter `{param}` of the constructor of class `{cls}` requires a type annotation.',
                         cls=cls, param=param)
     raise ValueError(f'Unexpected: {cn}')
 
 def noTypeAnnotationForAttribute(attrName: str, recordName: str) -> str:
-    return tr('Attribute `{name}` of record `{record}` required a type annotation',
+    return tr('Attribute `{name}` of record `{record}` required a type annotation.',
               name=attrName, record=recordName)
 
 # TODO: write automatic tests to ensure all keys are defined and the all string parameters are defined
