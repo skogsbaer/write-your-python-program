@@ -53,7 +53,7 @@ class TestI18nTranslations(unittest.TestCase):
 
     def testAllI18NFunctions(self):
         for lang in i18n.allLanguages:
-            with i18n.lang(lang):
+            with i18n.explicitLang(lang):
                 with self.subTest(lang=lang):
                     for funcName, func in self.stringFunctions:
                         with self.subTest(function=funcName):

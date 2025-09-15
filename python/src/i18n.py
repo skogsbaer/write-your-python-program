@@ -2,15 +2,17 @@ from dataclasses import dataclass
 import location
 from typing import *
 from contextlib import contextmanager
+import lang
 
 type Lang = Literal['en', 'de']
 
 allLanguages: list[Lang] = ['en', 'de']
 
-_lang: Lang = 'de'
+# If not set explicitly, the current locale is asked for the language
+_lang: Optional[Lang] = None
 
 @contextmanager
-def lang(newLang: Lang):
+def explicitLang(newLang: Lang):
     """Context manager to temporarily set the language."""
     global _lang
     oldLang = _lang
@@ -21,7 +23,10 @@ def lang(newLang: Lang):
         _lang = oldLang
 
 def getLang() -> Lang:
-    return _lang
+    if _lang:
+        return _lang
+    else:
+        return lang.pickLanguage(allLanguages, 'en')
 
 def tr(key, **kws) -> str:
     match getLang():
@@ -167,5 +172,3 @@ def expectingTypeAnnotation(cn: location.CallableName, param: str) -> str:
 def noTypeAnnotationForAttribute(attrName: str, recordName: str) -> str:
     return tr('Attribute `{name}` of record `{record}` required a type annotation.',
               name=attrName, record=recordName)
-
-# TODO: write automatic tests to ensure all keys are defined and the all string parameters are defined
