@@ -70,19 +70,23 @@ class WyppTypeError(TypeError, WyppError):
             lines.append(i18n.expectingReturnOfType(callableName, renderTy(resultTy)))
             if not isParameterizedType(resultTy):
                 lines.append(i18n.wrongReturnValue(renderTy(givenValue)))
-        if resultTypeLoc and callLoc:
+        printedFileName = None
+        if resultTypeLoc:
             lines.append('')
             lines.append(f'## {i18n.tr("File")} {resultTypeLoc.filename}')
+            printedFileName = resultTypeLoc.filename
             lines.append(f'## {i18n.tr("Result type declared in line")} {resultTypeLoc.startLine}:\n')
             lines.append(renderLoc(resultTypeLoc))
+        if returnLoc:
             lines.append('')
-            if returnLoc:
-                if resultTypeLoc.filename != returnLoc.filename:
-                    lines.append(f'## {i18n.tr("File")} {returnLoc.filename}')
-                lines.append(f'## {i18n.tr("Problematic return in line")} {returnLoc.startLine}:\n')
-                lines.append(renderLoc(returnLoc))
-                lines.append('')
-            if resultTypeLoc.filename != callLoc.filename:
+            if printedFileName != returnLoc.filename:
+                lines.append(f'## {i18n.tr("File")} {returnLoc.filename}')
+                printedFileName = returnLoc.filename
+            lines.append(f'## {i18n.tr("Problematic return in line")} {returnLoc.startLine}:\n')
+            lines.append(renderLoc(returnLoc))
+        if callLoc:
+            lines.append('')
+            if printedFileName != callLoc.filename:
                 lines.append(f'## {i18n.tr("File")} {callLoc.filename}')
             lines.append(f'## {i18n.tr("Call causing the problematic return in line")} {callLoc.startLine}:\n')
             lines.append(renderLoc(callLoc))

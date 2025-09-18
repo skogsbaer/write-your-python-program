@@ -24,9 +24,9 @@ function usage()
 
 function run_unit_tests()
 {
-    echo "Running unit tests, PYTHONPATH=$unit_test_path"
+   echo "Running unit tests, PYTHONPATH=$unit_test_path"
     if [ -z "${1:-}" ]; then
-        PYTHONPATH=$unit_test_path python3 -m unittest tests/test*.py
+         PYTHONPATH=$unit_test_path python3 -m unittest tests/test*.py
         ecode=$?
     else
         PYTHONPATH=$unit_test_path python3 -m unittest "$@"
@@ -62,11 +62,11 @@ if [ -z "${1:-}" ]; then
     python3 ./fileTests.py
 elif [ "$1" == "--unit" ]; then
     shift
-    run_unit_tests
+    run_unit_tests "$@"
     exit $ecode
 elif [ "$1" == "--integration" ]; then
     shift
-    run_integration_tests
+    run_integration_tests "$@"
     exit $ecode
 else
     usage

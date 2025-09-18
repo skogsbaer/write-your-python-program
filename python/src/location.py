@@ -9,8 +9,9 @@ import ast
 import ansi
 import utils
 import myLogging
-import re
+import sys
 import abc
+import parsecache
 
 @dataclass
 class Loc:
@@ -137,7 +138,6 @@ class CallableInfo(abc.ABC):
     def getParamSourceLocation(self, paramName: str) -> Optional[Loc]:
         pass
 
-# FIXME: write unit tests
 class StdCallableInfo(CallableInfo):
     """
     Class giving access to various properties of a function
@@ -145,30 +145,16 @@ class StdCallableInfo(CallableInfo):
     """
     def __init__(self, f: Callable, kind: CallableKind):
         super().__init__(kind)
-        try:
-            self.source = inspect.getsource(f)
-        except Exception:
-            self.source = None
-        if self.source:
-            try:
-                self.tree = ast.parse(self.source)
-            except Exception:
-                self.tree = None
-        else:
-            self.tree = None
-        self._name = f.__name__
         self.file = f.__code__.co_filename
+        self.__name = f.__name__
+        self.__ast = parsecache.getAST(self.file)
 
     @property
     def name(self):
-        return self._name
+        return self.__name
 
     def _findDef(self) -> Optional[ast.FunctionDef | ast.AsyncFunctionDef]:
-        if not self.tree:
-            return None
-        for node in ast.walk(self.tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == self.name:
-                return node
+        return self.__ast.getFunDef(self.__name)
 
     def getResultTypeLocation(self) -> Optional[Loc]:
         """
@@ -177,23 +163,15 @@ class StdCallableInfo(CallableInfo):
         node = self._findDef()
         if not node:
             return None
-        assert self.source is not None
         r = node.returns
         if r:
-            return Loc(self.file, r.lineno, r.col_offset, r.end_lineno, r.end_col_offset)
+            return Loc(self.file,
+                       r.lineno,
+                       r.col_offset,
+                       r.end_lineno,
+                       r.end_col_offset)
         else:
-            funNameRe = re.compile(r'def\s+([^\s()]+)')
-            lineNo = node.lineno - 1
-            colNo = node.col_offset
-            lines = self.source.split('\n')
-            if lineNo < len(lines):
-                line = lines[lineNo][colNo:]
-                m = funNameRe.match(line)
-                if m:
-                    name = m.group(1)
-                    i = line.find(name)
-                    nameCol = colNo + i
-                    return Loc(self.file, node.lineno, nameCol, node.lineno, nameCol + len(name))
+            # There is no return type annotation
             return None
 
     def getParamSourceLocation(self, paramName: str) -> Optional[Loc]:
@@ -217,41 +195,50 @@ class StdCallableInfo(CallableInfo):
         if res is None:
             return None
         else:
-            return Loc(self.file, res.lineno, res.col_offset, res.end_lineno, res.end_col_offset)
+            return Loc(self.file,
+                       res.lineno,
+                       res.col_offset,
+                       res.end_lineno,
+                       res.end_col_offset)
 
-# FIXME: write unit tests
+
+def classFilename(cls) -> str | None:
+    """Best-effort path to the file that defined `cls`."""
+    try:
+        fn = inspect.getsourcefile(cls) or inspect.getfile(cls)
+        if fn:
+            return fn
+    except TypeError:
+        pass
+    # Fallback via the owning module (works for some frozen/zip cases)
+    mod = sys.modules.get(cls.__module__)
+    if mod is not None:
+        return getattr(mod, "__file__", None) or getattr(getattr(mod, "__spec__", None), "origin", None)
+    return None
+
 class RecordConstructorInfo(CallableInfo):
     """
     Class giving access to various properties of a record constructor.
     """
     def __init__(self, cls: type):
         super().__init__(ClassMember('constructor', cls.__name__))
-        self.cls = cls
-        try:
-            self.source = inspect.getsource(cls)
-        except Exception:
-            self.source = None
-        if self.source:
-            self.tree = ast.parse(self.source)
-        else:
-            self.tree = None
+        self.__cls = cls
     @property
     def name(self):
-        return self.cls.__name__
+        return self.__cls.__name__
     def getResultTypeLocation(self) -> Optional[Loc]:
         return None
     def getParamSourceLocation(self, paramName: str) -> Optional[Loc]:
-        if not self.tree:
+        file = classFilename(self.__cls)
+        if not file:
             return None
-        for node in ast.walk(self.tree):
-            print(node)
-            if isinstance(node, ast.AnnAssign):
-                if isinstance(node.target, ast.Name):
-                    file = self.cls.__code__.co_filename
-                    return Loc(file, node.lineno, node.col_offset, node.end_lineno, node.end_col_offset)
+        ast = parsecache.getAST(file)
+        node = ast.getRecordAttr(self.name, paramName)
+        if node:
+            return Loc(file, node.lineno, node.col_offset, node.end_lineno, node.end_col_offset)
+        else:
+            return None
 
-
-# FIXME: write unit test
 def locationOfArgument(fi: inspect.FrameInfo, idx: int) -> Optional[Loc]:
     """
     Given a stack frame with a function call f(arg1, arg2, ..., argN), returns

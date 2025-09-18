@@ -46,15 +46,12 @@ def limitTraceback(frameList: list[types.FrameType],
 
 def callerOutsideWypp() -> Optional[inspect.FrameInfo]:
     stack = inspect.stack()
-    #for fi in stack:
-    #    print(f'{fi.filename}:{fi.lineno}')
     d = os.path.dirname(stack[0].filename)
     for f in stack:
         if not isWyppFrame(f.frame) and not d == os.path.dirname(f.filename):
             return f
     return None
 
-# FIXME: unit tests
 class ReturnTracker:
     def __init__(self):
         self.__returnFrame: Optional[types.FrameType] = None
