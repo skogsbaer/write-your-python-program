@@ -16,6 +16,7 @@ class TestOpts:
     only: Optional[str]
     keepGoing: bool
     record: Optional[str]
+    lang: str
 
 def parseArgs() -> TestOpts:
     parser = argparse.ArgumentParser(
@@ -31,6 +32,8 @@ def parseArgs() -> TestOpts:
                         help="Continue with tests after first error")
     parser.add_argument('--record', dest='record',
                         type=str, help='Record the expected output for the given file.')
+    parser.add_argument('--lang', dest='lang',
+                        type=str, help='Display error messages in this language (either en or de, only for recording).')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -42,8 +45,11 @@ def parseArgs() -> TestOpts:
         startAt=args.start_at,
         only=args.only,
         keepGoing=args.keepGoing,
-        record=args.record
+        record=args.record,
+        lang=args.lang
     )
+
+defaultLang = 'de'
 
 TestStatus = Literal['passed', 'failed', 'skipped']
 
@@ -96,7 +102,9 @@ def readFileIfExists(filePath: str) -> str:
     else:
         return readFile(filePath)
 
-def getVersionedFile(base: str, typcheck: bool) -> str:
+def getVersionedFile(base: str, typcheck: bool, lang: str) -> str:
+    if lang != defaultLang:
+        base = f'{base}_{lang}'
     v = sys.version_info
     suffixes = [f'{v.major}.{v.minor}', f'{v.major}.{v.minor}.{v.micro}']
     if not typcheck:
@@ -199,6 +207,7 @@ def _runTest(testFile: str,
              actualStderrFile: str,
              pythonPath: list[str],
              what: str,
+             lang: str,
              ctx: TestContext) -> Literal['failed'] | None:
     # Prepare the command
     cmd = [sys.executable, ctx.opts.cmd, '--quiet']
@@ -206,7 +215,7 @@ def _runTest(testFile: str,
         cmd.append('--no-typechecking')
     cmd.append(testFile)
     cmd.append('--lang')
-    cmd.append('de')
+    cmd.append(lang)
     cmd.extend(args)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'site-lib')] + pythonPath)
@@ -225,28 +234,25 @@ def _runTest(testFile: str,
         print(f"Test {testFile}{what} failed: Expected exit code {exitCode}, got {result.returncode}")
         return 'failed'
 
-def _check(testFile: str,
+def _checkForLang(testFile: str,
           exitCode: int,
           typecheck: bool,
           args: list[str],
           pythonPath: list[str],
-          minVersion: Optional[tuple[int, int]],
           checkOutputs: bool,
+          lang: str,
           ctx: TestContext,
           what: str) -> TestStatus:
-    if shouldSkip(testFile, ctx, minVersion):
-        return 'skipped'
-
     # Prepare expected output files
     baseFile = os.path.splitext(testFile)[0]
-    expectedStdoutFile = getVersionedFile(f"{baseFile}.out", typcheck=typecheck)
-    expectedStderrFile = getVersionedFile(f"{baseFile}.err", typcheck=typecheck)
+    expectedStdoutFile = getVersionedFile(f"{baseFile}.out", typcheck=typecheck, lang=lang)
+    expectedStderrFile = getVersionedFile(f"{baseFile}.err", typcheck=typecheck, lang=lang)
 
     with tempfile.TemporaryDirectory() as d:
         actualStdoutFile = os.path.join(d, 'stdout.txt')
         actualStderrFile = os.path.join(d, 'stderr.txt')
         _runTest(testFile, exitCode, typecheck, args, actualStdoutFile, actualStderrFile,
-                 pythonPath, what, ctx)
+                 pythonPath, what, lang, ctx)
 
         fixOutput(actualStdoutFile)
         fixOutput(actualStderrFile)
@@ -258,9 +264,38 @@ def _check(testFile: str,
             if not checkOutputOk(testFile + what, 'stderr', expectedStderrFile, actualStderrFile):
                 return 'failed'
 
-    # If all checks pass
-    print(f"{testFile}{what} OK")
+    # If all checks passed
+    whatLang = ''
+    if lang != defaultLang:
+        whatLang = f' ({lang})'
+    print(f"{testFile}{what}{whatLang} OK")
     return 'passed'
+
+def _check(testFile: str,
+          exitCode: int,
+          typecheck: bool,
+          args: list[str],
+          pythonPath: list[str],
+          minVersion: Optional[tuple[int, int]],
+          checkOutputs: bool,
+          ctx: TestContext,
+          what: str) -> TestStatus:
+    if shouldSkip(testFile, ctx, minVersion):
+        return 'skipped'
+    status1 = _checkForLang(testFile, exitCode, typecheck, args, pythonPath, checkOutputs, defaultLang, ctx, what)
+    baseFile = os.path.splitext(testFile)[0]
+    enOut = getVersionedFile(f"{baseFile}.out", typcheck=typecheck, lang='en')
+    enErr = getVersionedFile(f"{baseFile}.err", typcheck=typecheck, lang='en')
+    if os.path.exists(enOut) or os.path.exists(enErr):
+        status2 = _checkForLang(testFile, exitCode, typecheck, args, pythonPath, checkOutputs, 'en', ctx, what)
+    else:
+        status2 = 'passed'
+    if status1 != 'passed':
+        return status1
+    elif status2 != 'passed':
+        return status2
+    else:
+        return 'passed'
 
 def check(testFile: str,
           exitCode: int = 1,
@@ -315,7 +350,7 @@ def record(testFile: str):
         actualStdoutFile = os.path.join(d, 'stdout.txt')
         actualStderrFile = os.path.join(d, 'stderr.txt')
         result = _runTest(testFile, exitCode, typecheck, args, actualStdoutFile, actualStderrFile,
-                          pythonPath, what, ctx)
+                          pythonPath, what, ctx.opts.lang or defaultLang, ctx)
         if result is not None:
             print(f'Test did not produce the expected exit code. Aborting')
             sys.exit(1)
@@ -325,14 +360,15 @@ def record(testFile: str):
         if answer:
             fixOutput(actualStdoutFile)
             fixOutput(actualStderrFile)
-            expectedStdoutFile = getVersionedFile(f"{baseFile}.out", typcheck=typecheck)
-            expectedStderrFile = getVersionedFile(f"{baseFile}.err", typcheck=typecheck)
+            expectedStdoutFile = getVersionedFile(f"{baseFile}.out", typcheck=typecheck, lang=ctx.opts.lang)
+            expectedStderrFile = getVersionedFile(f"{baseFile}.err", typcheck=typecheck, lang=ctx.opts.lang)
             shutil.copy(actualStdoutFile, expectedStdoutFile)
             shutil.copy(actualStderrFile, expectedStderrFile)
             print(f'Stored expected output in {expectedStdoutFile} and {expectedStderrFile}')
         else:
             print('Aborting')
 
-if globalCtx.opts.record is not None:
-    record(globalCtx.opts.record)
-    sys.exit(0)
+if __name__ == '__main__':
+    if globalCtx.opts.record is not None:
+        record(globalCtx.opts.record)
+        sys.exit(0)
