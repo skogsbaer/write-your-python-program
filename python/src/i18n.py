@@ -28,6 +28,10 @@ def getLang() -> Lang:
     else:
         return lang.pickLanguage(allLanguages, 'en')
 
+def setLang(lang: Lang):
+    global _lang
+    _lang = lang
+
 def tr(key, **kws) -> str:
     match getLang():
         case 'en':

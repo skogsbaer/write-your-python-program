@@ -15,9 +15,10 @@ import subprocess
 import runpy
 import types
 from dataclasses import dataclass
-import stacktrace
 
 # local imports
+import stacktrace
+import i18n
 import typecheck
 import instrument
 from myLogging import *
@@ -77,6 +78,8 @@ def parseCmdlineArgs(argList):
                         help='Enable debugging')
     parser.add_argument('--quiet', dest='quiet', action='store_const',
                         const=True, default=False, help='Be extra quiet')
+    parser.add_argument('--lang', dest='lang',
+                        type=str, help='Display error messages in this language (either en or de).')
     parser.add_argument('--no-clear', dest='noClear', action='store_const',
                         const=True, default=False, help='Do not clear the terminal')
     parser.add_argument('--test-file', dest='testFile',
@@ -462,6 +465,13 @@ Python in version {reqVStr} or newer is required. You are still using version {v
         DEBUG = True
 
     verbose(f'VERBOSE={VERBOSE}, DEBUG={DEBUG}')
+
+    if args.lang:
+        if args.lang in i18n.allLanguages:
+            i18n.setLang(args.lang)
+        else:
+            printStderr(f'Unsupported language {args.lang}. Supported: ' + ', '.join(i18n.allLanguages))
+            sys.exit(1)
 
     installLib(args.installMode)
     if args.installMode == InstallMode.dontInstall:
