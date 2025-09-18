@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "", line 8, in <module>
+    print(foo(foo(1, "1"), 42))
+
+WyppTypeError: "1"
+
+The call of function `foo` expects value of type `int` as 2nd argument.
+But the value given has type `str`.
+
+## File /Users/swehr/devel/write-your-python-program/python/test-data-2.0/functionArg.py
+## Problematic call in line 8:
+
+    print(foo(foo(1, [0;31m[1m"1"[0;0m), 42))
+
+## Type declared in line 4:
+
+def foo(i: int, [0;31m[1mj: int[0;0m) -> int:
