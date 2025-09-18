@@ -125,22 +125,24 @@ def transArg(pos: int):
     match getLang():
         case 'en':
             match pos:
-                case 1: '1st argument'
-                case 2: '2nd argument'
-                case 3: '3rd argument'
-                case _: f'{pos}th argument'
+                case 1: return '1st argument'
+                case 2: return '2nd argument'
+                case 3: return '3rd argument'
+                case _: return f'{pos}th argument'
         case 'de':
             match pos:
-                case 1: 'erstes Argument'
-                case 2: 'zweites Argument'
-                case 3: 'drittes Argument'
-                case 4: 'viertes Argument'
-                case 5: 'fünftes Argument'
-                case 6: 'sechstes Argument'
-                case 7: 'siebtes Argument'
-                case 8: 'achtes Argument'
-                case 9: 'neuntes Argument'
-                case _: f'{pos}. Argument'
+                case 1: return 'erstes Argument'
+                case 2: return 'zweites Argument'
+                case 3: return 'drittes Argument'
+                case 4: return 'viertes Argument'
+                case 5: return 'fünftes Argument'
+                case 6: return 'sechstes Argument'
+                case 7: return 'siebtes Argument'
+                case 8: return 'achtes Argument'
+                case 9: return 'neuntes Argument'
+                case _: return f'{pos}. Argument'
+        case l:
+            raise ValueError(f'Unexpected language: {l}')
 
 
 def expectingArgumentOfTy(cn: location.CallableName, ty: str, pos: int) -> str:
