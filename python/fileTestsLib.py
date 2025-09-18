@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 import argparse
 import re
+import shutil
 
 @dataclass(frozen=True)
 class TestOpts:
@@ -14,6 +15,7 @@ class TestOpts:
     startAt: Optional[str]
     only: Optional[str]
     keepGoing: bool
+    record: Optional[str]
 
 def parseArgs() -> TestOpts:
     parser = argparse.ArgumentParser(
@@ -27,6 +29,8 @@ def parseArgs() -> TestOpts:
     parser.add_argument("--continue", action="store_true",
                         dest="keepGoing", default=False,
                         help="Continue with tests after first error")
+    parser.add_argument('--record', dest='record',
+                        type=str, help='Record the expected output for the given file.')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -37,7 +41,8 @@ def parseArgs() -> TestOpts:
         baseDir=scriptDir,
         startAt=args.start_at,
         only=args.only,
-        keepGoing=args.keepGoing
+        keepGoing=args.keepGoing,
+        record=args.record
     )
 
 TestStatus = Literal['passed', 'failed', 'skipped']
@@ -179,6 +184,47 @@ def fixOutput(filePath: str):
     with open(filePath, 'w') as f:
         f.write(content)
 
+def readAnswer(question: str, allowed: list[str]) -> str:
+    while True:
+        answer = input(question)
+        if answer in allowed:
+            return answer
+        print(f'Answer must be one of {allowed}. Try again!')
+
+def _runTest(testFile: str,
+             exitCode: int,
+             typecheck: bool,
+             args: list[str],
+             actualStdoutFile: str,
+             actualStderrFile: str,
+             pythonPath: list[str],
+             what: str,
+             ctx: TestContext) -> Literal['failed'] | None:
+    # Prepare the command
+    cmd = [sys.executable, ctx.opts.cmd, '--quiet']
+    if not typecheck:
+        cmd.append('--no-typechecking')
+    cmd.append(testFile)
+    cmd.append('--lang')
+    cmd.append('de')
+    cmd.extend(args)
+    env = os.environ.copy()
+    env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'site-lib')] + pythonPath)
+    with open(actualStdoutFile, 'w') as stdoutFile, \
+            open(actualStderrFile, 'w') as stderrFile:
+        # Run the command
+        result = subprocess.run(
+            cmd,
+            stdout=stdoutFile,
+            stderr=stderrFile,
+            text=True,
+            env=env
+        )
+    # Check exit code
+    if result.returncode != exitCode:
+        print(f"Test {testFile}{what} failed: Expected exit code {exitCode}, got {result.returncode}")
+        return 'failed'
+
 def _check(testFile: str,
           exitCode: int,
           typecheck: bool,
@@ -196,33 +242,11 @@ def _check(testFile: str,
     expectedStdoutFile = getVersionedFile(f"{baseFile}.out", typcheck=typecheck)
     expectedStderrFile = getVersionedFile(f"{baseFile}.err", typcheck=typecheck)
 
-    # Prepare the command
-    cmd = [sys.executable, ctx.opts.cmd, '--quiet']
-    if not typecheck:
-        cmd.append('--no-typechecking')
-    cmd.append(testFile)
-    cmd.extend(args)
-
     with tempfile.TemporaryDirectory() as d:
         actualStdoutFile = os.path.join(d, 'stdout.txt')
         actualStderrFile = os.path.join(d, 'stderr.txt')
-        env = os.environ.copy()
-        env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'site-lib')] + pythonPath)
-        with open(actualStdoutFile, 'w') as stdoutFile, \
-             open(actualStderrFile, 'w') as stderrFile:
-            # Run the command
-            result = subprocess.run(
-                cmd,
-                stdout=stdoutFile,
-                stderr=stderrFile,
-                text=True,
-                env=env
-            )
-
-        # Check exit code
-        if result.returncode != exitCode:
-            print(f"Test {testFile}{what} failed: Expected exit code {exitCode}, got {result.returncode}")
-            return 'failed'
+        _runTest(testFile, exitCode, typecheck, args, actualStdoutFile, actualStderrFile,
+                 pythonPath, what, ctx)
 
         fixOutput(actualStdoutFile)
         fixOutput(actualStderrFile)
@@ -267,3 +291,48 @@ def checkBasic(testFile: str, ctx: TestContext = globalCtx):
     else:
         expectedExitCode = 1
     check(testFile, exitCode=expectedExitCode, checkOutputs=False, ctx=ctx)
+
+def record(testFile: str):
+    """
+    Runs filePath and stores the output in the expected files.
+    """
+    baseFile = os.path.splitext(testFile)[0]
+    exitCode = 0 if testFile.endswith('_ok.py') else 1
+    typecheck = True
+    args = []
+    pythonPath = []
+    what = ''
+    ctx = globalCtx
+    def display(filename: str, where: str):
+        x = readFile(filename)
+        if x:
+            print(f'--- Output on {where} ---')
+            print(x)
+            print('------------------------')
+        else:
+            print(f'No output on {where}')
+    with tempfile.TemporaryDirectory() as d:
+        actualStdoutFile = os.path.join(d, 'stdout.txt')
+        actualStderrFile = os.path.join(d, 'stderr.txt')
+        result = _runTest(testFile, exitCode, typecheck, args, actualStdoutFile, actualStderrFile,
+                          pythonPath, what, ctx)
+        if result is not None:
+            print(f'Test did not produce the expected exit code. Aborting')
+            sys.exit(1)
+        display(actualStdoutFile, 'stdout')
+        display(actualStderrFile, 'stderr')
+        answer = readAnswer('Store the output as the new expected output? (y/n) ', ['y', 'n'])
+        if answer:
+            fixOutput(actualStdoutFile)
+            fixOutput(actualStderrFile)
+            expectedStdoutFile = getVersionedFile(f"{baseFile}.out", typcheck=typecheck)
+            expectedStderrFile = getVersionedFile(f"{baseFile}.err", typcheck=typecheck)
+            shutil.copy(actualStdoutFile, expectedStdoutFile)
+            shutil.copy(actualStderrFile, expectedStderrFile)
+            print(f'Stored expected output in {expectedStdoutFile} and {expectedStderrFile}')
+        else:
+            print('Aborting')
+
+if globalCtx.opts.record is not None:
+    record(globalCtx.opts.record)
+    sys.exit(0)
