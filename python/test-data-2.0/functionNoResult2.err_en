@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "", line 4, in <module>
+    foo(1)
+  File "", line 2, in foo
+    pass
+
+WyppTypeError: no result returned
+
+Expecting return value of type `int` when calling function `foo`.
+But no value returned.
+
+## File functionNoResult2.py
+## Result type declared in line 1:
+
+def foo(i: int) -> [0;31m[1mint[0;0m:
+
+## Call in line 4 causes the function to return no value:
+
+foo(1)

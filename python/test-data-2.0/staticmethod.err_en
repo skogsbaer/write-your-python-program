@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "", line 6, in <module>
+    C.method("2")
+
+WyppTypeError: "2"
+
+The call of method `method` of class `C` expects value of type `int` as 1st argument.
+But the value given has type `str`.
+
+## File staticmethod.py
+## Problematic call in line 6:
+
+C.method("2")
+
+## Type declared in line 3:
+
+    def method([0;31m[1my: int[0;0m) -> int:

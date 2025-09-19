@@ -36,6 +36,15 @@ def isParameterizedType(t: Any) -> bool:
     """True for any parameterized typing construct (incl. Union, Annotated, etc.)."""
     return get_origin(t) is not None and len(get_args(t)) > 0
 
+def shouldReportTyMismatch(expected: Any, given: Any) -> bool:
+    if isParameterizedType(expected) and get_origin(expected) == given:
+        # don't report a mismatch because givenTy will not be properly parameterized.
+        # Example: resultTy is `list[int]` and givenValue is [1, "blub"]. Then
+        # givenTy will be just `list`
+        return False
+    else:
+        return True
+
 class WyppTypeError(TypeError, WyppError):
 
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
@@ -53,7 +62,7 @@ class WyppTypeError(TypeError, WyppError):
                     extraFrames: list[inspect.FrameInfo]) -> WyppTypeError:
         lines = []
         if givenValue is None:
-            lines.append('no return found')
+            lines.append(i18n.tr('no result returned'))
         else:
             lines.append(renderGiven(givenValue, returnLoc))
         lines.append('')
@@ -68,8 +77,9 @@ class WyppTypeError(TypeError, WyppError):
         else:
             # result type expected but different type given
             lines.append(i18n.expectingReturnOfType(callableName, renderTy(resultTy)))
-            if not isParameterizedType(resultTy):
-                lines.append(i18n.wrongReturnValue(renderTy(givenValue)))
+            givenTy = type(givenValue)
+            if shouldReportTyMismatch(resultTy, givenTy):
+                lines.append(i18n.wrongReturnValue(renderTy(givenTy)))
         printedFileName = None
         if resultTypeLoc:
             lines.append('')
@@ -77,7 +87,7 @@ class WyppTypeError(TypeError, WyppError):
             printedFileName = resultTypeLoc.filename
             lines.append(f'## {i18n.tr("Result type declared in line")} {resultTypeLoc.startLine}:\n')
             lines.append(renderLoc(resultTypeLoc))
-        if returnLoc:
+        if givenValue is not None and returnLoc:
             lines.append('')
             if printedFileName != returnLoc.filename:
                 lines.append(f'## {i18n.tr("File")} {returnLoc.filename}')
@@ -88,7 +98,10 @@ class WyppTypeError(TypeError, WyppError):
             lines.append('')
             if printedFileName != callLoc.filename:
                 lines.append(f'## {i18n.tr("File")} {callLoc.filename}')
-            lines.append(f'## {i18n.tr("Call causing the problematic return in line")} {callLoc.startLine}:\n')
+            if givenValue is None:
+                lines.append(f'## {i18n.unexpectedNoReturn(callLoc.startLine)}\n')
+            else:
+                lines.append(f'## {i18n.unexpectedReturn(callLoc.startLine)}\n')
             lines.append(renderLoc(callLoc))
         raise WyppTypeError('\n'.join(lines), extraFrames)
 
@@ -100,7 +113,7 @@ class WyppTypeError(TypeError, WyppError):
         lines.append(givenStr)
         lines.append('')
         lines.append(i18n.expectingArgumentOfTy(callableName, renderTy(paramTy), paramIndex + 1))
-        if not isParameterizedType(paramTy):
+        if shouldReportTyMismatch(paramTy, type(givenValue)):
             lines.append(i18n.realArgumentTy(renderTy(type(givenValue))))
         if givenLoc:
             lines.append('')

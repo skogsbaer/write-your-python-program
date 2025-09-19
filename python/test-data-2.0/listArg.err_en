@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "", line 4, in <module>
+    foo([1, 2, "3"])
+
+WyppTypeError: [1, 2, '3']
+
+The call of function `foo` expects value of type `list[int]` as 1st argument.
+
+## File listArg.py
+## Problematic call in line 4:
+
+foo([1, 2, "3"])
+
+## Type declared in line 1:
+
+def foo([0;31m[1ml: list[int][0;0m) -> int:

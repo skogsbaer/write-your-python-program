@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "", line 7, in <module>
+    foo(1)
+  File "", line 5, in foo
+    return "foo_" + str(i)
+
+WyppTypeError: "foo_1"
+
+Expecting return value of type `int` when calling function `foo`.
+But the call returns a value of type `str`.
+
+## File functionResult.py
+## Result type declared in line 4:
+
+def foo(i: int) -> [0;31m[1mint[0;0m:
+
+## Problematic return in line 5:
+
+    return "foo_" + str(i)
+
+## Call in line 7 causes the problematic return:
+
+foo(1)

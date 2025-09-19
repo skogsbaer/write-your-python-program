@@ -7,7 +7,7 @@ WyppTypeError: "1"
 The call of function `foo` expects value of type `int` as 2nd argument.
 But the value given has type `str`.
 
-## File /Users/swehr/devel/write-your-python-program/python/test-data-2.0/functionArg.py
+## File functionArg.py
 ## Problematic call in line 8:
 
     print(foo(foo(1, [0;31m[1m"1"[0;0m), 42))

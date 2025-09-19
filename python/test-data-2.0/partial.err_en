@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "", line 4, in <module>
+    foo(1, 2)
+
+WyppTypeError: Parameter `j` of function `foo` requires a type annotation.
+
+## File partial.py
+## Parameter declared in line 1:
+
+def foo(i: int, [0;31m[1mj[0;0m) -> None:

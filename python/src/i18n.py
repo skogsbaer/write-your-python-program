@@ -3,6 +3,7 @@ import location
 from typing import *
 from contextlib import contextmanager
 import lang
+import utils
 
 type Lang = Literal['en', 'de']
 
@@ -32,12 +33,17 @@ def setLang(lang: Lang):
     global _lang
     _lang = lang
 
-def tr(key, **kws) -> str:
+def tr(key: str, **kws) -> str:
     match getLang():
         case 'en':
             tmpl = key
         case 'de':
-            tmpl = DE[key]
+            if key not in DE and utils.isUnderTest():
+                raise ValueError(f'Untranslated string: {key}')
+            tmpl = DE.get(key, key)
+        case x:
+            if utils.underTest():
+                raise ValueError(f'Unknown language: {x}')
     return tmpl.format(**kws)
 
 DE = {
@@ -49,17 +55,20 @@ DE = {
         'Kein Rückgabewert erwartet bei Aufruf des Konstruktors der Klasse `{cls}`.',
 
     'Expecting return value of type `{ty}` when calling function `{fun}`.':
-        'Rückgabewert vom Typ `{ty} erwartet bei Aufruf der Funktion `{fun}`.',
+        'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf der Funktion `{fun}`.',
     'Expecting return value of type `{ty}` when calling method `{method}` of class `{cls}`.':
-        'Rückgabewert vom Typ `{ty} erwartet bei Aufruf von Methode `{method}` aus Klasse `{cls}`.',
+        'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf von Methode `{method}` aus Klasse `{cls}`.',
     'Expecting return value of type `{ty}` when calling constructor of class `{cls}`.':
-        'Rückgabewert vom Typ `{ty} erwartet bei Aufruf des Konstruktors der Klasse `{cls}`.',
+        'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf des Konstruktors der Klasse `{cls}`.',
 
     'But the call returns a value of type `{ty}`.':
-        'Aber der Aufruf gibt einen Wert vom Typ `{ty} zurück.',
+        'Aber der Aufruf gibt einen Wert vom Typ `{ty}` zurück.',
 
-    'But no return found.':
+    'But no value returned.':
         'Aber kein Rückgabewert vorhanden.',
+    'no result returned': 'kein Rückgabewert vorhanden',
+    'Call in line {line} causes the function to return no value:':
+        'Aufruf in Zeile {line} führt dazu, dass die Funktion keinen Wert zurückgibt:',
 
     'The call of function `{fun}` expects value of type `{ty}` as {arg}.':
         'Der Aufruf der Funktion `{fun}` erwartet Wert vom Typ `{ty}` als {arg}.',
@@ -76,7 +85,8 @@ DE = {
     'Parameter declared in line': 'Parameter deklariert in Zeile',
     'Problematic return in line': 'Fehlerhaftes return in Zeile',
     'Problematic call in line': 'Fehlerhafter Aufruf in Zeile',
-    'Call causing the problematic return in line': 'Aufruf, der das fehlerhafte return verursacht, in Zeile',
+    'Call in line {line} causes the problematic return:':
+        'Aufruf in Zeile {line} verursacht das fehlerhafte return:',
 
     'Parameter `{param}` of function `{fun}` requires a type annotation.':
         'Parameter `{param}` der Funktion `{fun}` benötigt eine Typangabe.',
@@ -105,6 +115,12 @@ def expectingNoReturn(cn: location.CallableName) -> str:
 def wrongReturnValue(ty: str) -> str:
     return tr('But the call returns a value of type `{ty}`.', ty=ty)
 
+def unexpectedReturn(line: int) -> str:
+    return tr('Call in line {line} causes the problematic return:', line=line)
+
+def unexpectedNoReturn(line: int) -> str:
+    return tr('Call in line {line} causes the function to return no value:', line=line)
+
 def expectingReturnOfType(cn: location.CallableName, ty: str) -> str:
     match cn.kind:
         case 'function':
@@ -119,7 +135,7 @@ def expectingReturnOfType(cn: location.CallableName, ty: str) -> str:
     raise ValueError(f'Unexpected: {cn}')
 
 def noReturnValue() -> str:
-    return tr('But no return found.')
+    return tr('But no value returned.')
 
 def transArg(pos: int):
     match getLang():

@@ -26,3 +26,7 @@ def dropWhile(l: list, f: Callable[[Any], bool]) -> list:
         if not f(l[i]):
             break
     return l[i:]
+
+def isUnderTest() -> bool:
+    x = os.getenv('WYPP_UNDER_TEST')
+    return x == 'True'

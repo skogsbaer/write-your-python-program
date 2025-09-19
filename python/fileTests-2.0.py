@@ -7,6 +7,6 @@ for file in directory.iterdir():
     if file.is_file():
         name = file.as_posix()
         if name.endswith('.py'):
-            checkBasic(name)
+            check(name)
 
 globalCtx.results.finish()

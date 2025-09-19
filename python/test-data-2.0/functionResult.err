@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "", line 7, in <module>
+    foo(1)
+  File "", line 5, in foo
+    return "foo_" + str(i)
+
+WyppTypeError: "foo_1"
+
+Rückgabewert vom Typ `int` erwartet bei Aufruf der Funktion `foo`.
+Aber der Aufruf gibt einen Wert vom Typ `str` zurück.
+
+## Datei functionResult.py
+## Rückgabetyp deklariert in Zeile 4:
+
+def foo(i: int) -> [0;31m[1mint[0;0m:
+
+## Fehlerhaftes return in Zeile 5:
+
+    return "foo_" + str(i)
+
+## Aufruf in Zeile 7 verursacht das fehlerhafte return:
+
+foo(1)

@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "", line 8, in <module>
+    p = Person("Alice", "30")
+
+WyppTypeError: "30"
+
+The call of the constructor of class `Person` expects value of type `int` as 2nd argument.
+But the value given has type `str`.
+
+## File record.py
+## Problematic call in line 8:
+
+p = [0;31m[1mPerson("Alice", "30")[0;0m
+
+## Type declared in line 6:
+
+    [0;31m[1mage: int[0;0m

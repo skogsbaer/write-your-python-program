@@ -16,7 +16,7 @@ class TestOpts:
     only: Optional[str]
     keepGoing: bool
     record: Optional[str]
-    lang: str
+    lang: Optional[str]
 
 def parseArgs() -> TestOpts:
     parser = argparse.ArgumentParser(
@@ -102,7 +102,9 @@ def readFileIfExists(filePath: str) -> str:
     else:
         return readFile(filePath)
 
-def getVersionedFile(base: str, typcheck: bool, lang: str) -> str:
+def getVersionedFile(base: str, typcheck: bool, lang: Optional[str]) -> str:
+    if lang is None:
+        lang = defaultLang
     if lang != defaultLang:
         base = f'{base}_{lang}'
     v = sys.version_info
@@ -189,6 +191,8 @@ def fixOutput(filePath: str):
     content = readFile(filePath)
     content = re.sub(r'at 0x[0-9a-f][0-9a-f]*>', 'at 0x00>', content, flags=re.MULTILINE)  # Remove memory addresses
     content = re.sub(r'  File "/[^"]*"', '  File ""', content, flags=re.MULTILINE)  # Remove file paths
+    content = re.sub(r'## File .*/([^/]*)$', '## File \\1', content, flags=re.MULTILINE)
+    content = re.sub(r'## Datei .*/([^/]*)$', '## Datei \\1', content, flags=re.MULTILINE)
     with open(filePath, 'w') as f:
         f.write(content)
 
@@ -219,6 +223,7 @@ def _runTest(testFile: str,
     cmd.extend(args)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'site-lib')] + pythonPath)
+    env['WYPP_UNDER_TEST'] = 'True'
     with open(actualStdoutFile, 'w') as stdoutFile, \
             open(actualStderrFile, 'w') as stderrFile:
         # Run the command
@@ -297,6 +302,9 @@ def _check(testFile: str,
     else:
         return 'passed'
 
+def guessExitCode(testFile: str) -> int:
+    return 0 if testFile.endswith('_ok.py') else 1
+
 def check(testFile: str,
           exitCode: int = 1,
           typecheck: bool = True,
@@ -306,6 +314,8 @@ def check(testFile: str,
           checkOutputs: bool = True,
           ctx: TestContext = globalCtx,
           what: str = ''):
+    if guessExitCode(testFile) == 0:
+        exitCode = 0
     status = _check(testFile, exitCode, typecheck, args, pythonPath, minVersion, checkOutputs, ctx, what)
     ctx.results.record(testFile, status)
     if status == 'failed':
@@ -321,18 +331,14 @@ def checkBoth(testFile: str,
     check(testFile, exitCode, typecheck=False, args=args, minVersion=minVersion, ctx=ctx, what=' (no typecheck)')
 
 def checkBasic(testFile: str, ctx: TestContext = globalCtx):
-    if testFile.endswith('_ok.py'):
-        expectedExitCode = 0
-    else:
-        expectedExitCode = 1
-    check(testFile, exitCode=expectedExitCode, checkOutputs=False, ctx=ctx)
+    check(testFile, checkOutputs=False, ctx=ctx)
 
 def record(testFile: str):
     """
     Runs filePath and stores the output in the expected files.
     """
     baseFile = os.path.splitext(testFile)[0]
-    exitCode = 0 if testFile.endswith('_ok.py') else 1
+    exitCode = guessExitCode(testFile)
     typecheck = True
     args = []
     pythonPath = []

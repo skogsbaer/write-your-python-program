@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "", line 4, in <module>
+    foo(1)
+  File "", line 2, in foo
+    return "x"
+
+WyppTypeError: "x"
+
+Expecting no return value when calling function `foo`.
+But the call returns a value of type `str`.
+
+## File functionNoResult3.py
+## Problematic return in line 2:
+
+    return "x"
+
+## Call in line 4 causes the problematic return:
+
+foo(1)
