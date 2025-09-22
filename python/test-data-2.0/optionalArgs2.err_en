@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "", line 4, in <module>
+    foo(1)
+
+WyppTypeError: argument count mismatch
+
+Function `foo` takes at least 2 arguments.
+Given: 1 argument
+
+## File optionalArgs2.py
+## Call in line 4:
+
+foo(1)

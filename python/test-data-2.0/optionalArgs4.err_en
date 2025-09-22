@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "", line 1, in <module>
+    class C:
+  File "", line 1, in C
+    class C:
+
+WyppTypeError: 2
+
+Default value for parameter `s` of method `__init__` in class `C` must have type `str`.
+But the default value has type `int`.
+
+## File optionalArgs4.py
+## Parameter declared in line 2:
+
+    def __init__(i: int, [0;31m[1ms: str[0;0m=2):

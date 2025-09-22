@@ -8,6 +8,8 @@ import argparse
 import re
 import shutil
 
+GLOBAL_CHECK_OUTPUTS = True
+
 @dataclass(frozen=True)
 class TestOpts:
     cmd: str
@@ -58,7 +60,7 @@ class TestResults:
     passed: list[str]
     failed: list[str]
     skipped: list[str]
-    def record(self, testFail: str, result: TestStatus):
+    def storeTestResult(self, testFail: str, result: TestStatus):
         if result == 'passed':
             self.passed.append(testFail)
         elif result == 'failed':
@@ -157,7 +159,7 @@ def checkOutputOk(testFile: str, outputType: str, expectedFile: str, actualFile:
 
 def checkInstall(testFile: str, ctx: TestContext=globalCtx):
     if shouldSkip(testFile, ctx, None):
-        ctx.results.record(testFile, 'skipped')
+        ctx.results.storeTestResult(testFile, 'skipped')
         return
     with tempfile.TemporaryDirectory() as d:
         def run(args: list[str]):
@@ -256,14 +258,16 @@ def _checkForLang(testFile: str,
     with tempfile.TemporaryDirectory() as d:
         actualStdoutFile = os.path.join(d, 'stdout.txt')
         actualStderrFile = os.path.join(d, 'stderr.txt')
-        _runTest(testFile, exitCode, typecheck, args, actualStdoutFile, actualStderrFile,
-                 pythonPath, what, lang, ctx)
+        r = _runTest(testFile, exitCode, typecheck, args, actualStdoutFile, actualStderrFile,
+                     pythonPath, what, lang, ctx)
+        if r is not None:
+            return r
 
         fixOutput(actualStdoutFile)
         fixOutput(actualStderrFile)
 
         # Checkout outputs
-        if checkOutputs:
+        if checkOutputs and GLOBAL_CHECK_OUTPUTS:
             if not checkOutputOk(testFile + what, 'stdout', expectedStdoutFile, actualStdoutFile):
                 return 'failed'
             if not checkOutputOk(testFile + what, 'stderr', expectedStderrFile, actualStderrFile):
@@ -317,7 +321,7 @@ def check(testFile: str,
     if guessExitCode(testFile) == 0:
         exitCode = 0
     status = _check(testFile, exitCode, typecheck, args, pythonPath, minVersion, checkOutputs, ctx, what)
-    ctx.results.record(testFile, status)
+    ctx.results.storeTestResult(testFile, status)
     if status == 'failed':
         if not ctx.opts.keepGoing:
             ctx.results.finish()

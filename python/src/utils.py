@@ -1,5 +1,6 @@
 from typing import *
 import os
+from contextlib import contextmanager
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -30,3 +31,18 @@ def dropWhile(l: list, f: Callable[[Any], bool]) -> list:
 def isUnderTest() -> bool:
     x = os.getenv('WYPP_UNDER_TEST')
     return x == 'True'
+
+@contextmanager
+def underTest(value: bool = True):
+    """Context manager to temporarily set WYPP_UNDER_TEST environment variable."""
+    oldValue = os.getenv('WYPP_UNDER_TEST')
+    os.environ['WYPP_UNDER_TEST'] = str(value)
+    try:
+        yield
+    finally:
+        if oldValue is None:
+            # Remove the environment variable if it didn't exist before
+            os.environ.pop('WYPP_UNDER_TEST', None)
+        else:
+            # Restore the original value
+            os.environ['WYPP_UNDER_TEST'] = oldValue

@@ -51,15 +51,15 @@ DE = {
         'Kein Rückgabewert erwartet bei Aufruf der Funktion `{fun}`.',
     'Expecting no return value when calling method `{method}` of class `{cls}.':
         'Kein Rückgabewert erwartet bei Aufruf der Methode `{method}` aus Klasse `{cls}`.',
-    'Expecting no return value when calling constructor of class `{cls}`.':
-        'Kein Rückgabewert erwartet bei Aufruf des Konstruktors der Klasse `{cls}`.',
+    'Expecting no return value when calling constructor of record `{cls}`.':
+        'Kein Rückgabewert erwartet bei Aufruf des Konstruktors des Records `{cls}`.',
 
     'Expecting return value of type `{ty}` when calling function `{fun}`.':
         'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf der Funktion `{fun}`.',
     'Expecting return value of type `{ty}` when calling method `{method}` of class `{cls}`.':
         'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf von Methode `{method}` aus Klasse `{cls}`.',
-    'Expecting return value of type `{ty}` when calling constructor of class `{cls}`.':
-        'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf des Konstruktors der Klasse `{cls}`.',
+    'Expecting return value of type `{ty}` when calling constructor of record `{cls}`.':
+        'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf des Konstruktors des Records `{cls}`.',
 
     'But the call returns a value of type `{ty}`.':
         'Aber der Aufruf gibt einen Wert vom Typ `{ty}` zurück.',
@@ -74,10 +74,11 @@ DE = {
         'Der Aufruf der Funktion `{fun}` erwartet Wert vom Typ `{ty}` als {arg}.',
     'The call of method `{method}` of class `{cls}` expects value of type `{ty}` as {arg}.':
         'Der Aufruf der Methode `{method}` aus Klasse `{cls}` erwartet Wert vom Typ `{ty}` als {arg}.',
-    'The call of the constructor of class `{cls}` expects value of type `{ty}` as {arg}.':
-        'Der Aufruf des Konstruktors der Klasse `{cls}` erwartet Wert vom Typ `{ty}` als {arg}.',
+    'The call of the constructor of record `{cls}` expects value of type `{ty}` as {arg}.':
+        'Der Aufruf des Konstruktors des Records `{cls}` erwartet Wert vom Typ `{ty}` als {arg}.',
 
     'But the value given has type `{ty}`.': 'Aber der übergebene Wert hat Typ `{ty}`.',
+    'But the default value has type `{ty}`.': 'Aber der Default-Wert hat Typ `{ty}`.',
 
     'File': 'Datei',
     'Result type declared in line': 'Rückgabetyp deklariert in Zeile',
@@ -89,11 +90,11 @@ DE = {
         'Aufruf in Zeile {line} verursacht das fehlerhafte return:',
 
     'Parameter `{param}` of function `{fun}` requires a type annotation.':
-        'Parameter `{param}` der Funktion `{fun}` benötigt eine Typangabe.',
+        'Parameter `{param}` der Funktion `{fun}` benötigt eine Typannotation.',
     'Parameter `{param}` of method `{method}` from class `{cls}` requires a type annotation.':
-        'Parameter `{param}` der Methode `{method}` aus Klasse `{cls}` benötigt eine Typangabe.',
-    'Parameter `{param}` of the constructor of class `{cls}` requires a type annotation.':
-        'Parameter `{param}` des Konstruktors der Klasse `{cls}` benötigt eine Typangabe.',
+        'Parameter `{param}` der Methode `{method}` aus Klasse `{cls}` benötigt eine Typannotation.',
+    'Parameter `{param}` of constructor of record `{cls}` requires a type annotation.':
+        'Parameter `{param}` des Konstruktors des Records `{cls}` benötigt eine Typannotation.',
 
     'Attribute `{name}` of record `{record}` required a type annotation.':
         'Attribut `{name}` des Records `{record}` benötigt eine Typannotation.',
@@ -104,7 +105,31 @@ DE = {
         'Das Attribute kann nicht auf einen Wert vom Typ `{ty}` gesetzt werden.',
     'Problematic assignment in line': 'Fehlerhafte Zuweisung in Zeile',
     'Attribute `{attrName}` of record `{recordName}` declared with type `{ty}.`':
-        'Attribut `{attrName}` des Records `{recordName}` deklariert als Typ `{ty}`.'
+        'Attribut `{attrName}` des Records `{recordName}` deklariert als Typ `{ty}`.',
+
+    'argument count mismatch': 'Anzahl der Argument passt nicht',
+    'Call in line': 'Aufruf in Zeile',
+    'Function `{fun}` takes ': 'Funktion `{fun}` benötigt ',
+    'Function `{fun}` takes at least ': 'Funktion `{fun}` benötigt mindestens ',
+    'Function `{fun}` takes at most ': 'Funktion `{fun}` akzeptiert höchstens ',
+    'Method `{method}` of class `{cls}` takes ': 'Methode `{method}` der Klasse `{cls}` benötigt ',
+    'Method `{method}` of class `{cls}` takes at least ': 'Methode `{method}` der Klasse `{cls}` benötigt mindestens ',
+    'Method `{method}` of class `{cls}` takes at most ': 'Methode `{method}` der Klasse `{cls}` akzeptiert höchstens ',
+    'Constructor of record `{cls}` takes ': 'Konstruktor des Records `{cls}` benötigt ',
+    'Constructor of record `{cls}` takes at least ': 'Konstruktor des Records `{cls}` benötigt mindestens ',
+    'Constructor of record `{cls}` takes at most ': 'Konstruktor des Records `{cls}` akzeptiert höchstens ',
+    'Given: ': 'Gegeben: ',
+
+    'Default value for parameter `{paramName}` of function `{fun}` must have type `{ty}`.':
+        'Default-Wert des Parameters `{paramName}` der Funktion `{fun}` muss vom Typ `{ty}` sein.',
+    'Default value for parameter `{paramName}` of method `{method}` in class `{cls}` must have type `{ty}`.':
+        'Default-Wert des Parameters `{paramName}` der Methode `{method}` aus Klasse `{cls}` muss vom Typ `{ty}` sein.',
+    'Default value for attribute `{paramName}` of record `{cls}` must have type `{ty}`.':
+        'Default-Wert des Attributs `{paramName}` des Records `{cls}` muss vom Typ `{ty}` sein.',
+
+    'Unknown attribute {attrName} for record {clsName}':
+        'Attribut {attrName} ist nicht bekannt für Record {clsName}',
+
 }
 
 def expectingNoReturn(cn: location.CallableName) -> str:
@@ -115,8 +140,8 @@ def expectingNoReturn(cn: location.CallableName) -> str:
         case location.ClassMember('method', cls):
             return tr('Expecting no return value when calling method `{method}` of class `{cls}.',
                     method=cn.name, cls=cls)
-        case location.ClassMember('constructor', cls):
-            return tr('Expecting no return value when calling constructor of class `{cls}`.',
+        case location.ClassMember('recordConstructor', cls):
+            return tr('Expecting no return value when calling constructor of record `{cls}`.',
                     cls=cls)
     raise ValueError(f'Unexpected: {cn}')
 
@@ -137,8 +162,8 @@ def expectingReturnOfType(cn: location.CallableName, ty: str) -> str:
         case location.ClassMember('method', cls):
             return tr('Expecting return value of type `{ty}` when calling method `{method}` of class `{cls}`.',
                     method=cn.name, cls=cls, ty=ty)
-        case location.ClassMember('constructor', cls):
-            return tr('Expecting return value of type `{ty}` when calling constructor of class `{cls}`.',
+        case location.ClassMember('recordConstructor', cls):
+            return tr('Expecting return value of type `{ty}` when calling constructor of record `{cls}`.',
                     cls=cls, ty=ty)
     raise ValueError(f'Unexpected: {cn}')
 
@@ -178,13 +203,88 @@ def expectingArgumentOfTy(cn: location.CallableName, ty: str, pos: int) -> str:
         case location.ClassMember('method', cls):
             return tr('The call of method `{method}` of class `{cls}` expects value of type `{ty}` as {arg}.',
                     method=cn.name, cls=cls, ty=ty, arg=arg)
-        case location.ClassMember('constructor', cls):
-            return tr('The call of the constructor of class `{cls}` expects value of type `{ty}` as {arg}.',
+        case location.ClassMember('recordConstructor', cls):
+            return tr('The call of the constructor of record `{cls}` expects value of type `{ty}` as {arg}.',
                     cls=cls, ty=ty, arg=arg)
     raise ValueError(f'Unexpected: {cn}')
 
+def expectingDefaultValueOfTy(cn: location.CallableName, ty: str, paramName: str) -> str:
+    match cn.kind:
+        case 'function':
+            return tr('Default value for parameter `{paramName}` of function `{fun}` must have type `{ty}`.',
+                      paramName=paramName, fun=cn.name, ty=ty)
+        case location.ClassMember('method', cls):
+            return tr('Default value for parameter `{paramName}` of method `{method}` in class `{cls}` must have type `{ty}`.',
+                      paramName=paramName, method=cn.name, cls=cls, ty=ty)
+        case location.ClassMember('recordConstructor', cls):
+            return tr('Default value for attribute `{paramName}` of record `{cls}` must have type `{ty}`.',
+                      paramName=paramName, cls=cls, ty=ty)
+    raise ValueError(f'Unexpected: {cn}')
+
+def argCount(n: int) -> str:
+    match getLang():
+        case 'en':
+            if n == 0:
+                return 'no arguments'
+            elif n == 1:
+                return '1 argument'
+            else:
+                return f'{n} arguments'
+        case 'de':
+            if n == 0:
+                return 'keine Argumente'
+            elif n == 1:
+                return '1 Argument'
+            else:
+                return f'{n} Argumente'
+
+def argCountExact(cn: location.CallableName, expected: int) -> str:
+    match cn.kind:
+        case 'function':
+            header = tr('Function `{fun}` takes ', fun=cn.name)
+        case location.ClassMember('method', cls):
+            header = tr('Method `{method}` of class `{cls}` takes ',
+                      method=cn.name, cls=cls)
+        case location.ClassMember('recordConstructor', cls):
+            header = tr('Constructor of record `{cls}` takes ',
+                        cls=cls)
+        case _:
+            raise ValueError(f'Unexpected: {cn}')
+    return header + argCount(expected) + '.'
+
+def argCountMin(cn: location.CallableName, expected: int) -> str:
+    match cn.kind:
+        case 'function':
+            header = tr('Function `{fun}` takes at least ', fun=cn.name)
+        case location.ClassMember('method', cls):
+            header = tr('Method `{method}` of class `{cls}` takes at least ',
+                      method=cn.name, cls=cls)
+        case location.ClassMember('recordConstructor', cls):
+            header = tr('Constructor of record `{cls}` takes at least ',
+                        cls=cls)
+        case _:
+            raise ValueError(f'Unexpected: {cn}')
+    return header + argCount(expected) + '.'
+
+def argCountMax(cn: location.CallableName, expected: int) -> str:
+    match cn.kind:
+        case 'function':
+            header = tr('Function `{fun}` takes at most ', fun=cn.name)
+        case location.ClassMember('method', cls):
+            header = tr('Method `{method}` of class `{cls}` takes at most ',
+                      method=cn.name, cls=cls)
+        case location.ClassMember('recordConstructor', cls):
+            header = tr('Constructor of record `{cls}` takes at most ',
+                        cls=cls)
+        case _:
+            raise ValueError(f'Unexpected: {cn}')
+    return header + argCount(expected) + '.'
+
 def realArgumentTy(ty: str) -> str:
     return tr('But the value given has type `{ty}`.', ty=ty)
+
+def realDefaultValueTy(ty: str) -> str:
+    return tr('But the default value has type `{ty}`.', ty=ty)
 
 def realSetAttrTy(ty: str) -> str:
     return tr('Cannot set attribute to value of type `{ty}`.', ty=ty)
@@ -197,8 +297,8 @@ def expectingTypeAnnotation(cn: location.CallableName, param: str) -> str:
         case location.ClassMember('method', cls):
             return tr('Parameter `{param}` of method `{method}` from class `{cls}` requires a type annotation.',
                         method=cn.name, cls=cls, param=param)
-        case location.ClassMember('constructor', cls):
-            return tr('Parameter `{param}` of the constructor of class `{cls}` requires a type annotation.',
+        case location.ClassMember('recordConstructor', cls):
+            return tr('Parameter `{param}` of constructor of record `{cls}` requires a type annotation.',
                         cls=cls, param=param)
     raise ValueError(f'Unexpected: {cn}')
 

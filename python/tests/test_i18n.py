@@ -2,6 +2,7 @@ import unittest
 import i18n
 import location
 import inspect
+import utils
 
 class TestI18nTranslations(unittest.TestCase):
     def setUp(self):
@@ -17,7 +18,7 @@ class TestI18nTranslations(unittest.TestCase):
         return [
             location.CallableName('foo', 'function'),
             location.CallableName('foo', location.ClassMember('method', 'foo')),
-            location.CallableName('foo', location.ClassMember('constructor', 'foo'))
+            location.CallableName('foo', location.ClassMember('recordConstructor', 'foo'))
         ]
 
     def _getTestArgs(self, func):
@@ -52,17 +53,18 @@ class TestI18nTranslations(unittest.TestCase):
             return [args] if args else [[]]
 
     def testAllI18NFunctions(self):
-        for lang in i18n.allLanguages:
-            with i18n.explicitLang(lang):
-                with self.subTest(lang=lang):
-                    for funcName, func in self.stringFunctions:
-                        with self.subTest(function=funcName):
-                            argVariants = self._getTestArgs(func)
-                            for args in argVariants:
-                                with self.subTest(args=args):
-                                    result = func(*args)
-                                    self.assertIsInstance(result, str)
-                                    self.assertGreater(len(result), 0)
+        with utils.underTest(True):
+            for lang in i18n.allLanguages:
+                with i18n.explicitLang(lang):
+                    with self.subTest(lang=lang):
+                        for funcName, func in self.stringFunctions:
+                            with self.subTest(function=funcName):
+                                argVariants = self._getTestArgs(func)
+                                for args in argVariants:
+                                    with self.subTest(args=args):
+                                        result = func(*args)
+                                        self.assertIsInstance(result, str)
+                                        self.assertGreater(len(result), 0)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "", line 4, in <module>
+    foo(1, 2, 3, 4)
+
+WyppTypeError: Anzahl der Argument passt nicht
+
+Funktion `foo` akzeptiert höchstens 3 Argumente.
+Gegeben: 4 Argumente
+
+## Datei optionalArgs3.py
+## Aufruf in Zeile 4:
+
+foo(1, 2, 3, 4)

@@ -140,6 +140,47 @@ class WyppTypeError(TypeError, WyppError):
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
+    def defaultError(callableName: location.CallableName, paramName: str, paramLoc: Optional[location.Loc],
+                      paramTy: Any, givenValue: Any) -> WyppTypeError:
+        lines = []
+        givenStr = renderGiven(givenValue, paramLoc)
+        lines.append(givenStr)
+        lines.append('')
+        lines.append(i18n.expectingDefaultValueOfTy(callableName, renderTy(paramTy), paramName))
+        if shouldReportTyMismatch(paramTy, type(givenValue)):
+            lines.append(i18n.realDefaultValueTy(renderTy(type(givenValue))))
+        if paramLoc:
+            lines.append('')
+            lines.append(f'## {i18n.tr("File")} {paramLoc.filename}')
+            lines.append(f'## {i18n.tr("Parameter declared in line")} {paramLoc.startLine}:\n')
+            lines.append(renderLoc(paramLoc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
+    def argCountMismatch(callableName: location.CallableName, callLoc: Optional[location.Loc],
+                         numParams: int, numMandatoryParams: int, numArgs: int) -> WyppTypeError:
+        lines = []
+        lines.append(i18n.tr('argument count mismatch'))
+        lines.append('')
+        if numArgs < numMandatoryParams:
+            if numParams == numMandatoryParams:
+                lines.append(i18n.argCountExact(callableName, numParams))
+            else:
+                lines.append(i18n.argCountMin(callableName, numMandatoryParams))
+        else:
+            if numParams == numMandatoryParams:
+                lines.append(i18n.argCountExact(callableName, numParams))
+            else:
+                lines.append(i18n.argCountMax(callableName, numParams))
+        lines.append(i18n.tr('Given: ') + i18n.argCount(numArgs))
+        if callLoc:
+            lines.append('')
+            lines.append(f'## {i18n.tr("File")} {callLoc.filename}')
+            lines.append(f'## {i18n.tr("Call in line")} {callLoc.startLine}:\n')
+            lines.append(renderLoc(callLoc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
     def partialAnnotationError(callableName: location.CallableName, paramName: str, paramLoc: Optional[location.Loc]) -> WyppTypeError:
         lines = []
         lines.append(i18n.expectingTypeAnnotation(callableName, paramName))
@@ -182,4 +223,7 @@ class WyppTypeError(TypeError, WyppError):
         raise WyppTypeError('\n'.join(lines))
 
 class WyppAttributeError(AttributeError, WyppError):
-    pass
+    @staticmethod
+    def unknownAttr(clsName: str, attrName: str) -> WyppAttributeError:
+        return WyppAttributeError(i18n.tr('Unknown attribute {attrName} for record {clsName}',
+                                          clsName=clsName, attrName=attrName))

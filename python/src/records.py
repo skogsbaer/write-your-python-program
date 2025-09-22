@@ -77,10 +77,10 @@ def _patchDataClass(cls, mutable: bool):
 
         oldSetattr = cls.__setattr__
         def _setattr(obj, name, v):
-            ty = types[name]
-            tyLoc = locs[name]
-            v = _checkRecordAttr(cls, ns, name, ty, tyLoc, v)
-            if name in fields:
+            if name in types:
+                ty = types[name]
+                tyLoc = locs[name]
+                v = _checkRecordAttr(cls, ns, name, ty, tyLoc, v)
                 oldSetattr(obj, name, v)
             else:
                 raise errors.WyppAttributeError(f'Unknown attribute {name} for record {cls.__name__}')
@@ -101,4 +101,4 @@ def record(cls=None, mutable=False):
         return wrap
     else:
         # We're called as @dataclass without parens.
-        return wrap(cls)
+        return _call_with_frames_removed(wrap, cls)

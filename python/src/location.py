@@ -108,7 +108,7 @@ def highlightedLines(loc: Loc) -> list[SourceLine]:
 
 @dataclass
 class ClassMember:
-    kind: Literal['method', 'constructor']
+    kind: Literal['method', 'recordConstructor']
     className: str
 
 type CallableKind = Literal['function'] | ClassMember
@@ -221,7 +221,7 @@ class RecordConstructorInfo(CallableInfo):
     Class giving access to various properties of a record constructor.
     """
     def __init__(self, cls: type):
-        super().__init__(ClassMember('constructor', cls.__name__))
+        super().__init__(ClassMember('recordConstructor', cls.__name__))
         self.__cls = cls
     @property
     def name(self):

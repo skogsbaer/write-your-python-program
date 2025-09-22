@@ -1,8 +1,8 @@
 Traceback (most recent call last):
-  File "", line 4, in <module>
-    foo(1, 2)
+  File "", line 1, in <module>
+    def foo(i: int, j) -> None:
 
-WyppTypeError: Parameter `j` der Funktion `foo` benötigt eine Typangabe.
+WyppTypeError: Parameter `j` der Funktion `foo` benötigt eine Typannotation.
 
 ## Datei partial.py
 ## Parameter deklariert in Zeile 1:

@@ -38,42 +38,82 @@ def handleMatchesTyResult(res: MatchesTyResult, tyLoc: Optional[location.Loc]) -
         case b:
             return b
 
-def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
-                   code: location.CallableInfo, cfg: CheckCfg) -> None:
-    params = list(sig.parameters)
-    if len(params) != len(args):
-        raise TypeError(f"Expected {len(params)} arguments, got {len(args)}")
+def getKind(cfg: CheckCfg, paramNames: list[str]) -> Literal['function', 'method', 'staticmethod']:
     kind: Literal['function', 'method', 'staticmethod'] = 'function'
     match cfg.kind:
-        case location.ClassMember('constructor', _):
+        case location.ClassMember('recordConstructor', _):
             kind = 'method'
         case location.ClassMember('method', _):
-            if len(params) > 0 and params[0] == 'self':
+            if len(paramNames) > 0 and paramNames[0] == 'self':
                 kind = 'method'
             else:
                 kind = 'staticmethod'
         case 'function':
             kind = 'function'
+    return kind
+
+def checkSignature(sig: inspect.Signature, info: location.CallableInfo, cfg: CheckCfg) -> None:
+    paramNames = list(sig.parameters)
+    kind = getKind(cfg, paramNames)
+    for i in range(len(paramNames)):
+        name = paramNames[i]
+        p = sig.parameters[name]
+        ty = p.annotation
+        if isEmptyAnnotation(ty):
+            if i == 0 and kind == 'method':
+                pass
+            else:
+                locDecl = info.getParamSourceLocation(name)
+                raise errors.WyppTypeError.partialAnnotationError(location.CallableName.mk(info), name, locDecl)
+        if p.default is not inspect.Parameter.empty:
+            locDecl = info.getParamSourceLocation(name)
+            if not handleMatchesTyResult(matchesTy(p.default, ty, cfg.ns), locDecl):
+                raise errors.WyppTypeError.defaultError(location.CallableName.mk(info), name, locDecl, ty, p.default)
+
+def mandatoryArgCount(sig: inspect.Signature) -> int:
+    required_kinds = {
+        inspect.Parameter.POSITIONAL_ONLY,
+        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        inspect.Parameter.KEYWORD_ONLY,
+    }
+    res = 0
+    for p in sig.parameters.values():
+        if p.kind in required_kinds and p.default is inspect._empty:
+            res = res + 1
+    return res
+
+def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
+                   info: location.CallableInfo, cfg: CheckCfg) -> None:
+    paramNames = list(sig.parameters)
+    mandatory = mandatoryArgCount(sig)
+    kind = getKind(cfg, paramNames)
     offset = 1 if kind == 'method' else 0
+    cn = location.CallableName.mk(info)
+    fi = stacktrace.callerOutsideWypp()
+    def raiseArgMismatch():
+        callLoc = None if not fi else location.Loc.fromFrameInfo(fi)
+        raise errors.WyppTypeError.argCountMismatch(cn,
+                                                    callLoc,
+                                                    len(paramNames) - offset,
+                                                    mandatory - offset,
+                                                    len(args) - offset)
+    if len(args) < mandatory:
+        raiseArgMismatch()
     for i in range(len(args)):
-        name = params[i]
+        if i >= len(paramNames):
+            raiseArgMismatch()
+        name = paramNames[i]
         p = sig.parameters[name]
         t = p.annotation
-        if i == 0 and kind == 'method' and isEmptyAnnotation(t):
-            pass
-        elif i != 0 and isEmptyAnnotation(t):
-            locDecl = code.getParamSourceLocation(name)
-            raise errors.WyppTypeError.partialAnnotationError(location.CallableName.mk(code), name, locDecl)
-        else:
+        if not isEmptyAnnotation(t):
             a = args[i]
-            locDecl = code.getParamSourceLocation(name)
+            locDecl = info.getParamSourceLocation(name)
             if not handleMatchesTyResult(matchesTy(a, t, cfg.ns), locDecl):
-                fi = stacktrace.callerOutsideWypp()
                 if fi is not None:
                     locArg = location.locationOfArgument(fi, i)
                 else:
                     locArg = None
-                raise errors.WyppTypeError.argumentError(location.CallableName.mk(code),
+                raise errors.WyppTypeError.argumentError(cn,
                                                          name,
                                                          i - offset,
                                                          locDecl,
@@ -126,23 +166,24 @@ def getNamespacesOfCallable(func: Callable):
     locals = globals.get(owner, {})
     return Namespaces(globals, locals)
 
-def wrapTypecheck(cfg: dict, outerCode: Optional[location.CallableInfo]=None) -> Callable[[Callable[P, T]], Callable[P, T]]:
+def wrapTypecheck(cfg: dict, outerInfo: Optional[location.CallableInfo]=None) -> Callable[[Callable[P, T]], Callable[P, T]]:
     outerCheckCfg = CheckCfg.fromDict(cfg)
     def _wrap(f: Callable[P, T]) -> Callable[P, T]:
         sig = inspect.signature(f)
         if isEmptySignature(sig):
             return f
         checkCfg = outerCheckCfg.setNamespaces(getNamespacesOfCallable(f))
-        if outerCode is None:
-            code = location.StdCallableInfo(f, checkCfg.kind)
+        if outerInfo is None:
+            info = location.StdCallableInfo(f, checkCfg.kind)
         else:
-            code = outerCode
+            info = outerInfo
+        utils._call_with_frames_removed(checkSignature, sig, info, checkCfg)
         def wrapped(*args, **kwargs) -> T:
             returnTracker = stacktrace.installProfileHook()
-            utils._call_with_frames_removed(checkArguments, sig, args, kwargs, code, checkCfg)
+            utils._call_with_frames_removed(checkArguments, sig, args, kwargs, info, checkCfg)
             result = f(*args, **kwargs)
             utils._call_with_frames_removed(
-                checkReturn, sig, returnTracker.getReturnFrame(), result, code, checkCfg
+                checkReturn, sig, returnTracker.getReturnFrame(), result, info, checkCfg
             )
             return result
         return wrapped

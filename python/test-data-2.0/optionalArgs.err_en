@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "", line 1, in <module>
+    def foo(i: int, s: str=2):
+
+WyppTypeError: 2
+
+Default value for parameter `s` of function `foo` must have type `str`.
+But the default value has type `int`.
+
+## File optionalArgs.py
+## Parameter declared in line 1:
+
+def foo(i: int, [0;31m[1ms: str[0;0m=2):

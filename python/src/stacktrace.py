@@ -38,7 +38,6 @@ def limitTraceback(frameList: list[types.FrameType],
         for i in range(endIdx - 1, 0, -1):
             if isCallWithFramesRemoved(frameList[i]):
                 endIdx = i - 1
-                break
         frameList = utils.dropWhile(frameList[:endIdx], lambda f: isWyppFrame(f) or isRunpyFrame(f))
     frameList = frameList + [f.frame for f in extraFrames]
     frames = [(f, f.f_lineno) for f in frameList]

@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "", line 3, in <module>
+    @record
+
+WyppTypeError: 'foo'
+
+Default value for attribute `y` of record `C` must have type `int`.
+But the default value has type `str`.
+
+## File optionalAttr.py
+## Parameter declared in line 6:
+
+    [0;31m[1my: int = 'foo'[0;0m

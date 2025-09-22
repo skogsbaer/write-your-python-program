@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "", line 8, in <module>
+    c = C(1)
+
+WyppTypeError: Anzahl der Argument passt nicht
+
+Konstruktor der Klasse `C` benötigt 2 Argumente.
+Gegeben: 1 Argument
+
+## Datei tooFewAttrs.py
+## Aufruf in Zeile 8:
+
+c = [0;31m[1mC(1)[0;0m
