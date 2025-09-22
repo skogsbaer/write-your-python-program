@@ -18,6 +18,13 @@ def printVars(what: str, *l):
 def isEmptyAnnotation(t: Any) -> bool:
     return t is inspect.Signature.empty or t is inspect.Parameter.empty
 
+def isEmptySignature(sig: inspect.Signature) -> bool:
+    for x in sig.parameters:
+         p = sig.parameters[x]
+         if not isEmptyAnnotation(p.annotation):
+             return False
+    return isEmptyAnnotation(sig.return_annotation)
+
 def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
                    code: location.CallableInfo, cfg: CheckCfg) -> None:
     params = list(sig.parameters)
@@ -109,8 +116,10 @@ def getNamespacesOfCallable(func: Callable):
 def wrapTypecheck(cfg: dict, outerCode: Optional[location.CallableInfo]=None) -> Callable[[Callable[P, T]], Callable[P, T]]:
     outerCheckCfg = CheckCfg.fromDict(cfg)
     def _wrap(f: Callable[P, T]) -> Callable[P, T]:
-        checkCfg = outerCheckCfg.setNamespaces(getNamespacesOfCallable(f))
         sig = inspect.signature(f)
+        if isEmptySignature(sig):
+            return f
+        checkCfg = outerCheckCfg.setNamespaces(getNamespacesOfCallable(f))
         if outerCode is None:
             code = location.StdCallableInfo(f, checkCfg.kind)
         else:
