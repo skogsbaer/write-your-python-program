@@ -56,6 +56,17 @@ class WyppTypeError(TypeError, WyppError):
         return f'WyppTypeError: {self.msg}'
 
     @staticmethod
+    def invalidType(ty: Any, loc: Optional[location.Loc]) -> WyppTypeError:
+        lines = []
+        lines.append(i18n.invalidTy(ty))
+        lines.append('')
+        if loc is not None:
+            lines.append(f'## {i18n.tr("File")} {loc.filename}')
+            lines.append(f'## {i18n.tr("Type declared in line")} {loc.startLine}:\n')
+            lines.append(renderLoc(loc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
     def resultError(callableName: location.CallableName, resultTypeLoc: Optional[location.Loc], resultTy: Any,
                     returnLoc: Optional[location.Loc], givenValue: Any,
                     callLoc: Optional[location.Loc],
@@ -142,6 +153,33 @@ class WyppTypeError(TypeError, WyppError):
     @staticmethod
     def noTypeAnnotationForRecordAttribute(attrName: str, recordName: str) -> WyppTypeError:
         return WyppTypeError(i18n.noTypeAnnotationForAttribute(attrName, recordName))
+
+    @staticmethod
+    def recordAssignError(recordName: str,
+                          attrName: str,
+                          attrTy: Any,
+                          attrLoc: Optional[location.Loc],
+                          setterValue: Any,
+                          setterLoc: Optional[location.Loc]) -> WyppTypeError:
+        lines = []
+        givenStr = renderGiven(setterValue, setterLoc)
+        lines.append(givenStr)
+        lines.append('')
+        lines.append(i18n.recordAttrDeclTy(recordName, attrName, renderTy(attrTy)))
+        if shouldReportTyMismatch(attrTy, type(setterValue)):
+            lines.append(i18n.realSetAttrTy(renderTy(type(setterValue))))
+        if setterLoc:
+            lines.append('')
+            lines.append(f'## {i18n.tr("File")} {setterLoc.filename}')
+            lines.append(f'## {i18n.tr("Problematic assignment in line")} {setterLoc.startLine}:\n')
+            lines.append(renderLoc(setterLoc))
+        if attrLoc:
+            lines.append('')
+            if not setterLoc or setterLoc.filename != attrLoc.filename:
+                lines.append(f'## {i18n.tr("File")} {attrLoc.filename}')
+            lines.append(f'## {i18n.tr("Type declared in line")} {attrLoc.startLine}:\n')
+            lines.append(renderLoc(attrLoc))
+        raise WyppTypeError('\n'.join(lines))
 
 class WyppAttributeError(AttributeError, WyppError):
     pass

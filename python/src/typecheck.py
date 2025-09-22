@@ -6,7 +6,7 @@ import inspect
 import typing
 from dataclasses import dataclass
 import utils
-from myTypeguard import matchesTy, Namespaces
+from myTypeguard import matchesTy, MatchesTyResult, MatchesTyFailure, Namespaces
 import stacktrace
 import location
 import errors
@@ -24,6 +24,19 @@ def isEmptySignature(sig: inspect.Signature) -> bool:
          if not isEmptyAnnotation(p.annotation):
              return False
     return isEmptyAnnotation(sig.return_annotation)
+
+def handleMatchesTyResult(res: MatchesTyResult, tyLoc: Optional[location.Loc]) -> bool:
+    match res:
+        case MatchesTyFailure(exc, ty):
+            # We want to detect errors such as writing list(int) instead of list[int].
+            # Below is a heuristic...
+            s = str(ty)
+            if '(' in s:
+                raise errors.WyppTypeError.invalidType(ty, tyLoc)
+            else:
+                raise exc
+        case b:
+            return b
 
 def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
                    code: location.CallableInfo, cfg: CheckCfg) -> None:
@@ -53,13 +66,13 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
             raise errors.WyppTypeError.partialAnnotationError(location.CallableName.mk(code), name, locDecl)
         else:
             a = args[i]
-            if not matchesTy(a, t, cfg.ns):
+            locDecl = code.getParamSourceLocation(name)
+            if not handleMatchesTyResult(matchesTy(a, t, cfg.ns), locDecl):
                 fi = stacktrace.callerOutsideWypp()
                 if fi is not None:
                     locArg = location.locationOfArgument(fi, i)
                 else:
                     locArg = None
-                locDecl = code.getParamSourceLocation(name)
                 raise errors.WyppTypeError.argumentError(location.CallableName.mk(code),
                                                          name,
                                                          i - offset,
@@ -73,11 +86,11 @@ def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo]
     t = sig.return_annotation
     if isEmptyAnnotation(t):
         t = None
-    if not matchesTy(result, t, cfg.ns):
+    locDecl = code.getResultTypeLocation()
+    if not handleMatchesTyResult(matchesTy(result, t, cfg.ns), locDecl):
         fi = stacktrace.callerOutsideWypp()
         if fi is not None:
             locRes = location.Loc.fromFrameInfo(fi)
-        locDecl = code.getResultTypeLocation()
         returnLoc = None
         extraFrames = []
         if returnFrame:
@@ -87,7 +100,7 @@ def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo]
                                                locRes, extraFrames)
 
 
-@dataclass(frozen=True)
+@dataclass
 class CheckCfg:
     kind: location.CallableKind
     ns: Namespaces

@@ -96,7 +96,15 @@ DE = {
         'Parameter `{param}` des Konstruktors der Klasse `{cls}` benötigt eine Typangabe.',
 
     'Attribute `{name}` of record `{record}` required a type annotation.':
-        'Attribut `{name}` des Records `{record}` benötigt eine Typannotation.'
+        'Attribut `{name}` des Records `{record}` benötigt eine Typannotation.',
+
+    'invalid type `{ty}`':
+        'ungültiger Type `{ty}`',
+    'Cannot set attribute to value of type `{ty}`.':
+        'Das Attribute kann nicht auf einen Wert vom Typ `{ty}` gesetzt werden.',
+    'Problematic assignment in line': 'Fehlerhafte Zuweisung in Zeile',
+    'Attribute `{attrName}` of record `{recordName}` declared with type `{ty}.`':
+        'Attribut `{attrName}` des Records `{recordName}` deklariert als Typ `{ty}`.'
 }
 
 def expectingNoReturn(cn: location.CallableName) -> str:
@@ -178,6 +186,9 @@ def expectingArgumentOfTy(cn: location.CallableName, ty: str, pos: int) -> str:
 def realArgumentTy(ty: str) -> str:
     return tr('But the value given has type `{ty}`.', ty=ty)
 
+def realSetAttrTy(ty: str) -> str:
+    return tr('Cannot set attribute to value of type `{ty}`.', ty=ty)
+
 def expectingTypeAnnotation(cn: location.CallableName, param: str) -> str:
     match cn.kind:
         case 'function':
@@ -194,3 +205,10 @@ def expectingTypeAnnotation(cn: location.CallableName, param: str) -> str:
 def noTypeAnnotationForAttribute(attrName: str, recordName: str) -> str:
     return tr('Attribute `{name}` of record `{record}` required a type annotation.',
               name=attrName, record=recordName)
+
+def invalidTy(ty: Any) -> str:
+    return tr('invalid type `{ty}`', ty=ty)
+
+def recordAttrDeclTy(recordName: str, attrName: str, ty: Any) -> str:
+    return tr('Attribute `{attrName}` of record `{recordName}` declared with type `{ty}.`',
+              recordName=recordName, attrName=attrName, ty=ty)

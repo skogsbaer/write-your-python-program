@@ -14,7 +14,15 @@ class Namespaces:
     def empty() -> Namespaces:
         return Namespaces({}, {})
 
-def matchesTy(a: Any, ty: Any, ns: Namespaces) -> bool:
+@dataclass(frozen=True)
+class MatchesTyFailure:
+    # This is potentially a failure because of an invalid type
+    exception: Exception
+    ty: Any
+
+type MatchesTyResult = bool | MatchesTyFailure
+
+def matchesTy(a: Any, ty: Any, ns: Namespaces) -> MatchesTyResult:
     try:
         typeguard.check_type(a,
                              ty,
@@ -23,6 +31,8 @@ def matchesTy(a: Any, ty: Any, ns: Namespaces) -> bool:
         return True
     except typeguard.TypeCheckError as e:
         return False
+    except Exception as e:
+        return MatchesTyFailure(e, ty)
 
 def getTypeName(t: Any) -> str:
     return typeguard._utils.get_type_name(t, ['__wypp__'])

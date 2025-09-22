@@ -5,6 +5,9 @@ import sys
 import myTypeguard
 import errors
 import typecheck
+import location
+import stacktrace
+from utils import _call_with_frames_removed
 
 _DEBUG = False
 def _debug(s):
@@ -62,32 +65,11 @@ def _literalInstanceOf(self, value):
             return True
     return False
 
-def _invalidCall(self, *args, **kwds):
-    if hasattr(self, '__name__'):
-        name = self.__name__
-    else:
-        name = str(self)
-        typingPrefix = 'typing.'
-        if name.startswith(typingPrefix):
-            name = name[len(typingPrefix):]
-    def formatArg(x):
-        if name == 'Literal':
-            return repr(x)
-        else:
-            return x
-    argStr = ', '.join([formatArg(myTypeguard.renderTy(x)) for x in args])
-    raise errors.WyppTypeError(f"Cannot call {name} like a function. Did you mean {name}[{argStr}]?")
-
 # Dirty hack ahead: we patch some methods of internal class of the typing module.
-
 # This patch is needed to be able to use a literal L to check whether a value x
 # is an instance of this literal: isinstance(x, L)
 # pyright does not know about typing._LiteralGenericAlias, we do not typecheck the following line.
 setattr(typing._LiteralGenericAlias, '__instancecheck__', _literalInstanceOf) # type: ignore
-
-# This patch is needed to provide better error messages if a student passes type arguments
-# with paranthesis instead of square brackets
-setattr(typing._SpecialForm, '__call__', _invalidCall)
 
 def _collectDataClassAttributes(cls):
     result = dict()
@@ -117,16 +99,27 @@ def _patchDataClass(cls, mutable: bool):
         # prevent new fields being added
         fields = set(fieldNames)
         ns = _getNamespacesOfClass(cls)
-
+        code = location.RecordConstructorInfo(cls)
         checker = {}
         # Note: Partial annotations are disallowed, so no handling in this code is required.
         for name in fields:
             if name in cls.__annotations__:
                 def check(v):
                     ty = typing.get_type_hints(cls, include_extras=True)[name]
-                    if not myTypeguard.matchesTy(v, ty, ns):
-                        raise TypeError(f'Expected argument of type {myTypeguard.renderTy(ty)} ' \
-                            f'for attribute {name}, got {myTypeguard.renderTy(type(v))}: {v}')
+                    tyLoc = code.getParamSourceLocation(name)
+                    if not typecheck.handleMatchesTyResult(myTypeguard.matchesTy(v, ty, ns), tyLoc):
+                        fi = stacktrace.callerOutsideWypp()
+                        if fi:
+                            loc = location.Loc.fromFrameInfo(fi)
+                        else:
+                            loc = None
+                        # FIXME: i18n
+                        raise errors.WyppTypeError.recordAssignError(cls.__name__,
+                                                                     name,
+                                                                     ty,
+                                                                     tyLoc,
+                                                                     v,
+                                                                     loc)
                     return v
                 checker[name] = check
             else:
@@ -141,7 +134,7 @@ def _patchDataClass(cls, mutable: bool):
                 oldSetattr(obj, k, v)
             else:
                 raise errors.WyppAttributeError(f'Unknown attribute {k} for record {cls.__name__}')
-        setattr(cls, "__setattr__", _setattr)
+        setattr(cls, "__setattr__", lambda obj, k, v: _call_with_frames_removed(_setattr, obj, k, v))
     return cls
 
 @typing.dataclass_transform()

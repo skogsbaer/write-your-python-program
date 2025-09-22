@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "", line 10, in <module>
+    p.y = "foo"
+
+WyppTypeError: "foo"
+
+Attribute `x` of record `Point` declared with type `int.`
+Cannot set attribute to value of type `str`.
+
+## File mutable.py
+## Problematic assignment in line 10:
+
+p.y = "foo"
+
+## Type declared in line 5:
+
+    [0;31m[1mx: int[0;0m
