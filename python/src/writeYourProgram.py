@@ -1,13 +1,10 @@
 import typing
 import dataclasses
 import inspect
-import sys
-import myTypeguard
 import errors
 import typecheck
-import location
-import stacktrace
 from utils import _call_with_frames_removed
+import records
 
 _DEBUG = False
 def _debug(s):
@@ -31,6 +28,7 @@ Mapping = typing.Mapping
 Callable = typing.Callable
 
 dataclass = dataclasses.dataclass
+record = records.record
 
 intPositive = typing.Annotated[int, lambda i: i > 0, 'intPositive']
 nat = typing.Annotated[int, lambda i: i >= 0, 'nat']
@@ -71,88 +69,6 @@ def _literalInstanceOf(self, value):
 # pyright does not know about typing._LiteralGenericAlias, we do not typecheck the following line.
 setattr(typing._LiteralGenericAlias, '__instancecheck__', _literalInstanceOf) # type: ignore
 
-def _collectDataClassAttributes(cls):
-    result = dict()
-    for c in cls.mro():
-        if hasattr(c, '__kind') and c.__kind == 'record' and hasattr(c, '__annotations__'):
-            result = c.__annotations__ | result
-    return result
-
-def _getNamespacesOfClass(cls):
-    mod = sys.modules.get(cls.__module__) or inspect.getmodule(cls)
-    globals = vars(mod) if mod else {}
-    owner = getattr(cls, "__qualname__", "").split(".")[0]
-    locals = globals.get(owner, {})
-    return myTypeguard.Namespaces(globals, locals)
-
-def _patchDataClass(cls, mutable: bool):
-    fieldNames = [f.name for f in dataclasses.fields(cls)]
-    setattr(cls, EQ_ATTRS_ATTR, fieldNames)
-
-    if hasattr(cls, '__annotations__'):
-        # add annotions for type checked constructor.
-        cls.__kind = 'record'
-        cls.__init__.__annotations__ = _collectDataClassAttributes(cls)
-        cls.__init__ = typecheck.wrapTypecheckRecordConstructor(cls)
-
-    if mutable:
-        # prevent new fields being added
-        fields = set(fieldNames)
-        ns = _getNamespacesOfClass(cls)
-        code = location.RecordConstructorInfo(cls)
-        checker = {}
-        # Note: Partial annotations are disallowed, so no handling in this code is required.
-        for name in fields:
-            if name in cls.__annotations__:
-                def check(v):
-                    ty = typing.get_type_hints(cls, include_extras=True)[name]
-                    tyLoc = code.getParamSourceLocation(name)
-                    if not typecheck.handleMatchesTyResult(myTypeguard.matchesTy(v, ty, ns), tyLoc):
-                        fi = stacktrace.callerOutsideWypp()
-                        if fi:
-                            loc = location.Loc.fromFrameInfo(fi)
-                        else:
-                            loc = None
-                        # FIXME: i18n
-                        raise errors.WyppTypeError.recordAssignError(cls.__name__,
-                                                                     name,
-                                                                     ty,
-                                                                     tyLoc,
-                                                                     v,
-                                                                     loc)
-                    return v
-                checker[name] = check
-            else:
-                raise errors.WyppTypeError.noTypeAnnotationForRecordAttribute(name, cls.__name__)
-
-        oldSetattr = cls.__setattr__
-        def _setattr(obj, k, v):
-            # Note __setattr__ also gets called in the constructor.
-            if k in checker:
-                oldSetattr(obj, k, checker[k](v))
-            elif k in fields:
-                oldSetattr(obj, k, v)
-            else:
-                raise errors.WyppAttributeError(f'Unknown attribute {k} for record {cls.__name__}')
-        setattr(cls, "__setattr__", lambda obj, k, v: _call_with_frames_removed(_setattr, obj, k, v))
-    return cls
-
-@typing.dataclass_transform()
-def record(cls=None, mutable=False):
-    def wrap(cls: type):
-        newCls = dataclasses.dataclass(cls, frozen=not mutable)
-        if _typeCheckingEnabled:
-            return _patchDataClass(newCls, mutable)
-        else:
-            return newCls
-    # See if we're being called as @record or @record().
-    if cls is None:
-        # We're called with parens.
-        return wrap
-    else:
-        # We're called as @dataclass without parens.
-        return wrap(cls)
-
 def typechecked(func=None):
     def wrap(func):
         if hasattr(func, '__qualname__'):
@@ -191,6 +107,7 @@ def initModule(enableChecks=True, enableTypeChecking=True, quiet=False):
     global _checksEnabled, _typeCheckingEnabled
     _checksEnabled = enableChecks
     _typeCheckingEnabled = enableTypeChecking
+    records.init(enableTypeChecking)
     resetTestCount()
 
 def resetTestCount():
@@ -314,9 +231,9 @@ def _objToDict(o):
     d = {}
     attrs = dir(o)
     useAll = False
-    if hasattr(o, EQ_ATTRS_ATTR):
+    if hasattr(o, records.EQ_ATTRS_ATTR):
         useAll = True
-        attrs = getattr(o, EQ_ATTRS_ATTR)
+        attrs = getattr(o, records.EQ_ATTRS_ATTR)
     for n in attrs:
         if not useAll and n and n[0] == '_':
             continue
@@ -329,7 +246,6 @@ def _objEq(o1, o2, flags):
     return _dictEq(_objToDict(o1), _objToDict(o2), flags)
 
 _EPSILON = 0.00001
-EQ_ATTRS_ATTR = '__eqAttrs__'
 
 def _useFloatEqWithDelta(flags):
     return flags.get('floatEqWithDelta', False)

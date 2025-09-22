@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: "foo"
 
-Attribut `x` des Records `Point` deklariert als Typ `int`.
+Attribut `y` des Records `Point` deklariert als Typ `int`.
 Das Attribute kann nicht auf einen Wert vom Typ `str` gesetzt werden.
 
 ## Datei mutable.py
@@ -12,6 +12,6 @@ Das Attribute kann nicht auf einen Wert vom Typ `str` gesetzt werden.
 
 p.y = "foo"
 
-## Typ deklariert in Zeile 5:
+## Typ deklariert in Zeile 6:
 
-    [0;31m[1mx: int[0;0m
+    [0;31m[1my: int[0;0m
