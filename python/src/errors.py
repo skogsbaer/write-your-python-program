@@ -4,7 +4,7 @@ import abc
 import inspect
 import location
 import i18n
-from myTypeguard import renderTy
+from renderTy import renderTy
 
 class WyppError(abc.ABC):
     def __init__(self, extraFrames: list[inspect.FrameInfo] = []):
