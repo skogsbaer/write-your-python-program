@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: "30"
 
-The call of the constructor of class `Person` expects value of type `int` as 2nd argument.
+The call of the constructor of record `Person` expects value of type `int` as 2nd argument.
 But the value given has type `str`.
 
 ## File record.py

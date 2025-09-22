@@ -35,7 +35,7 @@ def gamePoints(game: GameResult, cmp: Callable[[int, int], bool]) -> int:
 def mkGamePoints(cmp: Callable[[int, int], bool]) -> Callable[[GameResult], int]:
     return lambda game: gamePoints(game, cmp)
 
-homePoints: Callable[[GameResult], int] = mkGamePoints(lambda g, h: "foo")
+homePoints: Callable[[GameResult], int] = mkGamePoints(42)
 guestPoints: Callable[[GameResult], int] = mkGamePoints(lambda g, h: h > g)
 
 check(homePoints(game1), 0)

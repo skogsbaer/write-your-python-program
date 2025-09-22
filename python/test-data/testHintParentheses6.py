@@ -2,8 +2,9 @@ from __future__ import annotations
 from wypp import *
 # See https://github.com/skogsbaer/write-your-python-program/issues/61
 
-# Tests 'return' 
-def foo() -> Union(list, str):
-    pass
+@record(mutable=True)
+class C:
+    x: list(int)
 
-foo()
+c = C([])
+c.x = 1

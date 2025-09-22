@@ -1,3 +1,4 @@
+# WYPP_TEST_CONFIG: {"typecheck": "both"}
 from __future__ import annotations
 from wypp import *
 

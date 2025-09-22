@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 import os
 from typing import *
@@ -7,6 +8,8 @@ import tempfile
 import argparse
 import re
 import shutil
+import json
+import re
 
 GLOBAL_CHECK_OUTPUTS = True
 
@@ -309,7 +312,38 @@ def _check(testFile: str,
 def guessExitCode(testFile: str) -> int:
     return 0 if testFile.endswith('_ok.py') else 1
 
-def check(testFile: str,
+_CONFIG_RE = re.compile(r'^# WYPP_TEST_CONFIG:\s*(\{.*\})\s*$')
+
+@dataclass
+class WyppTestConfig:
+    typecheck: Literal[True, False, "both"]
+    @staticmethod
+    def default() -> WyppTestConfig:
+        return WyppTestConfig(typecheck=True)
+
+def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
+    """
+    Read a line like `# WYPP_TEST_CONFIG: {"typecheck": false}` from the first
+    `max_lines` lines of the file at `path` and return it as a dict.
+    Returns {} if not present.
+    """
+    validKeys = ['typecheck']
+    with open(path, "r", encoding="utf-8") as f:
+        for lineno in range(1, max_lines + 1):
+            line = f.readline()
+            if not line:
+                break
+            m = _CONFIG_RE.match(line)
+            if m:
+                payload = m.group(1)
+                j = json.loads(payload)
+                for k in j:
+                    if k not in validKeys:
+                        raise ValueError(f'Unknown key {k} in config for file {path}')
+                return WyppTestConfig(typecheck=j['typecheck'])
+    return WyppTestConfig.default()
+
+def checkNoConfig(testFile: str,
           exitCode: int = 1,
           typecheck: bool = True,
           args: list[str] = [],
@@ -325,6 +359,26 @@ def check(testFile: str,
     if status == 'failed':
         if not ctx.opts.keepGoing:
             ctx.results.finish()
+
+def check(testFile: str,
+          exitCode: int = 1,
+          args: list[str] = [],
+          pythonPath: list[str] = [],
+          minVersion: Optional[tuple[int, int]] = None,
+          checkOutputs: bool = True,
+          ctx: TestContext = globalCtx,):
+    cfg = readWyppTestConfig(testFile)
+    if cfg.typecheck == 'both':
+        checkNoConfig(testFile, exitCode, typecheck=True, args=args,
+                      pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,
+                      ctx=ctx, what=' (typecheck)')
+        checkNoConfig(testFile, exitCode, typecheck=False, args=args,
+                      pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,
+                      ctx=ctx, what=' (no typecheck)')
+    else:
+        checkNoConfig(testFile, exitCode, typecheck=cfg.typecheck, args=args,
+                      pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,
+                      ctx=ctx, what=' (no typecheck)')
 
 def checkBoth(testFile: str,
               exitCode: int = 1,

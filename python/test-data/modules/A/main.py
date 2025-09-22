@@ -1,3 +1,3 @@
 import mod
 
-mod.foo(1)
+print(mod.foo(1))

@@ -10,6 +10,7 @@ import types
 from os import PathLike
 import utils
 from myLogging import *
+from contextlib import contextmanager
 
 def parseExp(s: str) -> ast.expr:
     match ast.parse(s):
@@ -36,10 +37,21 @@ def transformStmt(stmt: ast.stmt, outerClassName: Optional[str]) -> ast.stmt:
         case _:
             return stmt
 
+def isImport(t: ast.stmt) -> bool:
+    match t:
+        case ast.Import(): return True
+        case ast.ImportFrom(): return True
+        case _: return False
+
+importWrapTypecheck = ast.parse("from wypp import wrapTypecheck", mode="exec").body[0]
+
 def transformModule(m: ast.Module | ast.Expression | ast.Interactive) -> ast.Module | ast.Expression | ast.Interactive:
     match m:
         case ast.Module(body, type_ignores):
             newStmts = [transformStmt(stmt, outerClassName=None) for stmt in body]
+            (imports, noImports) = utils.split(newStmts, isImport)
+            # avoid inserting before from __future__
+            newStmts = imports + [importWrapTypecheck] + noImports
             return ast.Module(newStmts, type_ignores)
         case _:
             return m
@@ -71,9 +83,10 @@ class InstrumentingLoader(SourceFileLoader):
         return code
 
 class InstrumentingFinder(importlib.abc.MetaPathFinder):
-    def __init__(self, finder, modDir):
+    def __init__(self, finder, modDir: str, extraDirs: list[str]):
         self._origFinder = finder
         self.modDir = os.path.realpath(modDir) + '/'
+        self.extraDirs = [os.path.realpath(d) for d in extraDirs]
 
     def find_spec(
             self,
@@ -85,19 +98,40 @@ class InstrumentingFinder(importlib.abc.MetaPathFinder):
         if spec is None:
             return None
         origin = os.path.realpath(spec.origin)
-        isLocalModule = origin.startswith(self.modDir)
+        dirs = [self.modDir] + self.extraDirs
+        isLocalModule = False
+        for d in dirs:
+            if origin.startswith(d):
+                isLocalModule = True
+                break
+        # print(f'Module {fullname} is locale: {isLocalModule} ({origin})')
         if spec and spec.loader and isLocalModule:
             spec.loader = InstrumentingLoader(spec.loader.name, spec.loader.path)
         return spec
 
-def setupFinder(modDir: str):
-    for finder in sys.meta_path:
-        if (
-            isinstance(finder, type)
-            and finder.__name__ == "PathFinder"
-            and hasattr(finder, "find_spec")
-        ):
-            break
+@contextmanager
+def setupFinder(modDir: str, extraDirs: list[str], typechecking: bool):
+    if not typechecking:
+        yield
     else:
-        raise RuntimeError("Cannot find a PathFinder in sys.meta_path")
-    sys.meta_path.insert(0, InstrumentingFinder(finder, modDir))
+        # Find the PathFinder
+        for finder in sys.meta_path:
+            if (
+                isinstance(finder, type)
+                and finder.__name__ == "PathFinder"
+                and hasattr(finder, "find_spec")
+            ):
+                break
+        else:
+            raise RuntimeError("Cannot find a PathFinder in sys.meta_path")
+
+        # Create and install our custom finder
+        instrumenting_finder = InstrumentingFinder(finder, modDir, extraDirs)
+        sys.meta_path.insert(0, instrumenting_finder)
+
+        try:
+            yield
+        finally:
+            # Remove our custom finder when exiting the context
+            if instrumenting_finder in sys.meta_path:
+                sys.meta_path.remove(instrumenting_finder)

@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: argument count mismatch
 
-Constructor of class `C` takes at most 3 arguments.
+Constructor of record `C` takes at most 3 arguments.
 Given: 4 arguments
 
 ## File optionalAttr3.py

@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: Anzahl der Argument passt nicht
 
-Konstruktor der Klasse `C` benötigt 2 Argumente.
+Konstruktor des Records `C` benötigt 2 Argumente.
 Gegeben: 1 Argument
 
 ## Datei tooFewAttrs.py

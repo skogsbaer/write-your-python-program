@@ -3,7 +3,6 @@ import dataclasses
 import inspect
 import errors
 import typecheck
-from utils import _call_with_frames_removed
 import records
 
 _DEBUG = False
@@ -314,4 +313,4 @@ import math as moduleMath
 
 math = moduleMath
 
-
+wrapTypecheck = typecheck.wrapTypecheck

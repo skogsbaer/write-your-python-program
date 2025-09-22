@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "", line 7, in <module>
+    factorial(5)
+  File "", line 5, in factorial
+    return factorial(n - 1) * n
+  File "", line 5, in factorial
+    return factorial(n - 1) * n
+  File "", line 5, in factorial
+    return factorial(n - 1) * n
+  [Previous line repeated 2 more times]
+  File "", line 3, in factorial
+    raise ValueError('kein Bock')
+ValueError: kein Bock

@@ -5,8 +5,16 @@ from contextlib import contextmanager
 P = ParamSpec("P")
 T = TypeVar("T")
 
-# The name of this function is magical
+# The name of this function is magical. All stack frames that appear
+# nested within this function are removed from tracebacks.
 def _call_with_frames_removed(
+    f: Callable[P, T], *args: P.args, **kwargs: P.kwargs
+) -> T:
+    return f(*args, **kwargs)
+
+# The name of this function is magical. The next stack frame that appears
+# nested within this function is removed from tracebacks.
+def _call_with_next_frame_removed(
     f: Callable[P, T], *args: P.args, **kwargs: P.kwargs
 ) -> T:
     return f(*args, **kwargs)
@@ -27,6 +35,27 @@ def dropWhile(l: list, f: Callable[[Any], bool]) -> list:
         if not f(l[i]):
             break
     return l[i:]
+
+def split(l: list, f: Callable[[Any], bool]) -> tuple[list, list]:
+    """
+    span, applied to a list l and a predicate f, returns a tuple where first element is the
+    longest prefix (possibly empty) of l of elements that satisfy f and second element
+    is the remainder of the list.
+    """
+    inFirst = True
+    first = []
+    second = []
+    for x in l:
+        if inFirst:
+            if f(x):
+                first.append(x)
+            else:
+                inFirst = False
+                second.append(x)
+        else:
+            second.append(x)
+    return (first, second)
+
 
 def isUnderTest() -> bool:
     x = os.getenv('WYPP_UNDER_TEST')

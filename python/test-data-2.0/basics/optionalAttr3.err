@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: Anzahl der Argument passt nicht
 
-Konstruktor der Klasse `C` akzeptiert höchstens 3 Argumente.
+Konstruktor des Records `C` akzeptiert höchstens 3 Argumente.
 Gegeben: 4 Argumente
 
 ## Datei optionalAttr3.py

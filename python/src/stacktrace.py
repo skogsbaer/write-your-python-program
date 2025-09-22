@@ -5,6 +5,7 @@ import inspect
 from typing import Optional, Any
 import os
 import sys
+from collections import deque
 
 def tbToFrameList(tb: types.TracebackType) -> list[types.FrameType]:
     cur = tb
@@ -15,7 +16,10 @@ def tbToFrameList(tb: types.TracebackType) -> list[types.FrameType]:
     return res
 
 def isCallWithFramesRemoved(frame: types.FrameType):
-    return frame.f_code.co_name == '_call_with_frames_removed'
+    return frame.f_code.co_name == utils._call_with_frames_removed.__name__
+
+def isCallWithNextFrameRemoved(frame: types.FrameType):
+    return frame.f_code.co_name == utils._call_with_next_frame_removed.__name__
 
 def isWyppFrame(frame: types.FrameType):
     modName = frame.f_globals.get("__name__") or '__wypp__'
@@ -34,11 +38,22 @@ def limitTraceback(frameList: list[types.FrameType],
                    extraFrames: list[inspect.FrameInfo],
                    filter: bool) -> traceback.StackSummary:
     if filter:
+        # Step 1: remove all frames that appear after the first _call_with_frames_removed
         endIdx = len(frameList)
-        for i in range(endIdx - 1, 0, -1):
+        for i in range(len(frameList)):
             if isCallWithFramesRemoved(frameList[i]):
                 endIdx = i - 1
-        frameList = utils.dropWhile(frameList[:endIdx], lambda f: isWyppFrame(f) or isRunpyFrame(f))
+                break
+        frameList = frameList[:endIdx]
+        # Step 2: remove those frames directly after _call_with_next_frame_removed
+        toRemove = []
+        for i in range(len(frameList)):
+            if isCallWithNextFrameRemoved(frameList[i]):
+                toRemove.append(i)
+        for i in reversed(toRemove):
+            frameList = frameList[:i-1] + frameList[i+1:]
+        # Step 3: remove leading wypp or typeguard frames
+        frameList = utils.dropWhile(frameList, lambda f: isWyppFrame(f) or isRunpyFrame(f))
     frameList = frameList + [f.frame for f in extraFrames]
     frames = [(f, f.f_lineno) for f in frameList]
     return traceback.StackSummary.extract(frames)
@@ -52,33 +67,35 @@ def callerOutsideWypp() -> Optional[inspect.FrameInfo]:
     return None
 
 class ReturnTracker:
-    def __init__(self):
-        self.__returnFrame: Optional[types.FrameType] = None
+    def __init__(self, entriesToKeep: int):
+        self.__returnFrames = deque(maxlen=entriesToKeep)   # a ring buffer
     def __call__(self, frame: types.FrameType, event: str, arg: Any):
         # event is one of 'call', 'return', 'c_call', 'c_return', or 'c_exception'
         match event:
             case 'call':
                 pass # self.__returnFrame = None
             case 'return':
-                self.__returnFrame = frame
+                self.__returnFrames.append(frame) # overwrite oldest when full
             case 'c_call':
                 pass
             case 'c_return':
                 pass
             case 'c_exception':
                 pass
-    def getReturnFrame(self) -> Optional[inspect.FrameInfo]:
-        f = self.__returnFrame
+    def getReturnFrame(self, idx: int) -> Optional[inspect.FrameInfo]:
+        if idx >= len(self.__returnFrames):
+            return None
+        f = self.__returnFrames[idx]
         if f:
             tb = inspect.getframeinfo(f, context=1)
             return inspect.FrameInfo(f, tb.filename, tb.lineno, tb.function, tb.code_context, tb.index)
         else:
             return None
 
-def installProfileHook() -> ReturnTracker:
+def installProfileHook(entriesToKeep: int) -> ReturnTracker:
     obj = sys.getprofile()
     if isinstance(obj, ReturnTracker):
         return obj
-    obj = ReturnTracker()
+    obj = ReturnTracker(entriesToKeep)
     sys.setprofile(obj)
     return obj

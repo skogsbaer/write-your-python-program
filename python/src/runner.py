@@ -318,14 +318,10 @@ def runCode(fileToRun, globals, args, doTypecheck=True, extraDirs=None):
         extraDirs = []
     modDir = os.path.dirname(fileToRun)
     with RunSetup(modDir, [fileToRun] + args):
-        instrument.setupFinder(modDir)
-        modName = os.path.basename(os.path.splitext(fileToRun)[0])
-        if doTypecheck:
-            globals['wrapTypecheck'] = typecheck.wrapTypecheck
-        else:
-            globals['wrapTypecheck'] = typecheck.wrapNoTypecheck
-        sys.dont_write_bytecode = True # FIXME: remove
-        runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=True)
+        with instrument.setupFinder(modDir, extraDirs, doTypecheck):
+            modName = os.path.basename(os.path.splitext(fileToRun)[0])
+            sys.dont_write_bytecode = True # FIXME: remove
+            runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=True)
 
 def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, doTypecheck=True, extraDirs=None):
     doRun = lambda: runCode(fileToRun, globals, args, doTypecheck=doTypecheck, extraDirs=extraDirs)

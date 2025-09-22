@@ -28,13 +28,7 @@ def isEmptySignature(sig: inspect.Signature) -> bool:
 def handleMatchesTyResult(res: MatchesTyResult, tyLoc: Optional[location.Loc]) -> bool:
     match res:
         case MatchesTyFailure(exc, ty):
-            # We want to detect errors such as writing list(int) instead of list[int].
-            # Below is a heuristic...
-            s = str(ty)
-            if '(' in s:
-                raise errors.WyppTypeError.invalidType(ty, tyLoc)
-            else:
-                raise exc
+            raise errors.WyppTypeError.invalidType(ty, tyLoc)
         case b:
             return b
 
@@ -179,11 +173,14 @@ def wrapTypecheck(cfg: dict, outerInfo: Optional[location.CallableInfo]=None) ->
             info = outerInfo
         utils._call_with_frames_removed(checkSignature, sig, info, checkCfg)
         def wrapped(*args, **kwargs) -> T:
-            returnTracker = stacktrace.installProfileHook()
+            # when using _call_with_next_frame_removed, we have to take the second-to-last
+            # return. Hence, we keep the two most recent returns
+            returnTracker = stacktrace.installProfileHook(2)
             utils._call_with_frames_removed(checkArguments, sig, args, kwargs, info, checkCfg)
-            result = f(*args, **kwargs)
+            result = utils._call_with_next_frame_removed(f, *args, **kwargs)
+            retFrame = returnTracker.getReturnFrame(0)
             utils._call_with_frames_removed(
-                checkReturn, sig, returnTracker.getReturnFrame(), result, info, checkCfg
+                checkReturn, sig, retFrame, result, info, checkCfg
             )
             return result
         return wrapped

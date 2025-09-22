@@ -3,4 +3,6 @@ from wypp import *
 
 # Uses types wrapped in strings
 def foo(a: 'int', b: 'dict[1, list(int)]') -> int:
-    return len(l)
+    return len(b)
+
+foo(1, {})
