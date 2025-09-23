@@ -889,6 +889,15 @@ def resolve_annotation_str(s: str, globalns: dict, localns: dict):
     Tmp = type("_Tmp", (), {"__annotations__": {"x": s}})
     return typing.get_type_hints(Tmp, globalns=globalns, localns=localns)["x"]
 
+def resolve_alias_chains(tp: Any):
+    # 1) Follow PEP 695 alias chains (type My = ... -> TypeAliasType)
+    seen = set()
+    t = type(tp)
+    while isinstance(tp, typing.TypeAliasType) and id(tp) not in seen:
+        seen.add(id(tp))
+        tp = tp.__value__  # evaluated lazily in its defining module
+    return tp
+
 def check_type_internal(
     value: Any,
     annotation: Any,
@@ -905,6 +914,7 @@ def check_type_internal(
     :param memo: a memo object containing configuration and information necessary for
         looking up forward references
     """
+    annotation = resolve_alias_chains(annotation)
 
     if isinstance(annotation, ForwardRef):
         try:
