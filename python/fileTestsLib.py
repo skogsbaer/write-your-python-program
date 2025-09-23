@@ -43,7 +43,7 @@ def parseArgs() -> TestOpts:
     # Parse the arguments
     args = parser.parse_args()
 
-    scriptDir = os.path.dirname(os.path.abspath(__file__))
+    scriptDir = os.path.dirname(__file__)
     return TestOpts(
         cmd=f'{scriptDir}/src/runYourProgram.py',
         baseDir=scriptDir,

@@ -13,13 +13,12 @@ from modulefinder import ModuleFinder
 from pathlib import Path
 import subprocess
 import runpy
-import types
 from dataclasses import dataclass
 
 # local imports
 import stacktrace
 import i18n
-import typecheck
+import paths
 import instrument
 from myLogging import *
 import errors
@@ -320,12 +319,11 @@ def runCode(fileToRun, globals, args, doTypecheck=True, extraDirs=None):
     if not extraDirs:
         extraDirs = []
     modDir = os.path.dirname(fileToRun)
-    print(f'fileToRun={fileToRun}, modDir={modDir}')
     with RunSetup(modDir, [fileToRun] + args):
         with instrument.setupFinder(modDir, extraDirs, doTypecheck):
             modName = os.path.basename(os.path.splitext(fileToRun)[0])
-            sys.dont_write_bytecode = True # FIXME: remove
-            runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=True)
+            sys.dont_write_bytecode = True # FIXME: remove?
+            runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=False)
 
 def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, doTypecheck=True, extraDirs=None):
     doRun = lambda: runCode(fileToRun, globals, args, doTypecheck=doTypecheck, extraDirs=extraDirs)
@@ -379,6 +377,25 @@ def enterInteractive(userDefs):
         globals()[k] = v
     print()
 
+_tbPattern = re.compile(r'(\s*File\s+")([^"]+)(".*)')
+def _rewriteFilenameInTracebackLine(s: str) -> str:
+    # Match the pattern: File "filename", line number, in function
+    match = re.match(_tbPattern, s)
+    if match:
+        prefix = match.group(1)
+        filename = match.group(2)
+        suffix = match.group(3)
+        canonicalized = paths.canonicalizePath(filename)
+        return prefix + canonicalized + suffix
+    else:
+        return s
+
+def _rewriteFilenameInTraceback(s: str) -> str:
+    lines = s.split('\n')
+    result = []
+    for l in lines:
+        result.append(_rewriteFilenameInTracebackLine(l))
+    return '\n'.join(result)
 
 def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     (etype, val, tb) = sys.exc_info()
@@ -400,7 +417,7 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
         if not header:
             file.write('Traceback (most recent call last):\n')
             header = True
-        file.write(x)
+        file.write(_rewriteFilenameInTraceback(x))
     if isWyppError:
         s = str(val)
         if s and s[0] != '\n':
@@ -505,21 +522,23 @@ Python in version {reqVStr} or newer is required. You are still using version {v
 
     libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable, enableTypeChecking=args.checkTypes)
 
-    globals['__name__'] = '__wypp__'
-    sys.modules['__wypp__'] = sys.modules['__main__']
-    loadingFailed = False
-    try:
-        verbose(f'running code in {fileToRun}')
-        globals['__file__'] = fileToRun
-        runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
-                       doTypecheck=args.checkTypes, extraDirs=args.extraDirs)
-    except Exception as e:
-        verbose(f'Error while running code in {fileToRun}: {e}')
-        handleCurrentException(exit=not isInteractive)
-        loadingFailed = True
 
-    performChecks(args.check, args.testFile, globals, libDefs, doTypecheck=args.checkTypes,
-                  extraDirs=args.extraDirs, loadingFailed=loadingFailed)
+    with paths.projectDir(os.path.abspath(os.getcwd())):
+        globals['__name__'] = '__wypp__'
+        sys.modules['__wypp__'] = sys.modules['__main__']
+        loadingFailed = False
+        try:
+            verbose(f'running code in {fileToRun}')
+            globals['__file__'] = fileToRun
+            runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
+                        doTypecheck=args.checkTypes, extraDirs=args.extraDirs)
+        except Exception as e:
+            verbose(f'Error while running code in {fileToRun}: {e}')
+            handleCurrentException(exit=not isInteractive)
+            loadingFailed = True
+
+        performChecks(args.check, args.testFile, globals, libDefs, doTypecheck=args.checkTypes,
+                    extraDirs=args.extraDirs, loadingFailed=loadingFailed)
 
     if isInteractive:
         enterInteractive(globals)

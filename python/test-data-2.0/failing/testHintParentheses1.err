@@ -4,6 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: ungültiger Typ `list(int)`
 
+Wolltest du `list[int]` schreiben?
+
 ## Datei testHintParentheses1.py
 ## Typ deklariert in Zeile 5:
 

@@ -3,7 +3,6 @@ from typing import *
 from dataclasses import dataclass
 import inspect
 import linecache
-from traceback import FrameSummary
 import dis
 import ast
 import ansi
@@ -13,6 +12,7 @@ import sys
 import abc
 import parsecache
 from parsecache import FunMatcher
+import paths
 
 @dataclass
 class Loc:
@@ -21,6 +21,9 @@ class Loc:
     startCol: Optional[int]
     endLine: Optional[int]
     endCol: Optional[int]
+
+    def __post_init__(self):
+        self.filename = paths.canonicalizePath(self.filename)
 
     def fullSpan(self) -> Optional[tuple[int, int, int, int]]:
         if self.startCol and self.endLine and self.endCol:

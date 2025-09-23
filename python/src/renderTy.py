@@ -27,6 +27,9 @@ def renderTy(tp: Any) -> str:
         if tp is Any: return "Any"
         if tp is _NoneType: return "None"
         if tp is types.EllipsisType: return "..."
+        if isinstance(tp, list): return str(tp)
+        if isinstance(tp, tuple): return str(tp)
+        if isinstance(tp, dict): return str(tp)
         return myTypeguard.getTypeName(tp)
 
     # Union / Optional (PEP 604)

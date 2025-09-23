@@ -1,7 +1,7 @@
 Traceback (most recent call last):
   File "testImpossible.py", line 3, in <module>
     impossible()
-  File "writeYourProgram.py", line 302, in impossible
+  File "writeYourProgram.py", line 331, in impossible
     raise errors.ImpossibleError(msg)
 
 Das Unmögliche ist passiert!

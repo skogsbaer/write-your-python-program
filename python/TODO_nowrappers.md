@@ -5,16 +5,9 @@
 * Integration tests
 
 * Installation
+* Test windows
+
 * Typechecked console
 * Debug slow startup times
 * show "@record\nclass C" for record attributes
-
-
-Problematic tests:
-
-  test-data-2.0/failing/testTypesProtos3.py  # non-static methods without self
-
-  test-data-2.0/failing/testArgs_ok.py  # absolute filenames
-
-
 
