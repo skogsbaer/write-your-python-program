@@ -1,11 +1,11 @@
-# Step 2 of the runner. Assumes that typeguard has been installed
+# Step 2 of the runner. Assumes that typeguard has been installed so that this
+# module can use it.
 
 import sys
 import os
-import os.path
 import json
 import traceback
-import site
+import argparse
 import importlib
 import re
 import code
@@ -133,39 +133,17 @@ def findImportedModules(path, file):
                 res.append(name)
     return res
 
-@dataclass
-class RunSetup:
-    def __init__(self, pathDir: str, args: list[str]):
-        self.pathDir = pathDir
-        self.args = args
-        self.sysPathInserted = False
-        self.oldArgs = sys.argv
-    def __enter__(self):
-        if self.pathDir not in sys.path:
-            sys.path.insert(0, self.pathDir)
-            self.sysPathInserted = True
-        sys.argv = self.args
-        self.originalProfile = sys.getprofile()
-        stacktrace.installProfileHook()
-    def __exit__(self, exc_type, value, traceback):
-        sys.setprofile(self.originalProfile)
-        if self.sysPathInserted:
-            sys.path.remove(self.pathDir)
-            self.sysPathInserted = False
-        sys.argv = self.oldArgs
-
-def runCode(fileToRun, globals, args, doTypecheck=True, extraDirs=None):
+def runCode(fileToRun, globals, doTypecheck=True, extraDirs=None) -> dict:
     if not extraDirs:
         extraDirs = []
-    modDir = os.path.dirname(fileToRun)
-    with RunSetup(modDir, [fileToRun] + args):
-        with instrument.setupFinder(modDir, extraDirs, doTypecheck):
-            modName = os.path.basename(os.path.splitext(fileToRun)[0])
-            sys.dont_write_bytecode = True # FIXME: remove?
-            runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=False)
+    with instrument.setupFinder(os.path.dirname(fileToRun), extraDirs, doTypecheck):
+        modName = os.path.basename(os.path.splitext(fileToRun)[0])
+        sys.dont_write_bytecode = True # FIXME: remove?
+        res = runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=False)
+        return res
 
-def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, doTypecheck=True, extraDirs=None):
-    doRun = lambda: runCode(fileToRun, globals, args, doTypecheck=doTypecheck, extraDirs=extraDirs)
+def runStudentCode(fileToRun, globals, onlyCheckRunnable, doTypecheck=True, extraDirs=None) -> dict:
+    doRun = lambda: runCode(fileToRun, globals, doTypecheck=doTypecheck, extraDirs=extraDirs)
     if onlyCheckRunnable:
         try:
             doRun()
@@ -174,7 +152,7 @@ def runStudentCode(fileToRun, globals, onlyCheckRunnable, args, doTypecheck=True
             handleCurrentException()
         else:
             die(0)
-    doRun()
+    return doRun()
 
 # globals already contain libDefs
 def runTestsInFile(testFile, globals, libDefs, doTypecheck=True, extraDirs=[]):
@@ -182,7 +160,7 @@ def runTestsInFile(testFile, globals, libDefs, doTypecheck=True, extraDirs=[]):
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
     try:
-        runCode(testFile, globals, [], doTypecheck=doTypecheck, extraDirs=extraDirs)
+        runCode(testFile, globals, doTypecheck=doTypecheck, extraDirs=extraDirs)
     except:
         handleCurrentException()
     return libDefs.dict['printTestResults']('Tutor:  ')
@@ -250,7 +228,7 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
         frameList = frameList[1:]
     isBug = not isWyppError and not isinstance(val, SyntaxError) and \
         len(frameList) > 0 and stacktrace.isWyppFrame(frameList[-1])
-    stackSummary = stacktrace.limitTraceback(frameList, extra, not isBug and not DEBUG)
+    stackSummary = stacktrace.limitTraceback(frameList, extra, not isBug and not isDebug())
     header = False
     for x in stackSummary.format():
         if not header:
@@ -292,9 +270,28 @@ def importTypeguard():
         printStderr(f"Module typeguard not found, sys.path={sys.path}: {e}")
         die(1)
 
-DEBUG = False
+@dataclass
+class RunSetup:
+    def __init__(self, pathDir: str, args: list[str]):
+        self.pathDir = pathDir
+        self.args = args
+        self.sysPathInserted = False
+        self.oldArgs = sys.argv
+    def __enter__(self):
+        if self.pathDir not in sys.path:
+            sys.path.insert(0, self.pathDir)
+            self.sysPathInserted = True
+        sys.argv = self.args
+        self.originalProfile = sys.getprofile()
+        stacktrace.installProfileHook()
+    def __exit__(self, exc_type, value, traceback):
+        sys.setprofile(self.originalProfile)
+        if self.sysPathInserted:
+            sys.path.remove(self.pathDir)
+            self.sysPathInserted = False
+        sys.argv = self.oldArgs
 
-def main(globals, args, restArgs):
+def main(globals: dict, args: argparse.Namespace, restArgs: list[str]):
     # assumes that runner.main has been run
 
     if args.lang:
@@ -306,7 +303,7 @@ def main(globals, args, restArgs):
 
     importTypeguard()
 
-    fileToRun = args.file
+    fileToRun: str = args.file
     if args.changeDir:
         os.chdir(os.path.dirname(fileToRun))
         fileToRun = os.path.basename(fileToRun)
@@ -318,21 +315,22 @@ def main(globals, args, restArgs):
 
     if fileToRun is None:
         return
+
     if not args.checkRunnable and (not args.quiet or args.verbose):
         printWelcomeString(fileToRun, version, doTypecheck=args.checkTypes)
 
     libDefs = prepareLib(onlyCheckRunnable=args.checkRunnable, enableTypeChecking=args.checkTypes)
 
-
-    with paths.projectDir(os.path.abspath(os.getcwd())):
+    with (RunSetup(os.path.dirname(fileToRun), [fileToRun] + restArgs),
+          paths.projectDir(os.path.abspath(os.getcwd()))):
         globals['__name__'] = '__wypp__'
         sys.modules['__wypp__'] = sys.modules['__main__']
         loadingFailed = False
         try:
             verbose(f'running code in {fileToRun}')
             globals['__file__'] = fileToRun
-            runStudentCode(fileToRun, globals, args.checkRunnable, restArgs,
-                        doTypecheck=args.checkTypes, extraDirs=args.extraDirs)
+            globals = runStudentCode(fileToRun, globals, args.checkRunnable,
+                                     doTypecheck=args.checkTypes, extraDirs=args.extraDirs)
         except Exception as e:
             verbose(f'Error while running code in {fileToRun}: {e}')
             handleCurrentException(exit=not isInteractive)
@@ -341,54 +339,31 @@ def main(globals, args, restArgs):
         performChecks(args.check, args.testFile, globals, libDefs, doTypecheck=args.checkTypes,
                     extraDirs=args.extraDirs, loadingFailed=loadingFailed)
 
-    if isInteractive:
-        enterInteractive(globals)
-        if loadingFailed:
-            print('NOTE: running the code failed, some definitions might not be available!')
-            print()
-        if args.checkTypes:
-            consoleClass = TypecheckedInteractiveConsole
-        else:
-            consoleClass = code.InteractiveConsole
-        historyFile = getHistoryFilePath()
-        try:
-            import readline
-            readline.parse_and_bind('tab: complete')
-            if historyFile and os.path.exists(historyFile):
-                readline.read_history_file(historyFile)
-        except:
-            pass
-        try:
-            consoleClass(locals=globals).interact(banner="", exitmsg='')
-        finally:
-            if readline and historyFile:
-                readline.set_history_length(HISTORY_SIZE)
-                readline.write_history_file(historyFile)
+        if isInteractive:
+            enterInteractive(globals)
+            if loadingFailed:
+                print('NOTE: running the code failed, some definitions might not be available!')
+                print()
+            if args.checkTypes:
+                consoleClass = TypecheckedInteractiveConsole
+            else:
+                consoleClass = code.InteractiveConsole
+            historyFile = getHistoryFilePath()
+            try:
+                import readline
+                readline.parse_and_bind('tab: complete')
+                if historyFile and os.path.exists(historyFile):
+                    readline.read_history_file(historyFile)
+            except:
+                pass
+            try:
+                consoleClass(locals=globals).interact(banner="", exitmsg='')
+            finally:
+                if readline and historyFile:
+                    readline.set_history_length(HISTORY_SIZE)
+                    readline.write_history_file(historyFile)
 
 class TypecheckedInteractiveConsole(code.InteractiveConsole):
-    pass
+    def showtraceback(self) -> None:
+        handleCurrentException(exit=False, removeFirstTb=True, file=sys.stdout)
 
-    # FIXME
-    # def showtraceback(self) -> None:
-    #     handleCurrentException(exit=False, removeFirstTb=True, file=sys.stdout)
-
-    # def runsource(self, source, filename="<input>", symbol="single"):
-    #     try:
-    #         code = self.compile(source, filename, symbol)
-    #     except (OverflowError, SyntaxError, ValueError):
-    #         self.showsyntaxerror(filename)
-    #         return False
-    #     if code is None:
-    #         return True
-    #     try:
-    #         import ast
-    #         tree = compile("\n".join(self.buffer), filename, symbol, flags=ast.PyCF_ONLY_AST, dont_inherit=True, optimize=-1)
-    #         untypy.transform_tree(tree, filename)
-    #         code = compile(tree, filename, symbol)
-    #     except Exception as e:
-    #         if hasattr(e, 'text') and e.text == "":
-    #             pass
-    #         else:
-    #             traceback.print_tb(e.__traceback__)
-    #     self.runcode(code)
-    #     return False

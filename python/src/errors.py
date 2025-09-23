@@ -84,11 +84,11 @@ class WyppTypeError(TypeError, WyppError):
         lines.append(i18n.tr('unknown keyword argument'))
         lines.append('')
         lines.append(i18n.unknownKeywordArgument(callableName, name))
-        if callLoc:
+        if callLoc and (callLocR := renderLoc(callLoc)):
             lines.append('')
             lines.append(f'## {i18n.tr("File")} {callLoc.filename}')
             lines.append(f'## {i18n.tr("Problematic call in line")} {callLoc.startLine}:\n')
-            lines.append(renderLoc(callLoc))
+            lines.append(callLocR)
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
@@ -96,10 +96,10 @@ class WyppTypeError(TypeError, WyppError):
         lines = []
         lines.append(i18n.tr('invalid record definition'))
         lines.append('')
-        if loc:
+        if loc and (locR := renderLoc(loc)):
             lines.append(f'## {i18n.tr("File")} {loc.filename}')
             lines.append(f'## {i18n.tr("Line")} {loc.startLine}:\n')
-            lines.append(renderLoc(loc))
+            lines.append(locR)
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
@@ -128,20 +128,20 @@ class WyppTypeError(TypeError, WyppError):
             if shouldReportTyMismatch(resultTy, givenTy):
                 lines.append(i18n.wrongReturnValue(renderTy(givenTy)))
         printedFileName = None
-        if resultTypeLoc:
+        if resultTypeLoc and (resultTypeLocR := renderLoc(resultTypeLoc)):
             lines.append('')
             lines.append(f'## {i18n.tr("File")} {resultTypeLoc.filename}')
             printedFileName = resultTypeLoc.filename
             lines.append(f'## {i18n.tr("Result type declared in line")} {resultTypeLoc.startLine}:\n')
-            lines.append(renderLoc(resultTypeLoc))
-        if givenValue is not None and returnLoc:
+            lines.append(resultTypeLocR)
+        if givenValue is not None and returnLoc and (returnLocR := renderLoc(returnLoc)):
             lines.append('')
             if printedFileName != returnLoc.filename:
                 lines.append(f'## {i18n.tr("File")} {returnLoc.filename}')
                 printedFileName = returnLoc.filename
             lines.append(f'## {i18n.tr("Problematic return in line")} {returnLoc.startLine}:\n')
-            lines.append(renderLoc(returnLoc))
-        if callLoc:
+            lines.append(returnLocR)
+        if callLoc and (callLocR := renderLoc(callLoc)):
             lines.append('')
             if printedFileName != callLoc.filename:
                 lines.append(f'## {i18n.tr("File")} {callLoc.filename}')
@@ -149,7 +149,7 @@ class WyppTypeError(TypeError, WyppError):
                 lines.append(f'## {i18n.unexpectedNoReturn(callLoc.startLine)}\n')
             else:
                 lines.append(f'## {i18n.unexpectedReturn(callLoc.startLine)}\n')
-            lines.append(renderLoc(callLoc))
+            lines.append(callLocR)
         raise WyppTypeError('\n'.join(lines), extraFrames)
 
     @staticmethod
@@ -166,17 +166,17 @@ class WyppTypeError(TypeError, WyppError):
             lines.append(i18n.expectingArgumentOfTy(callableName, renderTy(paramTy), paramName))
         if shouldReportTyMismatch(paramTy, type(givenValue)):
             lines.append(i18n.realArgumentTy(renderTy(type(givenValue))))
-        if givenLoc:
+        if givenLoc and (givenLocR := renderLoc(givenLoc)):
             lines.append('')
             lines.append(f'## {i18n.tr("File")} {givenLoc.filename}')
             lines.append(f'## {i18n.tr("Problematic call in line")} {givenLoc.startLine}:\n')
-            lines.append(renderLoc(givenLoc))
-        if paramLoc:
+            lines.append(givenLocR)
+        if paramLoc and (paramLocR := renderLoc(paramLoc)):
             lines.append('')
             if not givenLoc or paramLoc.filename != givenLoc.filename:
                 lines.append(f'## {i18n.tr("File")} {paramLoc.filename}')
             lines.append(f'## {i18n.tr("Type declared in line")} {paramLoc.startLine}:\n')
-            lines.append(renderLoc(paramLoc))
+            lines.append(paramLocR)
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
@@ -189,11 +189,11 @@ class WyppTypeError(TypeError, WyppError):
         lines.append(i18n.expectingDefaultValueOfTy(callableName, renderTy(paramTy), paramName))
         if shouldReportTyMismatch(paramTy, type(givenValue)):
             lines.append(i18n.realDefaultValueTy(renderTy(type(givenValue))))
-        if paramLoc:
+        if paramLoc and (paramLocR := renderLoc(paramLoc)):
             lines.append('')
             lines.append(f'## {i18n.tr("File")} {paramLoc.filename}')
             lines.append(f'## {i18n.tr("Parameter declared in line")} {paramLoc.startLine}:\n')
-            lines.append(renderLoc(paramLoc))
+            lines.append(paramLocR)
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
@@ -213,22 +213,22 @@ class WyppTypeError(TypeError, WyppError):
             else:
                 lines.append(i18n.argCountMax(callableName, numParams))
         lines.append(i18n.tr('Given: ') + i18n.argCount(numArgs))
-        if callLoc:
+        if callLoc and (callLocR := renderLoc(callLoc)):
             lines.append('')
             lines.append(f'## {i18n.tr("File")} {callLoc.filename}')
             lines.append(f'## {i18n.tr("Call in line")} {callLoc.startLine}:\n')
-            lines.append(renderLoc(callLoc))
+            lines.append(callLocR)
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
     def partialAnnotationError(callableName: location.CallableName, paramName: str, paramLoc: Optional[location.Loc]) -> WyppTypeError:
         lines = []
         lines.append(i18n.expectingTypeAnnotation(callableName, paramName))
-        if paramLoc:
+        if paramLoc and (paramLocR := renderLoc(paramLoc)):
             lines.append('')
             lines.append(f'## {i18n.tr("File")} {paramLoc.filename}')
             lines.append(f'## {i18n.tr("Parameter declared in line")} {paramLoc.startLine}:\n')
-            lines.append(renderLoc(paramLoc))
+            lines.append(paramLocR)
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
@@ -249,17 +249,17 @@ class WyppTypeError(TypeError, WyppError):
         lines.append(i18n.recordAttrDeclTy(recordName, attrName, renderTy(attrTy)))
         if shouldReportTyMismatch(attrTy, type(setterValue)):
             lines.append(i18n.realSetAttrTy(renderTy(type(setterValue))))
-        if setterLoc:
+        if setterLoc and (setterLocR := renderLoc(setterLoc)):
             lines.append('')
             lines.append(f'## {i18n.tr("File")} {setterLoc.filename}')
             lines.append(f'## {i18n.tr("Problematic assignment in line")} {setterLoc.startLine}:\n')
-            lines.append(renderLoc(setterLoc))
-        if attrLoc:
+            lines.append(setterLocR)
+        if attrLoc and (attrLocR := renderLoc(attrLoc)):
             lines.append('')
             if not setterLoc or setterLoc.filename != attrLoc.filename:
                 lines.append(f'## {i18n.tr("File")} {attrLoc.filename}')
             lines.append(f'## {i18n.tr("Type declared in line")} {attrLoc.startLine}:\n')
-            lines.append(renderLoc(attrLoc))
+            lines.append(attrLocR)
         raise WyppTypeError('\n'.join(lines))
 
 class WyppAttributeError(AttributeError, WyppError):

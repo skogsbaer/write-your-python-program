@@ -176,11 +176,9 @@ Python in version {reqVStr} or newer is required. You are still using version {v
     if args.verbose:
         enableVerbose()
     if args.debug:
-        global DEBUG
-        DEBUG = True
         enableDebug()
 
-    verbose(f'VERBOSE={args.verbose}, DEBUG={DEBUG}')
+    verbose(f'VERBOSE={args.verbose}, DEBUG={args.debug}')
 
     installLib(args.installMode)
     if args.installMode == InstallMode.dontInstall:

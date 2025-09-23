@@ -3,7 +3,7 @@ import doctest
 import os
 import argparse
 from dataclasses import dataclass
-from runner2 import runCode, importTypeguard, verbose, enableVerbose
+from myLogging import *
 
 usage = """python3 replTester.py [ ARGUMENTS ] LIB_1 ... LIB_n --repl SAMPLE_1 ... SAMPLE_m
 
@@ -54,10 +54,14 @@ if opts.verbose:
     enableVerbose()
 
 libDir = os.path.dirname(__file__)
+siteDir = os.path.join(libDir, "..", "site-lib")
+if siteDir not in sys.path:
+    sys.path.insert(0, siteDir)
 libFile = os.path.join(libDir, 'writeYourProgram.py')
 defs = globals()
+
+from runner2 import runCode, importTypeguard
 importTypeguard()
-# runCode(libFile, defs, [])
 
 for lib in opts.libs:
     d = os.path.dirname(lib)
@@ -66,7 +70,7 @@ for lib in opts.libs:
 
 for lib in opts.libs:
     verbose(f"Loading lib {lib}")
-    runCode(lib, defs, [])
+    defs = runCode(lib, defs)
 
 totalFailures = 0
 totalTests = 0
@@ -111,7 +115,7 @@ if totalFailures == 0:
         print('ERROR: No tests found at all!')
         sys.exit(1)
     else:
-        print(f'All {totalTests} tests succeded. Great!')
+        print(f'All {totalTests} tests succeeded. Great!')
 else:
     print(f'ERROR: {failures} out of {tests} failed')
     sys.exit(1)
