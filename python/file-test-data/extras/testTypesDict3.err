@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/testTypesDict3.py", line 11, in <module>
+    foo({'y': func})
+  File "file-test-data/extras/testTypesDict3.py", line 8, in foo
+    return res
+
+WyppTypeError: ['xxx', 42]
+
+Rückgabewert vom Typ `list[str]` erwartet bei Aufruf der Funktion `foo`.
+
+## Datei file-test-data/extras/testTypesDict3.py
+## Rückgabetyp deklariert in Zeile 3:
+
+def foo(d: dict[str, Callable[[], str]]) -> [0;31m[1mlist[str][0;0m:
+
+## Fehlerhaftes return in Zeile 8:
+
+    return res
+
+## Aufruf in Zeile 11 verursacht das fehlerhafte return:
+
+foo({'y': func})

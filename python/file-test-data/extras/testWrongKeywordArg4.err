@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/testWrongKeywordArg4.py", line 4, in <module>
+    foo(kw=1, x=4)
+
+WyppTypeError: unbekanntes Schlüsselwort-Argument
+
+Funktion `foo` akzeptiert kein Schlüsselwort-Argument `x`.
+
+## Datei file-test-data/extras/testWrongKeywordArg4.py
+## Fehlerhafter Aufruf in Zeile 4:
+
+foo(kw=1, x=4)

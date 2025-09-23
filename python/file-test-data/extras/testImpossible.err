@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/testImpossible.py", line 3, in <module>
+    impossible()
+  File "site-lib/wypp/writeYourProgram.py", line 331, in impossible
+    raise errors.ImpossibleError(msg)
+
+Das Unmögliche ist passiert!

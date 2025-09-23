@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/partial.py", line 1, in <module>
+    def foo(i: int, j) -> None:
+
+WyppTypeError: Parameter `j` of function `foo` requires a type annotation.
+
+## File file-test-data/basics/partial.py
+## Parameter declared in line 1:
+
+def foo(i: int, [0;31m[1mj[0;0m) -> None:

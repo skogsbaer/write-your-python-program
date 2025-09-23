@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/tooFewArgs.py", line 4, in <module>
+    foo(1)
+
+WyppTypeError: Anzahl der Argument passt nicht
+
+Funktion `foo` benötigt 2 Argumente.
+Gegeben: 1 Argument
+
+## Datei file-test-data/basics/tooFewArgs.py
+## Aufruf in Zeile 4:
+
+foo(1)

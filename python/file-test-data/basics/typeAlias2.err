@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/typeAlias2.py", line 7, in <module>
+    foo(['foo'])
+
+WyppTypeError: ['foo']
+
+Der Aufruf der Funktion `foo` erwartet Wert vom Typ `list[T]` als erstes Argument.
+
+## Datei file-test-data/basics/typeAlias2.py
+## Fehlerhafter Aufruf in Zeile 7:
+
+foo(['foo'])
+
+## Typ deklariert in Zeile 3:
+
+def foo([0;31m[1mx: list[T][0;0m):

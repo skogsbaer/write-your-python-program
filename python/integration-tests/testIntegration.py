@@ -43,52 +43,52 @@ class StudentSubmissionTests(unittest.TestCase):
         self.assertEqual(ecode, res.exitcode)
 
     def test_goodSubmission(self):
-        self.check("test-data/student-submission.py", "test-data/student-submission-tests.py", 0)
-        self.check("test-data/student-submission.py", "test-data/student-submission-tests.py", 0,
+        self.check("integration-test-data/student-submission.py", "integration-test-data/student-submission-tests.py", 0)
+        self.check("integration-test-data/student-submission.py", "integration-test-data/student-submission-tests.py", 0,
                    tycheck=False)
 
     def test_badSubmission(self):
-        self.check("test-data/student-submission-bad.py",
-                   "test-data/student-submission-tests.py", 1)
-        self.check("test-data/student-submission-bad.py",
-                   "test-data/student-submission-tests.py", 1, tycheck=False)
+        self.check("integration-test-data/student-submission-bad.py",
+                   "integration-test-data/student-submission-tests.py", 1)
+        self.check("integration-test-data/student-submission-bad.py",
+                   "integration-test-data/student-submission-tests.py", 1, tycheck=False)
 
     def test_submissionWithTypeErrors(self):
-        self.check("test-data/student-submission-tyerror.py",
-                   "test-data/student-submission-tests.py", 1)
-        self.check("test-data/student-submission-tyerror.py",
-                   "test-data/student-submission-tests.py", 0, tycheck=False)
-        self.check("test-data/student-submission.py",
-                   "test-data/student-submission-tests-tyerror.py", 1)
-        self.check("test-data/student-submission.py",
-                   "test-data/student-submission-tests-tyerror.py", 0, tycheck=False)
+        self.check("integration-test-data/student-submission-tyerror.py",
+                   "integration-test-data/student-submission-tests.py", 1)
+        self.check("integration-test-data/student-submission-tyerror.py",
+                   "integration-test-data/student-submission-tests.py", 0, tycheck=False)
+        self.check("integration-test-data/student-submission.py",
+                   "integration-test-data/student-submission-tests-tyerror.py", 1)
+        self.check("integration-test-data/student-submission.py",
+                   "integration-test-data/student-submission-tests-tyerror.py", 0, tycheck=False)
 
 class InteractiveTests(unittest.TestCase):
 
     def test_scopeBugPeter(self):
-        out = runInteractive('test-data/scope-bug-peter.py', 'local_test()\nprint(spam)')
+        out = runInteractive('integration-test-data/scope-bug-peter.py', 'local_test()\nprint(spam)')
         self.assertIn('IT WORKS', out)
 
     def test_types1(self):
-        out = runInteractive('test-data/testTypesInteractive.py', 'inc(3)')
+        out = runInteractive('integration-test-data/testTypesInteractive.py', 'inc(3)')
         self.assertEqual(['4'], out)
 
     def test_types2(self):
-        out = runInteractive('test-data/testTypesInteractive.py', 'inc("3")')[0]
+        out = runInteractive('integration-test-data/testTypesInteractive.py', 'inc("3")')[0]
         self.assertIn('The call of function `inc` expects value of type `int` as 1st argument', out)
 
     def test_typesInImportedModule1(self):
-        out = run('test-data/testTypes3.py', ecode=1)
+        out = run('integration-test-data/testTypes3.py', ecode=1)
         self.assertIn('The call of function `inc` expects value of type `int` as 1st argument', out)
 
     def test_typesInImportedModule2(self):
-        out = run('test-data/testTypes3.py', tycheck=False)
+        out = run('integration-test-data/testTypes3.py', tycheck=False)
         self.assertEqual('END', out)
 
 class ReplTesterTests(unittest.TestCase):
 
     def test_replTester(self):
         d = shell.pwd()
-        cmd = f'python3 {d}/src/replTester.py {d}/test-data/repl-test-lib.py --repl {d}/test-data/repl-test-checks.py'
+        cmd = f'python3 {d}/src/replTester.py {d}/integration-test-data/repl-test-lib.py --repl {d}/integration-test-data/repl-test-checks.py'
         res = shell.run(cmd, captureStdout=True, onError='die', cwd='/tmp')
         self.assertIn('All 1 tests succeeded. Great!', res.stdout)

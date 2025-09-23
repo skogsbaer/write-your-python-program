@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/optionalArgs.py", line 1, in <module>
+    def foo(i: int, s: str=2):
+
+WyppTypeError: 2
+
+Default-Wert des Parameters `s` der Funktion `foo` muss vom Typ `str` sein.
+Aber der Default-Wert hat Typ `int`.
+
+## Datei file-test-data/basics/optionalArgs.py
+## Parameter deklariert in Zeile 1:
+
+def foo(i: int, [0;31m[1ms: str[0;0m=2):

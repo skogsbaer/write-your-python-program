@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/optionalAttr2.py", line 9, in <module>
+    c = C(1)
+
+WyppTypeError: Anzahl der Argument passt nicht
+
+Konstruktor des Records `C` benötigt mindestens 2 Argumente.
+Gegeben: 1 Argument
+
+## Datei file-test-data/basics/optionalAttr2.py
+## Aufruf in Zeile 9:
+
+c = [0;31m[1mC(1)[0;0m

@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/testTypesProtos1.py", line 21, in <module>
+    doSomething(Dog())
+  File "file-test-data/extras/testTypesProtos1.py", line 19, in doSomething
+    print(a.makeSound(3.14))
+
+WyppTypeError: 3.14
+
+Der Aufruf der Methode `makeSound` aus Klasse `Dog` erwartet Wert vom Typ `int` als erstes Argument.
+Aber der übergebene Wert hat Typ `float`.
+
+## Datei file-test-data/extras/testTypesProtos1.py
+## Fehlerhafter Aufruf in Zeile 19:
+
+    print([0;31m[1ma.makeSound(3.14)[0;0m)
+
+## Typ deklariert in Zeile 13:
+
+    def makeSound(self, [0;31m[1mloadness: int[0;0m) -> str:

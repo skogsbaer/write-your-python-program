@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "test-data-2.0/extras/testTraceback.py", line 9, in <module>
-    foo(lst)
-  File "test-data-2.0/extras/testTraceback.py", line 7, in foo
-    print(lst[10])
-IndexError: list index out of range

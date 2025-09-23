@@ -1,0 +1,2 @@
+FEHLER in /Users/swehr/devel/write-your-python-program/python/file-test-data/extras/testFunEq_ok.py:9: Erwartet wird <function bar at 0x00>, aber das Ergebnis ist <function foo at 0x00>
+1 Test, 1 Fehler 🙁

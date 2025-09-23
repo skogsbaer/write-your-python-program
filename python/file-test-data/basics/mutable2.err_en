@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/mutable2.py", line 8, in <module>
+    p = Point(1, '2')
+
+WyppTypeError: '2'
+
+The call of the constructor of record `Point` expects value of type `int` as 2nd argument.
+But the value given has type `str`.
+
+## File file-test-data/basics/mutable2.py
+## Problematic call in line 8:
+
+p = [0;31m[1mPoint(1, '2')[0;0m
+
+## Type declared in line 6:
+
+    [0;31m[1my: int[0;0m

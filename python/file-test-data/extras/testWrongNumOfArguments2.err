@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/testWrongNumOfArguments2.py", line 6, in <module>
+    c.foo(1)
+
+WyppTypeError: Anzahl der Argument passt nicht
+
+Methode `foo` der Klasse `C` benötigt 2 Argumente.
+Gegeben: 1 Argument
+
+## Datei file-test-data/extras/testWrongNumOfArguments2.py
+## Aufruf in Zeile 6:
+
+c.foo(1)

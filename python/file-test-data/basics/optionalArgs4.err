@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/optionalArgs4.py", line 1, in <module>
+    class C:
+  File "file-test-data/basics/optionalArgs4.py", line 2, in C
+    def __init__(i: int, s: str=2):
+
+WyppTypeError: 2
+
+Default-Wert des Parameters `s` der Methode `__init__` aus Klasse `C` muss vom Typ `str` sein.
+Aber der Default-Wert hat Typ `int`.
+
+## Datei file-test-data/basics/optionalArgs4.py
+## Parameter deklariert in Zeile 2:
+
+    def __init__(i: int, [0;31m[1ms: str[0;0m=2):

@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/functionResult2.py", line 7, in <module>
+    foo(1)
+  File "file-test-data/basics/functionResult2.py", line 5, in foo
+    return "foo_" + str(i)
+
+WyppTypeError: "foo_1"
+
+Kein Rückgabewert erwartet bei Aufruf der Funktion `foo`.
+Aber der Aufruf gibt einen Wert vom Typ `str` zurück.
+
+## Datei file-test-data/basics/functionResult2.py
+## Fehlerhaftes return in Zeile 5:
+
+    return "foo_" + str(i)
+
+## Aufruf in Zeile 7 verursacht das fehlerhafte return:
+
+foo(1)
