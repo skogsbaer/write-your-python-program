@@ -1,14 +1,14 @@
 Traceback (most recent call last):
-  File "listResult.py", line 5, in <module>
+  File "test-data-2.0/basics/listResult.py", line 5, in <module>
     foo([1, 2, 3])
-  File "listResult.py", line 3, in foo
+  File "test-data-2.0/basics/listResult.py", line 3, in foo
     return l
 
 WyppTypeError: [1, 2, 3, '4']
 
 Rückgabewert vom Typ `list[int]` erwartet bei Aufruf der Funktion `foo`.
 
-## Datei listResult.py
+## Datei test-data-2.0/basics/listResult.py
 ## Rückgabetyp deklariert in Zeile 1:
 
 def foo(l: list[int]) -> [0;31m[1mlist[int][0;0m:

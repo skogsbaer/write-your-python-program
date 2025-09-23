@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "functionArg.py", line 8, in <module>
+  File "test-data-2.0/basics/functionArg.py", line 8, in <module>
     print(foo(foo(1, "1"), 42))
 
 WyppTypeError: "1"
@@ -7,7 +7,7 @@ WyppTypeError: "1"
 Der Aufruf der Funktion `foo` erwartet Wert vom Typ `int` als zweites Argument.
 Aber der übergebene Wert hat Typ `str`.
 
-## Datei functionArg.py
+## Datei test-data-2.0/basics/functionArg.py
 ## Fehlerhafter Aufruf in Zeile 8:
 
     print(foo(foo(1, [0;31m[1m"1"[0;0m), 42))

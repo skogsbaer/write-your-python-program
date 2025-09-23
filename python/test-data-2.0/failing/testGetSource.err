@@ -1,16 +1,16 @@
 Traceback (most recent call last):
-  File "testGetSource.py", line 11, in <module>
+  File "test-data-2.0/failing/testGetSource.py", line 11, in <module>
     Art = Literal('klein','mittag')  # <= problem is here
-  File "writeYourProgram.py", line 92, in _invalidCall
+  File "site-lib/wypp/writeYourProgram.py", line 92, in _invalidCall
     raise errors.WyppTypeError.invalidType(tyStr, loc)
-  File "errors.py", line 79, in invalidType
+  File "src/errors.py", line 79, in invalidType
     raise WyppTypeError('\n'.join(lines))
 
 WyppTypeError: ungültiger Typ `Literal('klein', 'mittag')`
 
 Wolltest du `Literal['klein', 'mittag']` schreiben?
 
-## Datei testGetSource.py
+## Datei test-data-2.0/failing/testGetSource.py
 ## Typ deklariert in Zeile 11:
 
 Art = [0;31m[1mLiteral('klein','mittag')[0;0m  # <= problem is here

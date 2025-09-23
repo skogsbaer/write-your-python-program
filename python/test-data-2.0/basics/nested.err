@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "nested.py", line 4, in <module>
+  File "test-data-2.0/basics/nested.py", line 4, in <module>
     foo(42)
 
 WyppTypeError: 42
@@ -7,7 +7,7 @@ WyppTypeError: 42
 Der Aufruf der Funktion `foo` erwartet Wert vom Typ `list[list[int]]` als erstes Argument.
 Aber der übergebene Wert hat Typ `int`.
 
-## Datei nested.py
+## Datei test-data-2.0/basics/nested.py
 ## Fehlerhafter Aufruf in Zeile 4:
 
 foo(42)

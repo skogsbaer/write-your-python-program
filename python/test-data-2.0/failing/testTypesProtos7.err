@@ -1,13 +1,13 @@
 Traceback (most recent call last):
-  File "testTypesProtos7.py", line 76, in <module>
+  File "test-data-2.0/failing/testTypesProtos7.py", line 76, in <module>
     print(computeTotalSize(root))
-  File "testTypesProtos7.py", line 69, in computeTotalSize
+  File "test-data-2.0/failing/testTypesProtos7.py", line 69, in computeTotalSize
     fs.accept(visitor)
-  File "testTypesProtos7.py", line 36, in accept
+  File "test-data-2.0/failing/testTypesProtos7.py", line 36, in accept
     visitor.visitDirectory(self)
-  File "testTypesProtos7.py", line 60, in visitDirectory
+  File "test-data-2.0/failing/testTypesProtos7.py", line 60, in visitDirectory
     c.accept(self)
-  File "testTypesProtos7.py", line 47, in accept
+  File "test-data-2.0/failing/testTypesProtos7.py", line 47, in accept
     visitor.visitFile(self)
 
 WyppTypeError: File('notes.txt')
@@ -15,7 +15,7 @@ WyppTypeError: File('notes.txt')
 Der Aufruf der Methode `visitFile` aus Klasse `TotalSizeVisitor` erwartet Wert vom Typ `str` als erstes Argument.
 Aber der übergebene Wert hat Typ `File`.
 
-## Datei testTypesProtos7.py
+## Datei test-data-2.0/failing/testTypesProtos7.py
 ## Fehlerhafter Aufruf in Zeile 47:
 
         [0;31m[1mvisitor.visitFile(self)[0;0m

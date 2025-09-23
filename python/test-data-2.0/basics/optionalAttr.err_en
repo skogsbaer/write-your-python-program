@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "optionalAttr.py", line 3, in <module>
+  File "test-data-2.0/basics/optionalAttr.py", line 3, in <module>
     @record
 
 WyppTypeError: 'foo'
@@ -7,7 +7,7 @@ WyppTypeError: 'foo'
 Default value for attribute `y` of record `C` must have type `int`.
 But the default value has type `str`.
 
-## File optionalAttr.py
+## File test-data-2.0/basics/optionalAttr.py
 ## Parameter declared in line 6:
 
     [0;31m[1my: int = 'foo'[0;0m

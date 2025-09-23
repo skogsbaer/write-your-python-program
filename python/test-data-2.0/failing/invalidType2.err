@@ -1,4 +1,4 @@
 Traceback (most recent call last):
-  File "invalidType2.py", line 5, in <module>
+  File "test-data-2.0/failing/invalidType2.py", line 5, in <module>
     T = Union(list(int), list[float])
 TypeError: 'type' object is not iterable

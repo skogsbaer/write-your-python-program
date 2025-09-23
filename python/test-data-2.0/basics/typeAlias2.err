@@ -1,12 +1,12 @@
 Traceback (most recent call last):
-  File "typeAlias2.py", line 7, in <module>
+  File "test-data-2.0/basics/typeAlias2.py", line 7, in <module>
     foo(['foo'])
 
 WyppTypeError: ['foo']
 
 Der Aufruf der Funktion `foo` erwartet Wert vom Typ `list[T]` als erstes Argument.
 
-## Datei typeAlias2.py
+## Datei test-data-2.0/basics/typeAlias2.py
 ## Fehlerhafter Aufruf in Zeile 7:
 
 foo(['foo'])

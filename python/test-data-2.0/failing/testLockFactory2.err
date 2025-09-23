@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "testLockFactory2.py", line 14, in <module>
+  File "test-data-2.0/failing/testLockFactory2.py", line 14, in <module>
     foo("not a lock")
 
 WyppTypeError: "not a lock"
@@ -7,7 +7,7 @@ WyppTypeError: "not a lock"
 Der Aufruf der Funktion `foo` erwartet Wert vom Typ `wypp.Lock` als erstes Argument.
 Aber der übergebene Wert hat Typ `str`.
 
-## Datei testLockFactory2.py
+## Datei test-data-2.0/failing/testLockFactory2.py
 ## Fehlerhafter Aufruf in Zeile 14:
 
 foo("not a lock")

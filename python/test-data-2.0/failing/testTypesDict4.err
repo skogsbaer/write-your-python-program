@@ -1,16 +1,16 @@
 Traceback (most recent call last):
-  File "testTypesDict4.py", line 14, in <module>
+  File "test-data-2.0/failing/testTypesDict4.py", line 14, in <module>
     bar({'y': func})  # error
-  File "testTypesDict4.py", line 11, in bar
+  File "test-data-2.0/failing/testTypesDict4.py", line 11, in bar
     return foo(d)
-  File "testTypesDict4.py", line 8, in foo
+  File "test-data-2.0/failing/testTypesDict4.py", line 8, in foo
     return res
 
 WyppTypeError: [42, 'x']
 
 Rückgabewert vom Typ `list[str]` erwartet bei Aufruf der Funktion `foo`.
 
-## Datei testTypesDict4.py
+## Datei test-data-2.0/failing/testTypesDict4.py
 ## Rückgabetyp deklariert in Zeile 3:
 
 def foo(d: dict[str, Callable[[], str]]) -> [0;31m[1mlist[str][0;0m:

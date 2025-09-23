@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "optionalAttr.py", line 3, in <module>
+  File "test-data-2.0/basics/optionalAttr.py", line 3, in <module>
     @record
 
 WyppTypeError: 'foo'
@@ -7,7 +7,7 @@ WyppTypeError: 'foo'
 Default-Wert des Attributs `y` des Records `C` muss vom Typ `int` sein.
 Aber der Default-Wert hat Typ `str`.
 
-## Datei optionalAttr.py
+## Datei test-data-2.0/basics/optionalAttr.py
 ## Parameter deklariert in Zeile 6:
 
     [0;31m[1my: int = 'foo'[0;0m

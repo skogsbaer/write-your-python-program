@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "constructor.py", line 5, in <module>
+  File "test-data-2.0/basics/constructor.py", line 5, in <module>
     c = C("1")
 
 WyppTypeError: "1"
@@ -7,7 +7,7 @@ WyppTypeError: "1"
 Der Aufruf der Methode `__init__` aus Klasse `C` erwartet Wert vom Typ `int` als erstes Argument.
 Aber der übergebene Wert hat Typ `str`.
 
-## Datei constructor.py
+## Datei test-data-2.0/basics/constructor.py
 ## Fehlerhafter Aufruf in Zeile 5:
 
 c = [0;31m[1mC("1")[0;0m

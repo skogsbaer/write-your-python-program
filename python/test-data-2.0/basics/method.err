@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "method.py", line 9, in <module>
+  File "test-data-2.0/basics/method.py", line 9, in <module>
     c.method("2")
 
 WyppTypeError: "2"
@@ -7,7 +7,7 @@ WyppTypeError: "2"
 Der Aufruf der Methode `method` aus Klasse `C` erwartet Wert vom Typ `int` als erstes Argument.
 Aber der übergebene Wert hat Typ `str`.
 
-## Datei method.py
+## Datei test-data-2.0/basics/method.py
 ## Fehlerhafter Aufruf in Zeile 9:
 
 c.method("2")

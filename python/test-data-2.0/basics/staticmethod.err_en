@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "staticmethod.py", line 6, in <module>
+  File "test-data-2.0/basics/staticmethod.py", line 6, in <module>
     C.method("2")
 
 WyppTypeError: "2"
@@ -7,7 +7,7 @@ WyppTypeError: "2"
 The call of method `method` of class `C` expects value of type `int` as 1st argument.
 But the value given has type `str`.
 
-## File staticmethod.py
+## File test-data-2.0/basics/staticmethod.py
 ## Problematic call in line 6:
 
 C.method("2")

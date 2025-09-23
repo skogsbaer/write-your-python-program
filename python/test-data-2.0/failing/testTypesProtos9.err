@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "testTypesProtos9.py", line 12, in <module>
+  File "test-data-2.0/failing/testTypesProtos9.py", line 12, in <module>
     bar(Sub())
-  File "testTypesProtos9.py", line 10, in bar
+  File "test-data-2.0/failing/testTypesProtos9.py", line 10, in bar
     b.foo(1, "foo")
 
 WyppTypeError: "foo"
@@ -9,7 +9,7 @@ WyppTypeError: "foo"
 Der Aufruf der Methode `foo` aus Klasse `Sub` erwartet Wert vom Typ `float` als zweites Argument.
 Aber der übergebene Wert hat Typ `str`.
 
-## Datei testTypesProtos9.py
+## Datei test-data-2.0/failing/testTypesProtos9.py
 ## Fehlerhafter Aufruf in Zeile 10:
 
     [0;31m[1mb.foo(1, "foo")[0;0m

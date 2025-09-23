@@ -1,13 +1,13 @@
 Traceback (most recent call last):
-  File "stack.py", line 7, in <module>
+  File "test-data-2.0/basics/stack.py", line 7, in <module>
     factorial(5)
-  File "stack.py", line 5, in factorial
+  File "test-data-2.0/basics/stack.py", line 5, in factorial
     return factorial(n - 1) * n
-  File "stack.py", line 5, in factorial
+  File "test-data-2.0/basics/stack.py", line 5, in factorial
     return factorial(n - 1) * n
-  File "stack.py", line 5, in factorial
+  File "test-data-2.0/basics/stack.py", line 5, in factorial
     return factorial(n - 1) * n
   [Previous line repeated 2 more times]
-  File "stack.py", line 3, in factorial
+  File "test-data-2.0/basics/stack.py", line 3, in factorial
     raise ValueError('kein Bock')
 ValueError: kein Bock

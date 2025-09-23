@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "functionNoResult3.py", line 4, in <module>
+  File "test-data-2.0/basics/functionNoResult3.py", line 4, in <module>
     foo(1)
-  File "functionNoResult3.py", line 2, in foo
+  File "test-data-2.0/basics/functionNoResult3.py", line 2, in foo
     return "x"
 
 WyppTypeError: "x"
@@ -9,7 +9,7 @@ WyppTypeError: "x"
 Expecting no return value when calling function `foo`.
 But the call returns a value of type `str`.
 
-## File functionNoResult3.py
+## File test-data-2.0/basics/functionNoResult3.py
 ## Problematic return in line 2:
 
     return "x"

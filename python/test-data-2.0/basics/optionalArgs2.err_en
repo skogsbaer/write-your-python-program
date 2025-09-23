@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "optionalArgs2.py", line 4, in <module>
+  File "test-data-2.0/basics/optionalArgs2.py", line 4, in <module>
     foo(1)
 
 WyppTypeError: argument count mismatch
@@ -7,7 +7,7 @@ WyppTypeError: argument count mismatch
 Function `foo` takes at least 2 arguments.
 Given: 1 argument
 
-## File optionalArgs2.py
+## File test-data-2.0/basics/optionalArgs2.py
 ## Call in line 4:
 
 foo(1)

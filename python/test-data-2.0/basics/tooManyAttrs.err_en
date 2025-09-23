@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "tooManyAttrs.py", line 8, in <module>
+  File "test-data-2.0/basics/tooManyAttrs.py", line 8, in <module>
     c = C(1, 2, 3)
 
 WyppTypeError: argument count mismatch
@@ -7,7 +7,7 @@ WyppTypeError: argument count mismatch
 Constructor of record `C` takes 2 arguments.
 Given: 3 arguments
 
-## File tooManyAttrs.py
+## File test-data-2.0/basics/tooManyAttrs.py
 ## Call in line 8:
 
 c = [0;31m[1mC(1, 2, 3)[0;0m

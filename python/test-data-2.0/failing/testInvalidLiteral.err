@@ -1,10 +1,10 @@
 Traceback (most recent call last):
-  File "testInvalidLiteral.py", line 8, in <module>
+  File "test-data-2.0/failing/testInvalidLiteral.py", line 8, in <module>
     gameFull([['x']])
 
 WyppTypeError: ungültiger Typ `list[list[['x', 'o', '-']]]`
 
-## Datei testInvalidLiteral.py
+## Datei test-data-2.0/failing/testInvalidLiteral.py
 ## Typ deklariert in Zeile 5:
 
 def gameFull([0;31m[1mgame:Game[0;0m)->bool:

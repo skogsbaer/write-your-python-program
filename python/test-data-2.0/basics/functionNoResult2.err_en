@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "functionNoResult2.py", line 4, in <module>
+  File "test-data-2.0/basics/functionNoResult2.py", line 4, in <module>
     foo(1)
-  File "functionNoResult2.py", line 2, in foo
+  File "test-data-2.0/basics/functionNoResult2.py", line 2, in foo
     pass
 
 WyppTypeError: no result returned
@@ -9,7 +9,7 @@ WyppTypeError: no result returned
 Expecting return value of type `int` when calling function `foo`.
 But no value returned.
 
-## File functionNoResult2.py
+## File test-data-2.0/basics/functionNoResult2.py
 ## Result type declared in line 1:
 
 def foo(i: int) -> [0;31m[1mint[0;0m:

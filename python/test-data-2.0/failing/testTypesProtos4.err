@@ -1,9 +1,9 @@
 Traceback (most recent call last):
-  File "testTypesProtos4.py", line 27, in <module>
+  File "test-data-2.0/failing/testTypesProtos4.py", line 27, in <module>
     print(foo(ConcreteWrong()))
-  File "testTypesProtos4.py", line 24, in foo
+  File "test-data-2.0/failing/testTypesProtos4.py", line 24, in foo
     return fn(2)
-  File "testTypesProtos4.py", line 20, in <lambda>
+  File "test-data-2.0/failing/testTypesProtos4.py", line 20, in <lambda>
     return lambda x: bar(x) # invalid call of bar with argument of type int
 
 WyppTypeError: 2
@@ -11,7 +11,7 @@ WyppTypeError: 2
 Der Aufruf der Funktion `bar` erwartet Wert vom Typ `str` als erstes Argument.
 Aber der übergebene Wert hat Typ `int`.
 
-## Datei testTypesProtos4.py
+## Datei test-data-2.0/failing/testTypesProtos4.py
 ## Fehlerhafter Aufruf in Zeile 20:
 
         return lambda x: bar([0;31m[1mx[0;0m) # invalid call of bar with argument of type int

@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "typeAlias.py", line 7, in <module>
+  File "test-data-2.0/basics/typeAlias.py", line 7, in <module>
     foo('foo')
 
 WyppTypeError: 'foo'
@@ -7,7 +7,7 @@ WyppTypeError: 'foo'
 The call of function `foo` expects value of type `T` as 1st argument.
 But the value given has type `str`.
 
-## File typeAlias.py
+## File test-data-2.0/basics/typeAlias.py
 ## Problematic call in line 7:
 
 foo('foo')

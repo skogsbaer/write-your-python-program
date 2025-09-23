@@ -13,6 +13,8 @@ import re
 
 GLOBAL_CHECK_OUTPUTS = True
 
+GLOBAL_RECORD_ALL = False # Should be False, write actual output to all expected output files
+
 @dataclass(frozen=True)
 class TestOpts:
     cmd: str
@@ -156,7 +158,12 @@ def checkOutputOk(testFile: str, outputType: str, expectedFile: str, actualFile:
     if expected != actual:
         print(f"Test {testFile} {outputType} output mismatch:")
         subprocess.run(['diff', '-u', expectedFile, actualFile])
-        return False
+        if GLOBAL_RECORD_ALL:
+            with open(expectedFile, 'w') as f:
+                f.write(actual)
+            return True
+        else:
+            return False
     else:
         return True
 
@@ -195,9 +202,6 @@ def fixOutput(filePath: str):
     """
     content = readFile(filePath)
     content = re.sub(r'at 0x[0-9a-f][0-9a-f]*>', 'at 0x00>', content, flags=re.MULTILINE)  # Remove memory addresses
-    content = re.sub(r'File "[^"]*/([^/"]*)"', 'File "\\1"', content, flags=re.MULTILINE)  # Remove file paths
-    content = re.sub(r'## File .*/([^/]*)$', '## File \\1', content, flags=re.MULTILINE)
-    content = re.sub(r'## Datei .*/([^/]*)$', '## Datei \\1', content, flags=re.MULTILINE)
     with open(filePath, 'w') as f:
         f.write(content)
 

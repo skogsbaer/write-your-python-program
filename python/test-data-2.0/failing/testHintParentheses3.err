@@ -1,12 +1,12 @@
 Traceback (most recent call last):
-  File "testHintParentheses3.py", line 9, in <module>
+  File "test-data-2.0/failing/testHintParentheses3.py", line 9, in <module>
     foo()
 
 WyppTypeError: ungültiger Typ `Union(list, str)`
 
 Wolltest du `Union[list, str]` schreiben?
 
-## Datei testHintParentheses3.py
+## Datei test-data-2.0/failing/testHintParentheses3.py
 ## Typ deklariert in Zeile 6:
 
 def foo() -> [0;31m[1mUnion(list, str)[0;0m:

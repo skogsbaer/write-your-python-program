@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "optionalAttr3.py", line 9, in <module>
+  File "test-data-2.0/basics/optionalAttr3.py", line 9, in <module>
     c = C(1, 2, 3, 4)
 
 WyppTypeError: Anzahl der Argument passt nicht
@@ -7,7 +7,7 @@ WyppTypeError: Anzahl der Argument passt nicht
 Konstruktor des Records `C` akzeptiert höchstens 3 Argumente.
 Gegeben: 4 Argumente
 
-## Datei optionalAttr3.py
+## Datei test-data-2.0/basics/optionalAttr3.py
 ## Aufruf in Zeile 9:
 
 c = [0;31m[1mC(1, 2, 3, 4)[0;0m

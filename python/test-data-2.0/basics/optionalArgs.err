@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "optionalArgs.py", line 1, in <module>
+  File "test-data-2.0/basics/optionalArgs.py", line 1, in <module>
     def foo(i: int, s: str=2):
 
 WyppTypeError: 2
@@ -7,7 +7,7 @@ WyppTypeError: 2
 Default-Wert des Parameters `s` der Funktion `foo` muss vom Typ `str` sein.
 Aber der Default-Wert hat Typ `int`.
 
-## Datei optionalArgs.py
+## Datei test-data-2.0/basics/optionalArgs.py
 ## Parameter deklariert in Zeile 1:
 
 def foo(i: int, [0;31m[1ms: str[0;0m=2):

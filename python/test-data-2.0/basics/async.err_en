@@ -1,13 +1,13 @@
 Traceback (most recent call last):
-  File "async.py", line 10, in <module>
+  File "test-data-2.0/basics/async.py", line 10, in <module>
     asyncio.run(main())
-  File "runners.py", line 194, in run
+  File "/Users/swehr/.pyenv/versions/3.12.1/lib/python3.12/asyncio/runners.py", line 194, in run
     return runner.run(main)
-  File "runners.py", line 129, in run
+  File "/Users/swehr/.pyenv/versions/3.12.1/lib/python3.12/asyncio/runners.py", line 129, in run
     signal.signal(signal.SIGINT, signal.default_int_handler)
-  File "base_events.py", line 684, in run_until_complete
+  File "/Users/swehr/.pyenv/versions/3.12.1/lib/python3.12/asyncio/base_events.py", line 684, in run_until_complete
     return future.result()
-  File "async.py", line 7, in main
+  File "test-data-2.0/basics/async.py", line 7, in main
     x = await foo("blub")
 
 WyppTypeError: "blub"
@@ -15,7 +15,7 @@ WyppTypeError: "blub"
 The call of function `foo` expects value of type `int` as 1st argument.
 But the value given has type `str`.
 
-## File async.py
+## File test-data-2.0/basics/async.py
 ## Problematic call in line 7:
 
     x = await foo([0;31m[1m"blub"[0;0m)

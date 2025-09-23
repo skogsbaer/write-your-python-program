@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "optionalArgs4.py", line 1, in <module>
+  File "test-data-2.0/basics/optionalArgs4.py", line 1, in <module>
     class C:
-  File "optionalArgs4.py", line 2, in C
+  File "test-data-2.0/basics/optionalArgs4.py", line 2, in C
     def __init__(i: int, s: str=2):
 
 WyppTypeError: 2
@@ -9,7 +9,7 @@ WyppTypeError: 2
 Default value for parameter `s` of method `__init__` in class `C` must have type `str`.
 But the default value has type `int`.
 
-## File optionalArgs4.py
+## File test-data-2.0/basics/optionalArgs4.py
 ## Parameter declared in line 2:
 
     def __init__(i: int, [0;31m[1ms: str[0;0m=2):

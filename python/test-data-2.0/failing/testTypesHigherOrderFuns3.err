@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "testTypesHigherOrderFuns3.py", line 38, in <module>
+  File "test-data-2.0/failing/testTypesHigherOrderFuns3.py", line 38, in <module>
     homePoints: Callable[[GameResult], int] = mkGamePoints(42)
 
 WyppTypeError: 42
@@ -7,7 +7,7 @@ WyppTypeError: 42
 Der Aufruf der Funktion `mkGamePoints` erwartet Wert vom Typ `Callable[[int, int], bool]` als erstes Argument.
 Aber der übergebene Wert hat Typ `int`.
 
-## Datei testTypesHigherOrderFuns3.py
+## Datei test-data-2.0/failing/testTypesHigherOrderFuns3.py
 ## Fehlerhafter Aufruf in Zeile 38:
 
 homePoints: Callable[[GameResult], int] = mkGamePoints([0;31m[1m42[0;0m)

@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "mutable.py", line 10, in <module>
+  File "test-data-2.0/basics/mutable.py", line 10, in <module>
     p.y = "foo"
 
 WyppTypeError: "foo"
@@ -7,7 +7,7 @@ WyppTypeError: "foo"
 Attribute `y` of record `Point` declared with type `int.`
 Cannot set attribute to value of type `str`.
 
-## File mutable.py
+## File test-data-2.0/basics/mutable.py
 ## Problematic assignment in line 10:
 
 p.y = "foo"

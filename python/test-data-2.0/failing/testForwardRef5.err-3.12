@@ -1,12 +1,12 @@
 Traceback (most recent call last):
-  File "testForwardRef5.py", line 22, in <module>
+  File "test-data-2.0/failing/testForwardRef5.py", line 22, in <module>
     garage = Garage(cars=[Car(color='red'), "Not A Car"])
 
 WyppTypeError: [Car(color='red'), 'Not A Car']
 
 Der Aufruf des Konstruktors des Records `Garage` erwartet Wert vom Typ `list[Car]` als Argument `cars`.
 
-## Datei testForwardRef5.py
+## Datei test-data-2.0/failing/testForwardRef5.py
 ## Fehlerhafter Aufruf in Zeile 22:
 
 garage = Garage(cars=[0;31m[1m[Car(color='red'), "Not A Car"][0;0m)

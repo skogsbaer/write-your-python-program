@@ -1,12 +1,12 @@
 Traceback (most recent call last):
-  File "listArg.py", line 4, in <module>
+  File "test-data-2.0/basics/listArg.py", line 4, in <module>
     foo([1, 2, "3"])
 
 WyppTypeError: [1, 2, '3']
 
 Der Aufruf der Funktion `foo` erwartet Wert vom Typ `list[int]` als erstes Argument.
 
-## Datei listArg.py
+## Datei test-data-2.0/basics/listArg.py
 ## Fehlerhafter Aufruf in Zeile 4:
 
 foo([1, 2, "3"])

@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "testIterableImplicitAny.py", line 13, in <module>
+  File "test-data-2.0/failing/testIterableImplicitAny.py", line 13, in <module>
     foo(NotIterable())
 
 WyppTypeError: NotIterable
@@ -7,7 +7,7 @@ WyppTypeError: NotIterable
 Der Aufruf der Funktion `foo` erwartet Wert vom Typ `Iterable` als erstes Argument.
 Aber der übergebene Wert hat Typ `NotIterable`.
 
-## Datei testIterableImplicitAny.py
+## Datei test-data-2.0/failing/testIterableImplicitAny.py
 ## Fehlerhafter Aufruf in Zeile 13:
 
 foo(NotIterable())

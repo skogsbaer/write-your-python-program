@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "testTypesSequence1.py", line 10, in <module>
+  File "test-data-2.0/failing/testTypesSequence1.py", line 10, in <module>
     foo(1) # should fail
 
 WyppTypeError: 1
@@ -7,7 +7,7 @@ WyppTypeError: 1
 Der Aufruf der Funktion `foo` erwartet Wert vom Typ `Sequence` als erstes Argument.
 Aber der übergebene Wert hat Typ `int`.
 
-## Datei testTypesSequence1.py
+## Datei test-data-2.0/failing/testTypesSequence1.py
 ## Fehlerhafter Aufruf in Zeile 10:
 
 foo(1) # should fail

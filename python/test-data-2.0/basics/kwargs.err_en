@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "kwargs.py", line 4, in <module>
+  File "test-data-2.0/basics/kwargs.py", line 4, in <module>
     foo(1, y=1, z=2)
 
 WyppTypeError: 2
@@ -7,7 +7,7 @@ WyppTypeError: 2
 The call of function `foo` expects value of type `str` as argument `z`.
 But the value given has type `int`.
 
-## File kwargs.py
+## File test-data-2.0/basics/kwargs.py
 ## Problematic call in line 4:
 
 foo(1, y=1, z=2)

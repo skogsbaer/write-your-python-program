@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "testRecordSetTypes.py", line 12, in <module>
+  File "test-data-2.0/failing/testRecordSetTypes.py", line 12, in <module>
     m()
-  File "testRecordSetTypes.py", line 10, in m
+  File "test-data-2.0/failing/testRecordSetTypes.py", line 10, in m
     r.x = "hello"
 
 WyppTypeError: "hello"
@@ -9,7 +9,7 @@ WyppTypeError: "hello"
 Attribut `x` des Records `Record` deklariert als Typ `int`.
 Das Attribute kann nicht auf einen Wert vom Typ `str` gesetzt werden.
 
-## Datei testRecordSetTypes.py
+## Datei test-data-2.0/failing/testRecordSetTypes.py
 ## Fehlerhafte Zuweisung in Zeile 10:
 
     [0;31m[1mr.x[0;0m = "hello"

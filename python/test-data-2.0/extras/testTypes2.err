@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "testTypes2.py", line 4, in <module>
+  File "test-data-2.0/extras/testTypes2.py", line 4, in <module>
     inc("1")
 
 WyppTypeError: "1"
@@ -7,7 +7,7 @@ WyppTypeError: "1"
 Der Aufruf der Funktion `inc` erwartet Wert vom Typ `int` als erstes Argument.
 Aber der übergebene Wert hat Typ `str`.
 
-## Datei testTypes2.py
+## Datei test-data-2.0/extras/testTypes2.py
 ## Fehlerhafter Aufruf in Zeile 4:
 
 inc("1")

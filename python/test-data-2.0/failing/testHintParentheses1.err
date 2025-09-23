@@ -1,12 +1,12 @@
 Traceback (most recent call last):
-  File "testHintParentheses1.py", line 8, in <module>
+  File "test-data-2.0/failing/testHintParentheses1.py", line 8, in <module>
     check(foo([1,2,3]), 3)
 
 WyppTypeError: ungültiger Typ `list(int)`
 
 Wolltest du `list[int]` schreiben?
 
-## Datei testHintParentheses1.py
+## Datei test-data-2.0/failing/testHintParentheses1.py
 ## Typ deklariert in Zeile 5:
 
 def foo([0;31m[1ml: list(int)[0;0m) -> int:
