@@ -1,6 +1,6 @@
 import typing
 import dataclasses
-import inspect
+import utils
 import sys
 import myTypeguard
 import errors
@@ -24,13 +24,6 @@ def _collectDataClassAttributes(cls):
             result = c.__annotations__ | result
     return result
 
-def _getNamespacesOfClass(cls):
-    mod = sys.modules.get(cls.__module__) or inspect.getmodule(cls)
-    globals = vars(mod) if mod else {}
-    owner = getattr(cls, "__qualname__", "").split(".")[0]
-    locals = globals.get(owner, {})
-    return myTypeguard.Namespaces(globals, locals)
-
 def _checkRecordAttr(cls: typing.Any,
                      ns: myTypeguard.Namespaces,
                      name: str,
@@ -43,7 +36,6 @@ def _checkRecordAttr(cls: typing.Any,
             loc = location.Loc.fromFrameInfo(fi)
         else:
             loc = None
-        # FIXME: i18n
         raise errors.WyppTypeError.recordAssignError(cls.__name__,
                                                         name,
                                                         ty,
@@ -52,7 +44,7 @@ def _checkRecordAttr(cls: typing.Any,
                                                         loc)
     return v
 
-def _patchDataClass(cls, mutable: bool):
+def _patchDataClass(cls, mutable: bool, ns: myTypeguard.Namespaces):
     fieldNames = [f.name for f in dataclasses.fields(cls)]
     setattr(cls, EQ_ATTRS_ATTR, fieldNames)
 
@@ -60,23 +52,25 @@ def _patchDataClass(cls, mutable: bool):
         # add annotions for type checked constructor.
         cls.__kind = 'record'
         cls.__init__.__annotations__ = _collectDataClassAttributes(cls)
-        cls.__init__ = typecheck.wrapTypecheckRecordConstructor(cls)
+        cls.__init__ = typecheck.wrapTypecheckRecordConstructor(cls, ns)
 
     if mutable:
         # prevent new fields being added
         fields = set(fieldNames)
-        ns = _getNamespacesOfClass(cls)
         info = location.RecordConstructorInfo(cls)
-        types = typing.get_type_hints(cls, include_extras=True)
         locs = {}
         for name in fields:
             if not name in cls.__annotations__:
                 raise errors.WyppTypeError.noTypeAnnotationForRecordAttribute(name, cls.__name__)
             else:
                 locs[name] = info.getParamSourceLocation(name)
-
+        types = None # lazily initialized because forward references are not available at this point
         oldSetattr = cls.__setattr__
         def _setattr(obj, name, v):
+            nonlocal types
+            if types is None:
+                types = typing.get_type_hints(cls, globalns=ns.globals, localns=ns.locals,
+                                              include_extras=True)
             if name in types:
                 ty = types[name]
                 tyLoc = locs[name]
@@ -88,11 +82,12 @@ def _patchDataClass(cls, mutable: bool):
     return cls
 
 @typing.dataclass_transform()
-def record(cls=None, mutable=False):
+def record(cls=None, mutable=False, globals={}, locals={}):
+    ns = myTypeguard.Namespaces(globals, locals)
     def wrap(cls: type):
         newCls = dataclasses.dataclass(cls, frozen=not mutable)
         if _typeCheckingEnabled:
-            return _patchDataClass(newCls, mutable)
+            return utils._call_with_frames_removed(_patchDataClass, newCls, mutable, ns)
         else:
             return newCls
     # See if we're being called as @record or @record().

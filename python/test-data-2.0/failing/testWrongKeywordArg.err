@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "testWrongKeywordArg.py", line 4, in <module>
+    foo(x=4)
+WyppTypeError: missing a required argument: 'kw'
+
+context: foo(kw: int) -> int
+declared at: test-data/testWrongKeywordArg.py:1
+caused by: test-data/testWrongKeywordArg.py:4
+  | foo(x=4)

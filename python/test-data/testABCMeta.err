@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "test-data/testABCMeta.py", line 28, in <module>
-    Circle(Point(0, 0), 1)
-TypeError: Can't instantiate abstract class Circle without an implementation for abstract method 'area'

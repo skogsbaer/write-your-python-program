@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "testTypesHigherOrderFuns.py", line 10, in <module>
+    map(["hello", "1"], lambda x: x)
+  File "testTypesHigherOrderFuns.py", line 7, in map
+    return res
+
+WyppTypeError: ['hello', '1']
+
+Rückgabewert vom Typ `list[int]` erwartet bei Aufruf der Funktion `map`.
+
+## Datei testTypesHigherOrderFuns.py
+## Rückgabetyp deklariert in Zeile 3:
+
+def map(container: Iterable[str], fun: Callable[[str], int]) -> [0;31m[1mlist[int][0;0m:
+
+## Fehlerhaftes return in Zeile 7:
+
+    return res
+
+## Aufruf in Zeile 10 verursacht das fehlerhafte return:
+
+map(["hello", "1"], lambda x: x)

@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "", line 9, in <module>
+  File "optionalAttr3.py", line 9, in <module>
     c = C(1, 2, 3, 4)
 
 WyppTypeError: argument count mismatch

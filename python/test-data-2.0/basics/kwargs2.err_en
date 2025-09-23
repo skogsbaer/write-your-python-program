@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "kwargs2.py", line 4, in <module>
+    foo(1, z=2, y='foo')
+
+WyppTypeError: 2
+
+The call of function `foo` expects value of type `str` as argument `z`.
+But the value given has type `int`.
+
+## File kwargs2.py
+## Problematic call in line 4:
+
+foo(1, z=2, y='foo')
+
+## Type declared in line 1:
+
+def foo(x: int, y: int, [0;31m[1mz: str[0;0m) -> int:

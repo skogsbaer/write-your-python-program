@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "", line 6, in <module>
+  File "testCallable.py", line 6, in <module>
     foo(42)
 
 WyppTypeError: 42

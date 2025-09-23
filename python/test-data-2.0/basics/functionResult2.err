@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "", line 7, in <module>
+  File "functionResult2.py", line 7, in <module>
     foo(1)
-  File "", line 5, in foo
+  File "functionResult2.py", line 5, in foo
     return "foo_" + str(i)
 
 WyppTypeError: "foo_1"

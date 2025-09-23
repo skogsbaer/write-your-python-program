@@ -41,6 +41,20 @@ class TestLocation(unittest.TestCase):
         argLoc = info.getParamSourceLocation("depth")
         self.assertLocation(argLoc, lineNoMyFunNoResultDef, 18, lineNoMyFunNoResultDef, 28)
 
+    def test_StdCallableInfoSub(self):
+        sub = Sub()
+        info = location.StdCallableInfo(sub.foo, location.ClassMember('method', 'Sub'))
+        self.assertEqual('locationTestData.py', os.path.basename(info.file))
+        argLoc = info.getParamSourceLocation("y")
+        self.assertLocation(argLoc, lineFooSub, 18, lineFooSub, 24)
+
+    def test_StdCallableInfoBase(self):
+        b = Base()
+        info = location.StdCallableInfo(b.foo, location.ClassMember('method', 'Base'))
+        self.assertEqual('locationTestData.py', os.path.basename(info.file))
+        argLoc = info.getParamSourceLocation("y")
+        self.assertLocation(argLoc, lineFooBase, 26, lineFooBase, 32)
+
     def test_RecordConstructorInfo(self):
         info = location.RecordConstructorInfo(TestRecord)
         # Test getting parameter source locations with precise line/column numbers

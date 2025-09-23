@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "testMissingReturn.py", line 6, in <module>
+    print(billigStrom(500))
+  File "testMissingReturn.py", line 4, in billigStrom
+    pass
+
+WyppTypeError: kein Rückgabewert vorhanden
+
+Rückgabewert vom Typ `float` erwartet bei Aufruf der Funktion `billigStrom`.
+Aber kein Rückgabewert vorhanden.
+
+## Datei testMissingReturn.py
+## Rückgabetyp deklariert in Zeile 3:
+
+def billigStrom(kwh: float) -> [0;31m[1mfloat[0;0m:
+
+## Aufruf in Zeile 6 führt dazu, dass die Funktion keinen Wert zurückgibt:
+
+print([0;31m[1mbilligStrom(500)[0;0m)

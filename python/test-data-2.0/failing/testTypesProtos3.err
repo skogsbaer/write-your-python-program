@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "testTypesProtos3.py", line 21, in <module>
+    doSomething(Dog())
+WyppTypeError: Dog does not implement protocol Animal
+The signature of 'makeSound' does not match. Missing required parameter self.
+
+given:    <Dog>
+expected: value of type Animal
+
+context: doSomething(a: Animal) -> None
+                        ^^^^^^
+declared at: test-data/testTypesProtos3.py:18
+caused by: test-data/testTypesProtos3.py:21
+  | doSomething(Dog())

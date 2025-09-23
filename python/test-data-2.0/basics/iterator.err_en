@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "", line 6, in <module>
+  File "iterator.py", line 6, in <module>
     g = my_generator()
-  File "", line 4, in my_generator
+  File "iterator.py", line 4, in my_generator
     return 1
 
 WyppTypeError: 1

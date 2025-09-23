@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "testForwardRef4.py", line 11, in <module>
+    t = Test(Foo())
+
+WyppTypeError: ungültiger Typ `FooX`
+
+## Datei testForwardRef4.py
+## Typ deklariert in Zeile 5:
+
+    [0;31m[1mfoo: 'FooX'[0;0m

@@ -12,6 +12,7 @@ import myLogging
 import sys
 import abc
 import parsecache
+from parsecache import FunMatcher
 
 @dataclass
 class Loc:
@@ -146,6 +147,7 @@ class StdCallableInfo(CallableInfo):
     def __init__(self, f: Callable, kind: CallableKind):
         super().__init__(kind)
         self.file = f.__code__.co_filename
+        self.__lineno = f.__code__.co_firstlineno
         self.__name = f.__name__
         self.__ast = parsecache.getAST(self.file)
 
@@ -154,7 +156,14 @@ class StdCallableInfo(CallableInfo):
         return self.__name
 
     def _findDef(self) -> Optional[ast.FunctionDef | ast.AsyncFunctionDef]:
-        return self.__ast.getFunDef(self.__name)
+        m = FunMatcher(self.__name, self.__lineno)
+        match self.kind:
+            case 'function':
+                return self.__ast.getFunDef(m)
+            case ClassMember('method', clsName):
+                return self.__ast.getMethodDef(clsName, m)
+            case k:
+                raise ValueError(f'Unexpected CallableKind {k} in StdCallableInfo')
 
     def getResultTypeLocation(self) -> Optional[Loc]:
         """
@@ -239,7 +248,7 @@ class RecordConstructorInfo(CallableInfo):
         else:
             return None
 
-def locationOfArgument(fi: inspect.FrameInfo, idx: int) -> Optional[Loc]:
+def locationOfArgument(fi: inspect.FrameInfo, idxOrName: int | str) -> Optional[Loc]:
     """
     Given a stack frame with a function call f(arg1, arg2, ..., argN), returns
     the source code location of the i-th argument.
@@ -250,11 +259,22 @@ def locationOfArgument(fi: inspect.FrameInfo, idx: int) -> Optional[Loc]:
             codeOfCall = loc.code()
             if codeOfCall is None:
                 return loc
-            tree = ast.parse(codeOfCall)
+            try:
+                tree = ast.parse(codeOfCall)
+            except SyntaxError:
+                return loc
             match tree:
-                case ast.Module([ast.Expr(ast.Call(_fun, args, _kwArgs))]):
-                    if idx >= 0 and idx < len(args):
-                        arg = args[idx]
+                case ast.Module([ast.Expr(ast.Call(_fun, args, kwArgs))]):
+                    arg = None
+                    if isinstance(idxOrName, int):
+                        idx = idxOrName
+                        if idx >= 0 and idx < len(args):
+                            arg = args[idx]
+                    else:
+                        matching = [k.value for k in kwArgs if k.arg == idxOrName]
+                        if matching:
+                            arg = matching[0]
+                    if arg is not None:
                         if arg.end_lineno is not None and arg.end_col_offset is not None:
                             callStartLine = startLine + arg.lineno - 1
                             callStartCol = startCol + arg.col_offset

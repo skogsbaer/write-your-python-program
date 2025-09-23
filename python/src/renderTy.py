@@ -42,6 +42,8 @@ def renderTy(tp: Any) -> str:
     # Annotated[T, ...]
     if origin is Annotated:
         base, *meta = args
+        if len(meta) >= 1 and isinstance(meta[-1], str):
+            return meta[-1]
         metas = ", ".join(repr(m) for m in meta)
         return f"Annotated[{renderTy(base)}, {metas}]"
 
@@ -74,4 +76,7 @@ def renderTy(tp: Any) -> str:
 
     # Parametrized generics like list[T], dict[K, V], set[T], type[T], etc.
     name = getattr(origin, "__name__", None) or getattr(origin, "__qualname__", repr(origin))
-    return f"{name}[" + ", ".join(renderTy(a) for a in args) + "]"
+    if args:
+        return f"{name}[" + ", ".join(renderTy(a) for a in args) + "]"
+    else:
+        return name

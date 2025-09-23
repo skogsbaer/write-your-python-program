@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "", line 4, in <module>
+  File "functionNoResult2.py", line 4, in <module>
     foo(1)
-  File "", line 2, in foo
+  File "functionNoResult2.py", line 2, in foo
     pass
 
 WyppTypeError: kein Rückgabewert vorhanden

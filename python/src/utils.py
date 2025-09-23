@@ -34,6 +34,9 @@ def dropWhile(l: list, f: Callable[[Any], bool]) -> list:
     for i in range(len(l)):
         if not f(l[i]):
             break
+    else:
+        # All elements satisfied the condition, return empty list
+        return []
     return l[i:]
 
 def split(l: list, f: Callable[[Any], bool]) -> tuple[list, list]:

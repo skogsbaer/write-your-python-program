@@ -3,9 +3,9 @@ from writeYourProgram import *
 import sys
 import traceback
 import dataclasses
+import stacktrace
 
 initModule()
-setDieOnCheckFailures(True)
 
 @record
 class Point:
@@ -27,6 +27,16 @@ class Box:
     x: int
 
 class TestRecords(unittest.TestCase):
+
+    def setUp(self):
+        setDieOnCheckFailures(True)
+        self.original_profile = sys.getprofile()
+        stacktrace.installProfileHook()
+
+    def tearDown(self):
+        # Restore original profile function
+        sys.setprofile(self.original_profile)
+        setDieOnCheckFailures(False)
 
     def test_create(self):
         p1 = Point(1, 2)
@@ -79,7 +89,6 @@ class TestRecords(unittest.TestCase):
         # check should use special logic for floats
         check(p1, p2)
 
-
     def test_hash(self):
         p1 = Point(1, 2)
         p2 = Point(1, 4)
@@ -117,7 +126,7 @@ class TestRecords(unittest.TestCase):
         b = Box(5)
         try:
             b.foobar = 'foobar'
-            self.fail("Expected AttributeError")
+            self.fail(f"Expected AttributeError, b={b}")
         except AttributeError:
             pass
         p1 = Point(1, 2)

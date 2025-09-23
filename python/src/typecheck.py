@@ -28,6 +28,7 @@ def isEmptySignature(sig: inspect.Signature) -> bool:
 def handleMatchesTyResult(res: MatchesTyResult, tyLoc: Optional[location.Loc]) -> bool:
     match res:
         case MatchesTyFailure(exc, ty):
+            # raise exc
             raise errors.WyppTypeError.invalidType(ty, tyLoc)
         case b:
             return b
@@ -76,44 +77,47 @@ def mandatoryArgCount(sig: inspect.Signature) -> int:
             res = res + 1
     return res
 
+def checkArgument(p: inspect.Parameter, name: str, idx: Optional[int], a: Any,
+                  locArg: Optional[location.Loc], info: location.CallableInfo, cfg: CheckCfg):
+    t = p.annotation
+    if not isEmptyAnnotation(t):
+        locDecl = info.getParamSourceLocation(name)
+        if not handleMatchesTyResult(matchesTy(a, t, cfg.ns), locDecl):
+            cn = location.CallableName.mk(info)
+            raise errors.WyppTypeError.argumentError(cn,
+                                                     name,
+                                                     idx,
+                                                     locDecl,
+                                                     t,
+                                                     a,
+                                                     locArg)
 def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
                    info: location.CallableInfo, cfg: CheckCfg) -> None:
     paramNames = list(sig.parameters)
     mandatory = mandatoryArgCount(sig)
     kind = getKind(cfg, paramNames)
     offset = 1 if kind == 'method' else 0
-    cn = location.CallableName.mk(info)
     fi = stacktrace.callerOutsideWypp()
     def raiseArgMismatch():
         callLoc = None if not fi else location.Loc.fromFrameInfo(fi)
+        cn = location.CallableName.mk(info)
         raise errors.WyppTypeError.argCountMismatch(cn,
                                                     callLoc,
                                                     len(paramNames) - offset,
                                                     mandatory - offset,
                                                     len(args) - offset)
-    if len(args) < mandatory:
+    if len(args) + len(kwargs) < mandatory:
         raiseArgMismatch()
     for i in range(len(args)):
         if i >= len(paramNames):
             raiseArgMismatch()
         name = paramNames[i]
         p = sig.parameters[name]
-        t = p.annotation
-        if not isEmptyAnnotation(t):
-            a = args[i]
-            locDecl = info.getParamSourceLocation(name)
-            if not handleMatchesTyResult(matchesTy(a, t, cfg.ns), locDecl):
-                if fi is not None:
-                    locArg = location.locationOfArgument(fi, i)
-                else:
-                    locArg = None
-                raise errors.WyppTypeError.argumentError(cn,
-                                                         name,
-                                                         i - offset,
-                                                         locDecl,
-                                                         t,
-                                                         a,
-                                                         locArg)
+        locArg = None if fi is None else location.locationOfArgument(fi, i)
+        checkArgument(p, name, i - offset, args[i], locArg, info, cfg)
+    for name in kwargs:
+        locArg = None if fi is None else location.locationOfArgument(fi, name)
+        checkArgument(sig.parameters[name], name, None, kwargs[name], locArg, info, cfg)
 
 def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo],
                 result: Any, code: location.CallableInfo, cfg: CheckCfg) -> None:
@@ -146,37 +150,30 @@ class CheckCfg:
                 kind = 'function'
             case 'method':
                 kind = location.ClassMember('method', d['className'])
-        return CheckCfg(kind=kind, ns=Namespaces.empty())
-    def setNamespaces(self, ns: Namespaces) -> CheckCfg:
-        return CheckCfg(kind=self.kind, ns=ns)
+        return CheckCfg(kind=kind, ns=Namespaces(d['globals'], d['locals']))
 
 P = ParamSpec("P")
 T = TypeVar("T")
 
-def getNamespacesOfCallable(func: Callable):
-    globals = func.__globals__
-    # if it's a method, let it see the owning class namespace
-    owner = getattr(func, "__qualname__", "").split(".")[0]
-    locals = globals.get(owner, {})
-    return Namespaces(globals, locals)
-
-def wrapTypecheck(cfg: dict, outerInfo: Optional[location.CallableInfo]=None) -> Callable[[Callable[P, T]], Callable[P, T]]:
-    outerCheckCfg = CheckCfg.fromDict(cfg)
+def wrapTypecheck(cfg: dict | CheckCfg, outerInfo: Optional[location.CallableInfo]=None) -> Callable[[Callable[P, T]], Callable[P, T]]:
+    if isinstance(cfg, CheckCfg):
+        checkCfg = cfg
+    else:
+        checkCfg = CheckCfg.fromDict(cfg)
     def _wrap(f: Callable[P, T]) -> Callable[P, T]:
         sig = inspect.signature(f)
         if isEmptySignature(sig):
             return f
-        checkCfg = outerCheckCfg.setNamespaces(getNamespacesOfCallable(f))
         if outerInfo is None:
+            # we have a regular function or method
             info = location.StdCallableInfo(f, checkCfg.kind)
         else:
+            # special case: constructor of a record
             info = outerInfo
         utils._call_with_frames_removed(checkSignature, sig, info, checkCfg)
         def wrapped(*args, **kwargs) -> T:
-            # when using _call_with_next_frame_removed, we have to take the second-to-last
-            # return. Hence, we keep the two most recent returns
-            returnTracker = stacktrace.installProfileHook(2)
             utils._call_with_frames_removed(checkArguments, sig, args, kwargs, info, checkCfg)
+            returnTracker = stacktrace.getReturnTracker()
             result = utils._call_with_next_frame_removed(f, *args, **kwargs)
             retFrame = returnTracker.getReturnFrame(0)
             utils._call_with_frames_removed(
@@ -186,11 +183,8 @@ def wrapTypecheck(cfg: dict, outerInfo: Optional[location.CallableInfo]=None) ->
         return wrapped
     return _wrap
 
-def wrapTypecheckRecordConstructor(cls: type) -> Callable:
-    code = location.RecordConstructorInfo(cls)
-    return wrapTypecheck({'kind': 'method', 'className': cls.__name__}, code)(cls.__init__)
-
-def wrapNoTypecheck(cfg: dict) -> Callable[[Callable[P, T]], Callable[P, T]]:
-    def _wrap(f: Callable[P, T]) -> Callable[P, T]:
-        return f
-    return _wrap
+def wrapTypecheckRecordConstructor(cls: type, ns: Namespaces) -> Callable:
+    checkCfg = CheckCfg.fromDict({'kind': 'method', 'className': cls.__name__,
+                                  'globals': ns.globals, 'locals': ns.locals})
+    info = location.RecordConstructorInfo(cls)
+    return wrapTypecheck(checkCfg, info)(cls.__init__)

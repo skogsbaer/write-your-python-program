@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "testTypesDict1.py", line 7, in <module>
+    appendSomething(d)
+  File "testTypesDict1.py", line 4, in appendSomething
+    d['x'] = "foo"
+WyppTypeError: got value of wrong type
+given:    'foo'
+expected: value of type int
+
+context: __setitem__(self, key, value: int)
+                                       ^^^
+declared at: site-lib/untypy/impl/interfaces/dict.py:67
+caused by: test-data/testTypesDict1.py:4
+  |     d['x'] = "foo"

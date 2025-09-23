@@ -27,3 +27,14 @@ class TestRecord:
     x: int
     y: str
     z: float = 3.14
+
+lineFooBase = 35
+lineFooSub = 39
+
+class Base:
+    def foo(self, x: int, y: str):
+        pass
+
+class Sub(Base):
+    def foo(self, y: int, x: float):
+        pass

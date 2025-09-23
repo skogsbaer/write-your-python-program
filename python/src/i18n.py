@@ -100,7 +100,7 @@ DE = {
         'Attribut `{name}` des Records `{record}` benötigt eine Typannotation.',
 
     'invalid type `{ty}`':
-        'ungültiger Type `{ty}`',
+        'ungültiger Typ `{ty}`',
     'Cannot set attribute to value of type `{ty}`.':
         'Das Attribute kann nicht auf einen Wert vom Typ `{ty}` gesetzt werden.',
     'Problematic assignment in line': 'Fehlerhafte Zuweisung in Zeile',
@@ -194,8 +194,15 @@ def transArg(pos: int):
             raise ValueError(f'Unexpected language: {l}')
 
 
-def expectingArgumentOfTy(cn: location.CallableName, ty: str, pos: int) -> str:
-    arg = transArg(pos)
+def expectingArgumentOfTy(cn: location.CallableName, ty: str, pos: int | str) -> str:
+    if isinstance(pos, int):
+        arg = transArg(pos)
+    else:
+        match getLang():
+            case 'en':
+                arg = f'argument `{pos}`'
+            case 'de':
+                arg = f'Argument `{pos}`'
     match cn.kind:
         case 'function':
             return tr('The call of function `{fun}` expects value of type `{ty}` as {arg}.',

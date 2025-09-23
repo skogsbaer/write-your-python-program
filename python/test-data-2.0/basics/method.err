@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "", line 9, in <module>
+  File "method.py", line 9, in <module>
     c.method("2")
 
 WyppTypeError: "2"

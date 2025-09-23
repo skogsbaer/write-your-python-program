@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "", line 6, in <module>
+  File "staticmethod.py", line 6, in <module>
     C.method("2")
 
 WyppTypeError: "2"

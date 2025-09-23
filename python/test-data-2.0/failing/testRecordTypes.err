@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "testRecordTypes.py", line 8, in <module>
+    p = Point(1, '5')
+WyppTypeError: got value of wrong type
+given:    '5'
+expected: value of type int
+
+context: record constructor Point(x: int, y: int) -> Self
+                                             ^^^
+declared at: test-data/testRecordTypes.py:4
+caused by: test-data/testRecordTypes.py:8
+  | p = Point(1, '5')

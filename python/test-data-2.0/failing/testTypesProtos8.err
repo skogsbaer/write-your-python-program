@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "testTypesProtos8.py", line 12, in <module>
+    bar(Sub())
+  File "testTypesProtos8.py", line 10, in bar
+    b.foo(1, "foo")
+
+WyppTypeError: "foo"
+
+Der Aufruf der Methode `foo` aus Klasse `Sub` erwartet Wert vom Typ `float` als zweites Argument.
+Aber der übergebene Wert hat Typ `str`.
+
+## Datei testTypesProtos8.py
+## Fehlerhafter Aufruf in Zeile 10:
+
+    [0;31m[1mb.foo(1, "foo")[0;0m
+
+## Typ deklariert in Zeile 6:
+
+    def foo(self, y: int, [0;31m[1mx: float[0;0m):

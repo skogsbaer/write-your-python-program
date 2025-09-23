@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "", line 9, in <module>
+  File "optionalAttr2.py", line 9, in <module>
     c = C(1)
 
 WyppTypeError: Anzahl der Argument passt nicht

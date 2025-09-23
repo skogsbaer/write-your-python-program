@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "", line 5, in <module>
+  File "constructor.py", line 5, in <module>
     c = C("1")
 
 WyppTypeError: "1"

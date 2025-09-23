@@ -8,6 +8,11 @@ def enableVerbose():
     global VERBOSE
     VERBOSE = True
 
+def enableDebug():
+    global VERBOSE, DEBUG
+    VERBOSE = True
+    DEBUG = True
+
 def printStderr(s=''):
     sys.stderr.write(s + '\n')
 

@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "testTypesSet2.py", line 10, in <module>
+    foo(set([lambda: "1", lambda: 42])) # error because the 2nd functions returns an int
+  File "testTypesSet2.py", line 7, in foo
+    return res
+
+WyppTypeError: [42, '1']
+
+Rückgabewert vom Typ `list[str]` erwartet bei Aufruf der Funktion `foo`.
+
+## Datei testTypesSet2.py
+## Rückgabetyp deklariert in Zeile 3:
+
+def foo(l: set[Callable[[], str]]) -> [0;31m[1mlist[str][0;0m:
+
+## Fehlerhaftes return in Zeile 7:
+
+    return res
+
+## Aufruf in Zeile 10 verursacht das fehlerhafte return:
+
+foo(set([lambda: "1", lambda: 42])) # error because the 2nd functions returns an int

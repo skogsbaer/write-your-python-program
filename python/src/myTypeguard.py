@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import *
 from dataclasses import dataclass
+from myLogging import *
 
 # We externally adjust the PYTHONPATH so that the typeguard module can be resolved
 import typeguard # type: ignore
@@ -32,7 +33,13 @@ def matchesTy(a: Any, ty: Any, ns: Namespaces) -> MatchesTyResult:
     except typeguard.TypeCheckError as e:
         return False
     except Exception as e:
+        debug(f'Exception when checking type, ns={ns}: {e}')
         return MatchesTyFailure(e, ty)
 
 def getTypeName(t: Any) -> str:
-    return typeguard._utils.get_type_name(t, ['__wypp__'])
+    res: str = typeguard._utils.get_type_name(t, ['__wypp__'])
+    wyppPrefixes = ['wypp.writeYourProgram.']
+    for p in wyppPrefixes:
+        if res.startswith(p):
+            return 'wypp.' + res[len(p):]
+    return res

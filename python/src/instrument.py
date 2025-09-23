@@ -20,20 +20,55 @@ def parseExp(s: str) -> ast.expr:
             raise ValueError(f'String {repr(s)} does not parse as an expression: {m}')
 
 class Configs:
-    funConfig: ast.expr = parseExp("{'kind': 'function'}")
+    funConfig: ast.expr = parseExp("{'kind': 'function', 'globals': globals(), 'locals': locals()}")
     @staticmethod
     def methodConfig(clsName: str) -> ast.expr:
-        return parseExp("{'kind': 'method', 'className': " + repr(clsName) + "}")
+        return parseExp("{'kind': 'method', 'className': " + repr(clsName) + ", 'globals': globals(), 'locals': locals()}")
+    immutableRecordConfig: ast.expr = parseExp('record(mutable=False, globals=globals(), locals=locals())')
+    mutableRecordConfig: ast.expr = parseExp('record(mutable=True, globals=globals(), locals=locals())')
+
+def transferLocs(old: ast.stmt | ast.expr, new: ast.stmt | ast.expr) -> Any:
+    new.lineno = old.lineno
+    new.col_offset = old.col_offset
+    new.end_lineno = old.end_lineno
+    new.end_col_offset = old.end_col_offset
+    return new
+
+def transformDecorator(e: ast.expr) -> ast.expr:
+    match e:
+        case ast.Name('record'):
+            return transferLocs(e, Configs.immutableRecordConfig)
+        case ast.Call(ast.Name('record'), [], kwArgs):
+            match kwArgs:
+                case [ast.keyword('mutable', ast.Constant(True))]:
+                    return transferLocs(e, Configs.mutableRecordConfig)
+                case [ast.keyword('mutable', ast.Constant(False))]:
+                    return transferLocs(e, Configs.immutableRecordConfig)
+                case _:
+                    #     print(ast.dump(e)) FIXME: proper error message
+                    raise ValueError(f'Invalid record config')
+        case ast.Call(ast.Name('record'), _, _):
+            raise ValueError(f'Invalid record config')
+        case _:
+            return e
 
 def transformStmt(stmt: ast.stmt, outerClassName: Optional[str]) -> ast.stmt:
     cfg = Configs.methodConfig(outerClassName) if outerClassName else Configs.funConfig
     wrapExp = ast.Call(ast.Name(id='wrapTypecheck', ctx=ast.Load()), [cfg], [])
     match stmt:
         case ast.FunctionDef(name, args, body, decorators, returns, tyComment, tyParams):
-            return ast.FunctionDef(name, args, body, decorators + [wrapExp], returns, tyComment, tyParams)
-        case ast.ClassDef(className, bases, keywords, body, decorator_list, type_params):
+            newBody = [transformStmt(s, outerClassName=outerClassName) for s in body]
+            x = ast.FunctionDef(name, args, newBody, decorators + [wrapExp], returns, tyComment, tyParams)
+            return transferLocs(stmt, x)
+        case ast.AsyncFunctionDef(name, args, body, decorators, returns, tyComment, tyParams):
+            newBody = [transformStmt(s, outerClassName=outerClassName) for s in body]
+            x = ast.AsyncFunctionDef(name, args, newBody, decorators + [wrapExp], returns, tyComment, tyParams)
+            return transferLocs(stmt, x)
+        case ast.ClassDef(className, bases, keywords, body, decoratorList, type_params):
             newBody = [transformStmt(s, outerClassName=className) for s in body]
-            return ast.ClassDef(className, bases, keywords, newBody, decorator_list, type_params)
+            newDecoratorList = [transformDecorator(e) for e in decoratorList]
+            x = ast.ClassDef(className, bases, keywords, newBody, newDecoratorList, type_params)
+            return transferLocs(stmt, x)
         case _:
             return stmt
 

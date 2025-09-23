@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "testLockFactory.py", line 15, in <module>
+    foo("not a lock")
+
+WyppTypeError: "not a lock"
+
+Der Aufruf der Funktion `foo` erwartet Wert vom Typ `LockFactory` als erstes Argument.
+Aber der übergebene Wert hat Typ `str`.
+
+## Datei testLockFactory.py
+## Fehlerhafter Aufruf in Zeile 15:
+
+foo("not a lock")
+
+## Typ deklariert in Zeile 6:
+
+def foo([0;31m[1mlock: wypp.LockFactory[0;0m) -> None:

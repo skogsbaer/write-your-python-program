@@ -306,12 +306,15 @@ class RunSetup:
         if self.pathDir not in sys.path:
             sys.path.insert(0, self.pathDir)
             self.sysPathInserted = True
-        self.argv = self.args
+        sys.argv = self.args
+        self.originalProfile = sys.getprofile()
+        stacktrace.installProfileHook()
     def __exit__(self, exc_type, value, traceback):
+        sys.setprofile(self.originalProfile)
         if self.sysPathInserted:
             sys.path.remove(self.pathDir)
             self.sysPathInserted = False
-        self.argv = self.oldArgs
+        sys.argv = self.oldArgs
 
 def runCode(fileToRun, globals, args, doTypecheck=True, extraDirs=None):
     if not extraDirs:
@@ -442,6 +445,8 @@ def versionOk(v):
     else:
         return True
 
+DEBUG = False
+
 def main(globals, argList=None):
     v = sys.version_info
     if not versionOk(v):
@@ -453,14 +458,14 @@ Python in version {reqVStr} or newer is required. You are still using version {v
         sys.exit(1)
 
     (args, restArgs) = parseCmdlineArgs(argList)
-    global VERBOSE
     if args.verbose:
-        VERBOSE = True
-    global DEBUG
+        enableVerbose()
     if args.debug:
+        global DEBUG
         DEBUG = True
+        enableDebug()
 
-    verbose(f'VERBOSE={VERBOSE}, DEBUG={DEBUG}')
+    verbose(f'VERBOSE={args.verbose}, DEBUG={DEBUG}')
 
     if args.lang:
         if args.lang in i18n.allLanguages:

@@ -1,9 +1,20 @@
-from fileTestsLib import *
+# from fileTestsLib import *
+import os
 
-checkInstall('test-data/fileWithImport.py')
-checkInstall('test-data/fileWithoutImport.py')
-checkInstall('test-data/fileWithBothImports.py')
-checkInstall('test-data/fileWithRecursiveTypes.py')
+#checkInstall('test-data/fileWithImport.py')
+#checkInstall('test-data/fileWithoutImport.py')
+#checkInstall('test-data/fileWithBothImports.py')
+#checkInstall('test-data/fileWithRecursiveTypes.py')
+def check(file, **kws):
+      base = os.path.basename(file)[:-3]
+      d = 'test-data-2.0/extras/'
+      cands = [d + base + '.py', d + base + '_ok.py']
+      #print(cands)
+      if not any([os.path.isfile(x) for x in cands]):
+            print(file)
+def checkBoth(file, **kws):
+      check(file)
+
 checkBoth('test-data/testTraceback.py')
 checkBoth('test-data/testTraceback2.py')
 checkBoth('test-data/testTraceback3.py')
@@ -12,16 +23,13 @@ checkBoth('test-data/printModuleName.py', exitCode=0)
 checkBoth('test-data/printModuleNameImport.py', exitCode=0)
 checkBoth('test-data/testTypes1.py')
 checkBoth('test-data/testIndexError.py')
-checkBoth('test-data/testWrapperError.py')
 checkBoth('test-data/testCheckFail.py', exitCode=0)
 check('test-data/testTypes2.py', exitCode=1)
 check('test-data/testTypes2.py', exitCode=0, typecheck=False)
 check('test-data/testABCMeta.py')
 check('test-data/testClassHierarchy.py', exitCode=0)
-check('test-data/testTypesCollections1.py')
+check('test-data/testTypesCollections1.py', exitCode=0)
 check('test-data/testTypesCollections2.py')
-check('test-data/testTypesCollections3.py')
-check('test-data/testTypesCollections4.py')
 check('test-data/testTypesProtos1.py')
 check('test-data/testTypesProtos2.py')
 check('test-data/testTypesProtos3.py')
@@ -93,7 +101,7 @@ check('test-data/testIterable3.py', exitCode=0)
 check('test-data/testIterable4.py', exitCode=0)
 check('test-data/testIterable5.py', exitCode=0)
 check('test-data/testIterable6.py', exitCode=0)
-check('test-data/testIterable7.py')
+check('test-data/testIterable7.py', exitCode=0)
 check('test-data/testIterator.py', exitCode=0)
 check('test-data/testIterator2.py', exitCode=0)
 check('test-data/testIterator3.py', exitCode=0)
@@ -102,8 +110,6 @@ check('test-data/testConcat.py', exitCode=0)
 check('test-data/testCopy.py', exitCode=0)
 check('test-data/testHof.py', exitCode=0)
 check('test-data/testIndexSeq.py', exitCode=0)
-check('test-data/testWrap.py', exitCode=0)
-check('test-data/testWrap2.py', exitCode=0)
 check('test-data/testTodo.py')
 check('test-data/testImpossible.py')
 check('test-data/testInvalidLiteral.py')
@@ -122,5 +128,3 @@ check('test-data/testRecordTypes.py')
 #check('test-data/testDisappearingObject_02.py', exitCode=0)
 #check('test-data/testDisappearingObject_03.py', exitCode=0)
 checkBoth('test-data/testTypeKeyword.py', exitCode=0, minVersion=(3,12))
-
-globalCtx.results.finish()

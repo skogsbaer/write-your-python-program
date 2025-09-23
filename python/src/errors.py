@@ -117,13 +117,17 @@ class WyppTypeError(TypeError, WyppError):
         raise WyppTypeError('\n'.join(lines), extraFrames)
 
     @staticmethod
-    def argumentError(callableName: location.CallableName, paramName: str, paramIndex: int, paramLoc: Optional[location.Loc],
+    def argumentError(callableName: location.CallableName, paramName: str, paramIndex: Optional[int],
+                      paramLoc: Optional[location.Loc],
                       paramTy: Any, givenValue: Any, givenLoc: Optional[location.Loc]) -> WyppTypeError:
         lines = []
         givenStr = renderGiven(givenValue, givenLoc)
         lines.append(givenStr)
         lines.append('')
-        lines.append(i18n.expectingArgumentOfTy(callableName, renderTy(paramTy), paramIndex + 1))
+        if paramIndex is not None:
+            lines.append(i18n.expectingArgumentOfTy(callableName, renderTy(paramTy), paramIndex + 1))
+        else:
+            lines.append(i18n.expectingArgumentOfTy(callableName, renderTy(paramTy), paramName))
         if shouldReportTyMismatch(paramTy, type(givenValue)):
             lines.append(i18n.realArgumentTy(renderTy(type(givenValue))))
         if givenLoc:
@@ -223,7 +227,26 @@ class WyppTypeError(TypeError, WyppError):
         raise WyppTypeError('\n'.join(lines))
 
 class WyppAttributeError(AttributeError, WyppError):
+    def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
+        WyppError.__init__(self, extraFrames)
+        self.msg = msg
+        self.add_note(msg)
+
     @staticmethod
     def unknownAttr(clsName: str, attrName: str) -> WyppAttributeError:
         return WyppAttributeError(i18n.tr('Unknown attribute {attrName} for record {clsName}',
                                           clsName=clsName, attrName=attrName))
+
+class TodoError(Exception, WyppError):
+    def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
+        WyppError.__init__(self, extraFrames)
+        self.msg = msg
+        self.add_note(msg)
+
+
+class ImpossibleError(Exception, WyppError):
+    def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
+        WyppError.__init__(self, extraFrames)
+        self.msg = msg
+        self.add_note(msg)
+

@@ -1,0 +1,5 @@
+FEHLER in /Users/swehr/devel/write-your-python-program/python/test-data-2.0/failing/testCheck_ok.py:13: Erwartet wird 2, aber das Ergebnis ist 1
+FEHLER in /Users/swehr/devel/write-your-python-program/python/test-data-2.0/failing/testCheck_ok.py:14: Erwartet wird 'xyz', aber das Ergebnis ist 'abc'
+FEHLER in /Users/swehr/devel/write-your-python-program/python/test-data-2.0/failing/testCheck_ok.py:15: Erwartet wird Point(x=1, y=3), aber das Ergebnis ist Point(x=1, y=2)
+FEHLER in /Users/swehr/devel/write-your-python-program/python/test-data-2.0/failing/testCheck_ok.py:16: Erwartet wird Point(x=1, y=3), aber das Ergebnis ist Name(firstName='Max', lastName='Müller')
+4 Tests, 4 Fehler 🙁

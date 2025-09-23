@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "", line 12, in <module>
+  File "forwardRefs.py", line 12, in <module>
     a.foo(a)
 
 WyppTypeError: <__wypp__.A object at 0x00>

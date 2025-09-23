@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "", line 4, in <module>
+  File "listArg.py", line 4, in <module>
     foo([1, 2, "3"])
 
 WyppTypeError: [1, 2, '3']

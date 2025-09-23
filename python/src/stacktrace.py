@@ -27,8 +27,9 @@ def isWyppFrame(frame: types.FrameType):
         modName == 'typeguard' or modName.startswith('typeguard.') or \
         modName == 'wypp' or modName.startswith('wypp.')
 
-def isRunpyFrame(frame: types.FrameType):
-    return frame.f_code.co_filename == '<frozen runpy>'
+def isRunpyFrame(frame: types.FrameType) -> bool:
+    f = frame.f_code.co_filename
+    return f == '<frozen runpy>' or f.startswith('<frozen importlib.')
 
 # Returns a StackSummary object. Filters the trackback by removing leading wypp or typeguard
 # frames and by removing trailing frames behind _call_with_frames_removed.
@@ -73,8 +74,9 @@ class ReturnTracker:
         # event is one of 'call', 'return', 'c_call', 'c_return', or 'c_exception'
         match event:
             case 'call':
-                pass # self.__returnFrame = None
+                pass
             case 'return':
+                # print(f'appending {frame} to return tracker')
                 self.__returnFrames.append(frame) # overwrite oldest when full
             case 'c_call':
                 pass
@@ -83,19 +85,31 @@ class ReturnTracker:
             case 'c_exception':
                 pass
     def getReturnFrame(self, idx: int) -> Optional[inspect.FrameInfo]:
-        if idx >= len(self.__returnFrames):
+        try:
+            f = self.__returnFrames[idx]
+        except IndexError:
             return None
-        f = self.__returnFrames[idx]
         if f:
             tb = inspect.getframeinfo(f, context=1)
-            return inspect.FrameInfo(f, tb.filename, tb.lineno, tb.function, tb.code_context, tb.index)
+            fi = inspect.FrameInfo(f, tb.filename, tb.lineno, tb.function, tb.code_context, tb.index)
+            del f
+            return fi
         else:
             return None
 
-def installProfileHook(entriesToKeep: int) -> ReturnTracker:
+# when using _call_with_next_frame_removed, we have to take the second-to-last
+# return. Hence, we keep the two most recent returns byn setting entriesToKeep = 2.
+def installProfileHook(entriesToKeep: int=2) -> ReturnTracker:
     obj = sys.getprofile()
     if isinstance(obj, ReturnTracker):
         return obj
     obj = ReturnTracker(entriesToKeep)
     sys.setprofile(obj)
     return obj
+
+def getReturnTracker():
+    obj = sys.getprofile()
+    if isinstance(obj, ReturnTracker):
+        return obj
+    else:
+        raise ValueError(f'No ReturnTracker set, must use installProfileHook before')

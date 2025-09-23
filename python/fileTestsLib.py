@@ -195,7 +195,7 @@ def fixOutput(filePath: str):
     """
     content = readFile(filePath)
     content = re.sub(r'at 0x[0-9a-f][0-9a-f]*>', 'at 0x00>', content, flags=re.MULTILINE)  # Remove memory addresses
-    content = re.sub(r'  File "/[^"]*"', '  File ""', content, flags=re.MULTILINE)  # Remove file paths
+    content = re.sub(r'File "[^"]*/([^/"]*)"', 'File "\\1"', content, flags=re.MULTILINE)  # Remove file paths
     content = re.sub(r'## File .*/([^/]*)$', '## File \\1', content, flags=re.MULTILINE)
     content = re.sub(r'## Datei .*/([^/]*)$', '## Datei \\1', content, flags=re.MULTILINE)
     with open(filePath, 'w') as f:
@@ -317,9 +317,10 @@ _CONFIG_RE = re.compile(r'^# WYPP_TEST_CONFIG:\s*(\{.*\})\s*$')
 @dataclass
 class WyppTestConfig:
     typecheck: Literal[True, False, "both"]
+    args: list[str]
     @staticmethod
     def default() -> WyppTestConfig:
-        return WyppTestConfig(typecheck=True)
+        return WyppTestConfig(typecheck=True, args=[])
 
 def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
     """
@@ -327,7 +328,7 @@ def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
     `max_lines` lines of the file at `path` and return it as a dict.
     Returns {} if not present.
     """
-    validKeys = ['typecheck']
+    validKeys = ['typecheck', 'args']
     with open(path, "r", encoding="utf-8") as f:
         for lineno in range(1, max_lines + 1):
             line = f.readline()
@@ -340,7 +341,9 @@ def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
                 for k in j:
                     if k not in validKeys:
                         raise ValueError(f'Unknown key {k} in config for file {path}')
-                return WyppTestConfig(typecheck=j['typecheck'])
+                typecheck = j.get('typecheck', True)
+                args = j.get('args', [])
+                return WyppTestConfig(typecheck=typecheck, args=args)
     return WyppTestConfig.default()
 
 def checkNoConfig(testFile: str,
@@ -362,12 +365,12 @@ def checkNoConfig(testFile: str,
 
 def check(testFile: str,
           exitCode: int = 1,
-          args: list[str] = [],
           pythonPath: list[str] = [],
           minVersion: Optional[tuple[int, int]] = None,
           checkOutputs: bool = True,
           ctx: TestContext = globalCtx,):
     cfg = readWyppTestConfig(testFile)
+    args = cfg.args
     if cfg.typecheck == 'both':
         checkNoConfig(testFile, exitCode, typecheck=True, args=args,
                       pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,
@@ -380,14 +383,6 @@ def check(testFile: str,
                       pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,
                       ctx=ctx, what=' (no typecheck)')
 
-def checkBoth(testFile: str,
-              exitCode: int = 1,
-              args: list[str] = [],
-              minVersion: Optional[tuple[int, int]] = None,
-              ctx: TestContext = globalCtx):
-    check(testFile, exitCode, typecheck=True, args=args, minVersion=minVersion, ctx=ctx, what=' (typecheck)')
-    check(testFile, exitCode, typecheck=False, args=args, minVersion=minVersion, ctx=ctx, what=' (no typecheck)')
-
 def checkBasic(testFile: str, ctx: TestContext = globalCtx):
     check(testFile, checkOutputs=False, ctx=ctx)
 
@@ -397,8 +392,11 @@ def record(testFile: str):
     """
     baseFile = os.path.splitext(testFile)[0]
     exitCode = guessExitCode(testFile)
-    typecheck = True
-    args = []
+    cfg = readWyppTestConfig(testFile)
+    typecheck = cfg.typecheck
+    if typecheck == 'both':
+        typecheck = True
+    args = cfg.args
     pythonPath = []
     what = ''
     ctx = globalCtx
