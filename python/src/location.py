@@ -151,6 +151,9 @@ class StdCallableInfo(CallableInfo):
         self.__name = f.__name__
         self.__ast = parsecache.getAST(self.file)
 
+    def __repr__(self):
+        return f'StdCallableInfo({self.name}, {self.kind})'
+
     @property
     def name(self):
         return self.__name
@@ -232,6 +235,8 @@ class RecordConstructorInfo(CallableInfo):
     def __init__(self, cls: type):
         super().__init__(ClassMember('recordConstructor', cls.__name__))
         self.__cls = cls
+    def __repr__(self):
+        return f'RecordConstructorInfo({self.name})'
     @property
     def name(self):
         return self.__cls.__name__

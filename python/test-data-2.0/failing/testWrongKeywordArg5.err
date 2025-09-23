@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "testWrongKeywordArg5.py", line 4, in <module>
+    foo()
+
+WyppTypeError: Anzahl der Argument passt nicht
+
+Funktion `foo` benötigt 1 Argument.
+Gegeben: keine Argumente
+
+## Datei testWrongKeywordArg5.py
+## Aufruf in Zeile 4:
+
+foo()

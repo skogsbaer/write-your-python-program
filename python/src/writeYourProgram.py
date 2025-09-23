@@ -4,6 +4,9 @@ import inspect
 import errors
 import typecheck
 import records
+import stacktrace
+import renderTy
+import location
 
 _DEBUG = False
 def _debug(s):
@@ -54,6 +57,8 @@ T = typing.TypeVar('T')
 U = typing.TypeVar('U')
 V = typing.TypeVar('V')
 
+# Dirty hack ahead: we patch some methods of internal class of the typing module.
+
 def _literalInstanceOf(self, value):
     for p in self.__args__:
         # typing.Literal checks for type(value) == type(arg),
@@ -62,11 +67,35 @@ def _literalInstanceOf(self, value):
             return True
     return False
 
-# Dirty hack ahead: we patch some methods of internal class of the typing module.
 # This patch is needed to be able to use a literal L to check whether a value x
 # is an instance of this literal: isinstance(x, L)
 # pyright does not know about typing._LiteralGenericAlias, we do not typecheck the following line.
 setattr(typing._LiteralGenericAlias, '__instancecheck__', _literalInstanceOf) # type: ignore
+
+def _invalidCall(self, *args, **kwds):
+    if hasattr(self, '__name__'):
+        name = self.__name__
+    else:
+        name = str(self)
+        typingPrefix = 'typing.'
+        if name.startswith(typingPrefix):
+            name = name[len(typingPrefix):]
+    def formatArg(x):
+        if name == 'Literal':
+            return repr(x)
+        else:
+            return renderTy.renderTy(x)
+    caller = stacktrace.callerOutsideWypp()
+    loc = None if caller is None else location.Loc.fromFrameInfo(caller)
+    argStr = ', '.join([formatArg(x) for x in args])
+    tyStr = f'{name}({argStr})'
+    raise errors.WyppTypeError.invalidType(tyStr, loc)
+    #argStr = ', '.join([formatArg(untypy.util.typehints.qualname(x)) for x in args])
+    #raise untypy.error.WyppTypeError(f"Cannot call {name} like a function. Did you mean {name}[{argStr}]?")
+
+# This patch is needed to provide better error messages if a student passes type arguments
+# with paranthesis instead of square brackets
+setattr(typing._SpecialForm, '__call__', _invalidCall)
 
 def typechecked(func=None):
     def wrap(func):

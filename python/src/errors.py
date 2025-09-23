@@ -45,6 +45,13 @@ def shouldReportTyMismatch(expected: Any, given: Any) -> bool:
     else:
         return True
 
+def rewriteInvalidType(s: str) -> Optional[str]:
+    prefixes = ['Union', 'Literal', 'Optional', 'list', 'dict', 'tuple', 'set']
+    for p in prefixes:
+        if s.startswith(f'{p}(') and s.endswith(')'):
+            args = s[len(p)+1:-1]
+            return f'{p}[{args}]'
+
 class WyppTypeError(TypeError, WyppError):
 
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
@@ -58,12 +65,30 @@ class WyppTypeError(TypeError, WyppError):
     @staticmethod
     def invalidType(ty: Any, loc: Optional[location.Loc]) -> WyppTypeError:
         lines = []
-        lines.append(i18n.invalidTy(ty))
+        tyStr = renderTy(ty)
+        lines.append(i18n.invalidTy(tyStr))
         lines.append('')
+        rew = rewriteInvalidType(tyStr)
+        if rew:
+            lines.append(i18n.didYouMean(rew))
+            lines.append('')
         if loc is not None:
             lines.append(f'## {i18n.tr("File")} {loc.filename}')
             lines.append(f'## {i18n.tr("Type declared in line")} {loc.startLine}:\n')
             lines.append(renderLoc(loc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
+    def unknownKeywordArgument(callableName: location.CallableName, callLoc: Optional[location.Loc], name: str) -> WyppTypeError:
+        lines = []
+        lines.append(i18n.tr('unknown keyword argument'))
+        lines.append('')
+        lines.append(i18n.unknownKeywordArgument(callableName, name))
+        if callLoc:
+            lines.append('')
+            lines.append(f'## {i18n.tr("File")} {callLoc.filename}')
+            lines.append(f'## {i18n.tr("Problematic call in line")} {callLoc.startLine}:\n')
+            lines.append(renderLoc(callLoc))
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod

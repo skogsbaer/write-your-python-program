@@ -4,6 +4,9 @@ import sys
 VERBOSE = False # set via commandline
 DEBUG = utils.getEnv("WYPP_DEBUG", bool, False)
 
+def isDebug() -> bool:
+    return DEBUG
+
 def enableVerbose():
     global VERBOSE
     VERBOSE = True

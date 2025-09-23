@@ -1,14 +1,19 @@
 Traceback (most recent call last):
-  File "modules/A/main.py", line 3, in <module>
-    mod.foo(1)
-  File "", line 5, in foo
+  File "main.py", line 4, in <module>
+    print(mod.foo(1))
+  File "mod.py", line 5, in foo
     return bar(i)
-WyppTypeError: got value of wrong type
-given:    1
-expected: value of type str
 
-context: bar(s: str) -> int
-                ^^^
-declared at: test-data/modules/B/mod.py:1
-caused by: test-data/modules/B/mod.py:5
-  |     return bar(i)
+WyppTypeError: 1
+
+Der Aufruf der Funktion `bar` erwartet Wert vom Typ `str` als erstes Argument.
+Aber der übergebene Wert hat Typ `int`.
+
+## Datei mod.py
+## Fehlerhafter Aufruf in Zeile 5:
+
+    return bar([0;31m[1mi[0;0m)
+
+## Typ deklariert in Zeile 1:
+
+def bar([0;31m[1ms: str[0;0m) -> int:

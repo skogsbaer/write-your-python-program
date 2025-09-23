@@ -1,15 +1,14 @@
 from __future__ import annotations
-import sys
 from collections.abc import Callable
 from typing import ParamSpec, TypeVar, Any, Optional, Literal
 import inspect
-import typing
 from dataclasses import dataclass
 import utils
 from myTypeguard import matchesTy, MatchesTyResult, MatchesTyFailure, Namespaces
 import stacktrace
 import location
 import errors
+from myLogging import *
 
 def printVars(what: str, *l):
     s = what + ": " + ', '.join([str(x) for x in l])
@@ -28,8 +27,11 @@ def isEmptySignature(sig: inspect.Signature) -> bool:
 def handleMatchesTyResult(res: MatchesTyResult, tyLoc: Optional[location.Loc]) -> bool:
     match res:
         case MatchesTyFailure(exc, ty):
-            # raise exc
-            raise errors.WyppTypeError.invalidType(ty, tyLoc)
+            if isDebug():
+                debug(f'Exception occurred while calling matchesTy with type {ty}, re-raising')
+                raise exc
+            else:
+                raise errors.WyppTypeError.invalidType(ty, tyLoc)
         case b:
             return b
 
@@ -93,14 +95,15 @@ def checkArgument(p: inspect.Parameter, name: str, idx: Optional[int], a: Any,
                                                      locArg)
 def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
                    info: location.CallableInfo, cfg: CheckCfg) -> None:
+    debug(f'Checking arguments when calling {info}')
     paramNames = list(sig.parameters)
     mandatory = mandatoryArgCount(sig)
     kind = getKind(cfg, paramNames)
     offset = 1 if kind == 'method' else 0
     fi = stacktrace.callerOutsideWypp()
+    callLoc = None if not fi else location.Loc.fromFrameInfo(fi)
+    cn = location.CallableName.mk(info)
     def raiseArgMismatch():
-        callLoc = None if not fi else location.Loc.fromFrameInfo(fi)
-        cn = location.CallableName.mk(info)
         raise errors.WyppTypeError.argCountMismatch(cn,
                                                     callLoc,
                                                     len(paramNames) - offset,
@@ -116,15 +119,18 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
         locArg = None if fi is None else location.locationOfArgument(fi, i)
         checkArgument(p, name, i - offset, args[i], locArg, info, cfg)
     for name in kwargs:
+        if name not in sig.parameters:
+            raise errors.WyppTypeError.unknownKeywordArgument(cn, callLoc, name)
         locArg = None if fi is None else location.locationOfArgument(fi, name)
         checkArgument(sig.parameters[name], name, None, kwargs[name], locArg, info, cfg)
 
 def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo],
-                result: Any, code: location.CallableInfo, cfg: CheckCfg) -> None:
+                result: Any, info: location.CallableInfo, cfg: CheckCfg) -> None:
     t = sig.return_annotation
     if isEmptyAnnotation(t):
         t = None
-    locDecl = code.getResultTypeLocation()
+    debug(f'Checking return value when calling {info}, return type: {t}')
+    locDecl = info.getResultTypeLocation()
     if not handleMatchesTyResult(matchesTy(result, t, cfg.ns), locDecl):
         fi = stacktrace.callerOutsideWypp()
         if fi is not None:
@@ -134,7 +140,7 @@ def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo]
         if returnFrame:
             returnLoc = location.Loc.fromFrameInfo(returnFrame)
             extraFrames = [returnFrame]
-        raise errors.WyppTypeError.resultError(location.CallableName.mk(code), locDecl, t, returnLoc, result,
+        raise errors.WyppTypeError.resultError(location.CallableName.mk(info), locDecl, t, returnLoc, result,
                                                locRes, extraFrames)
 
 

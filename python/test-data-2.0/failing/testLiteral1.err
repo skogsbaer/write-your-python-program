@@ -1,4 +1,16 @@
 Traceback (most recent call last):
   File "testLiteral1.py", line 3, in <module>
     T = Literal('a', 'b')
-untypy.error.WyppTypeError: Cannot call Literal like a function. Did you mean Literal['a', 'b']?
+  File "writeYourProgram.py", line 92, in _invalidCall
+    raise errors.WyppTypeError.invalidType(tyStr, loc)
+  File "errors.py", line 79, in invalidType
+    raise WyppTypeError('\n'.join(lines))
+
+WyppTypeError: ungültiger Typ `Literal('a', 'b')`
+
+Wolltest du `Literal['a', 'b']` schreiben?
+
+## Datei testLiteral1.py
+## Typ deklariert in Zeile 3:
+
+T = [0;31m[1mLiteral('a', 'b')[0;0m

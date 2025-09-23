@@ -1,12 +1,12 @@
 Traceback (most recent call last):
-  File "testWrongKeywordArg.py", line 4, in <module>
-    foo(x=4)
+  File "testWrongKeywordArg4.py", line 4, in <module>
+    foo(kw=1, x=4)
 
 WyppTypeError: unbekanntes Schlüsselwort-Argument
 
 Funktion `foo` akzeptiert kein Schlüsselwort-Argument `x`.
 
-## Datei testWrongKeywordArg.py
+## Datei testWrongKeywordArg4.py
 ## Fehlerhafter Aufruf in Zeile 4:
 
-foo(x=4)
+foo(kw=1, x=4)

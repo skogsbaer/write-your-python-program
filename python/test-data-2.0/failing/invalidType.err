@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "invalidType.py", line 9, in <module>
+    foo()
+
+WyppTypeError: ungültiger Typ `Union(list(int), list[float])`
+
+Wolltest du `Union[list(int), list[float]]` schreiben?
+
+## Datei invalidType.py
+## Typ deklariert in Zeile 6:
+
+def foo() -> [0;31m[1mUnion(list(int), list[float])[0;0m:

@@ -320,6 +320,7 @@ def runCode(fileToRun, globals, args, doTypecheck=True, extraDirs=None):
     if not extraDirs:
         extraDirs = []
     modDir = os.path.dirname(fileToRun)
+    print(f'fileToRun={fileToRun}, modDir={modDir}')
     with RunSetup(modDir, [fileToRun] + args):
         with instrument.setupFinder(modDir, extraDirs, doTypecheck):
             modName = os.path.basename(os.path.splitext(fileToRun)[0])

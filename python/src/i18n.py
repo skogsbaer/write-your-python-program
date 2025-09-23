@@ -129,7 +129,15 @@ DE = {
 
     'Unknown attribute {attrName} for record {clsName}':
         'Attribut {attrName} ist nicht bekannt für Record {clsName}',
+    'Did you mean `{ty}`?': 'Wolltest du `{ty}` schreiben?',
 
+    'unknown keyword argument': 'unbekanntes Schlüsselwort-Argument',
+    'Function `{fun}` does not accept keyword argument `{name}`.':
+        'Funktion `{fun}` akzeptiert kein Schlüsselwort-Argument `{name}`.',
+    'Method `{method}` from class `{cls}` does not accept keyword argument `{name}`.':
+        'Methode `{method}` der Klasse `{cls}` akzeptiert kein Schlüsselwort-Argument `{name}`.',
+    'Constructor of record `{cls}` does not accept keyword argument `{name}`.':
+        'Konstruktor des Records `{cls}` akzeptiert kein Schlüsselwort-Argument `{name}`.'
 }
 
 def expectingNoReturn(cn: location.CallableName) -> str:
@@ -316,6 +324,22 @@ def noTypeAnnotationForAttribute(attrName: str, recordName: str) -> str:
 def invalidTy(ty: Any) -> str:
     return tr('invalid type `{ty}`', ty=ty)
 
+def didYouMean(ty: str) -> str:
+    return tr('Did you mean `{ty}`?', ty=ty)
+
 def recordAttrDeclTy(recordName: str, attrName: str, ty: Any) -> str:
     return tr('Attribute `{attrName}` of record `{recordName}` declared with type `{ty}.`',
               recordName=recordName, attrName=attrName, ty=ty)
+
+def unknownKeywordArgument(cn: location.CallableName, name: str) -> str:
+    match cn.kind:
+        case 'function':
+            return tr('Function `{fun}` does not accept keyword argument `{name}`.',
+                        fun=cn.name, name=name)
+        case location.ClassMember('method', cls):
+            return tr('Method `{method}` from class `{cls}` does not accept keyword argument `{name}`.',
+                        method=cn.name, cls=cls, name=name)
+        case location.ClassMember('recordConstructor', cls):
+            return tr('Constructor of record `{cls}` does not accept keyword argument `{name}`.',
+                        cls=cls, name=name)
+    raise ValueError(f'Unexpected: {cn}')

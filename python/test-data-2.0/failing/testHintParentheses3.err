@@ -1,10 +1,12 @@
 Traceback (most recent call last):
-  File "testHintParentheses3.py", line 6, in <module>
-    def foo() -> Union(list, str):
-WyppAttributeError: Type annotation of function 'foo' could not be resolved:
-Cannot call Union like a function. Did you mean Union[list, str]?
+  File "testHintParentheses3.py", line 9, in <module>
+    foo()
 
-def foo() -> Union(list, str):                                   
-    pass     ^^^^^^^^^^^^^^^^ - Did you mean: 'Union[list, str]'?
+WyppTypeError: ungültiger Typ `Union(list, str)`
 
-declared at: test-data/testHintParentheses3.py:6
+Wolltest du `Union[list, str]` schreiben?
+
+## Datei testHintParentheses3.py
+## Typ deklariert in Zeile 6:
+
+def foo() -> [0;31m[1mUnion(list, str)[0;0m:

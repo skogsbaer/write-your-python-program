@@ -318,9 +318,10 @@ _CONFIG_RE = re.compile(r'^# WYPP_TEST_CONFIG:\s*(\{.*\})\s*$')
 class WyppTestConfig:
     typecheck: Literal[True, False, "both"]
     args: list[str]
+    pythonPath: Optional[str]
     @staticmethod
     def default() -> WyppTestConfig:
-        return WyppTestConfig(typecheck=True, args=[])
+        return WyppTestConfig(typecheck=True, args=[], pythonPath=None)
 
 def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
     """
@@ -328,7 +329,7 @@ def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
     `max_lines` lines of the file at `path` and return it as a dict.
     Returns {} if not present.
     """
-    validKeys = ['typecheck', 'args']
+    validKeys = ['typecheck', 'args', 'pythonPath']
     with open(path, "r", encoding="utf-8") as f:
         for lineno in range(1, max_lines + 1):
             line = f.readline()
@@ -343,7 +344,8 @@ def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
                         raise ValueError(f'Unknown key {k} in config for file {path}')
                 typecheck = j.get('typecheck', True)
                 args = j.get('args', [])
-                return WyppTestConfig(typecheck=typecheck, args=args)
+                pythonPath = j.get('pythonPath')
+                return WyppTestConfig(typecheck=typecheck, args=args, pythonPath=pythonPath)
     return WyppTestConfig.default()
 
 def checkNoConfig(testFile: str,
@@ -365,12 +367,14 @@ def checkNoConfig(testFile: str,
 
 def check(testFile: str,
           exitCode: int = 1,
-          pythonPath: list[str] = [],
           minVersion: Optional[tuple[int, int]] = None,
           checkOutputs: bool = True,
           ctx: TestContext = globalCtx,):
     cfg = readWyppTestConfig(testFile)
     args = cfg.args
+    pythonPath = []
+    if cfg.pythonPath:
+        pythonPath = cfg.pythonPath.split(':')
     if cfg.typecheck == 'both':
         checkNoConfig(testFile, exitCode, typecheck=True, args=args,
                       pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,
@@ -398,6 +402,8 @@ def record(testFile: str):
         typecheck = True
     args = cfg.args
     pythonPath = []
+    if cfg.pythonPath:
+        pythonPath = cfg.pythonPath.split(':')
     what = ''
     ctx = globalCtx
     def display(filename: str, where: str):
