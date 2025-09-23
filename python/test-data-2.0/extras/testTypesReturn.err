@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "test-data-2.0/extras/testTypesReturn.py", line 8, in <module>
+    foo(False)
+  File "test-data-2.0/extras/testTypesReturn.py", line 6, in foo
+    return 'you stupid'
+
+WyppTypeError: 'you stupid'
+
+Rückgabewert vom Typ `int` erwartet bei Aufruf der Funktion `foo`.
+Aber der Aufruf gibt einen Wert vom Typ `str` zurück.
+
+## Datei test-data-2.0/extras/testTypesReturn.py
+## Rückgabetyp deklariert in Zeile 1:
+
+def foo(flag: bool) -> [0;31m[1mint[0;0m:
+
+## Fehlerhaftes return in Zeile 6:
+
+        return 'you stupid'
+
+## Aufruf in Zeile 8 verursacht das fehlerhafte return:
+
+foo(False)

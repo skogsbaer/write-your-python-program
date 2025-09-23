@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "test-data-2.0/extras/testRecordSetTypeForwardRef.py", line 15, in <module>
+    m()
+  File "test-data-2.0/extras/testRecordSetTypeForwardRef.py", line 13, in m
+    r.x = "hello"
+
+WyppTypeError: "hello"
+
+Attribut `x` des Records `Record` deklariert als Typ `A`.
+Das Attribute kann nicht auf einen Wert vom Typ `str` gesetzt werden.
+
+## Datei test-data-2.0/extras/testRecordSetTypeForwardRef.py
+## Fehlerhafte Zuweisung in Zeile 13:
+
+    [0;31m[1mr.x[0;0m = "hello"
+
+## Typ deklariert in Zeile 6:
+
+    [0;31m[1mx: A[0;0m

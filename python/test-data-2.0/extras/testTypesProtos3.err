@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "test-data-2.0/extras/testTypesProtos3.py", line 21, in <module>
+    doSomething(Dog())
+  File "test-data-2.0/extras/testTypesProtos3.py", line 19, in doSomething
+    print(a.makeSound(3.14))
+
+WyppTypeError: <Dog>
+
+Der Aufruf der Methode `makeSound` aus Klasse `Dog` erwartet Wert vom Typ `int` als erstes Argument.
+Aber der übergebene Wert hat Typ `Dog`.
+
+## Datei test-data-2.0/extras/testTypesProtos3.py
+## Fehlerhafter Aufruf in Zeile 19:
+
+    print(a.makeSound([0;31m[1m3.14[0;0m))
+
+## Typ deklariert in Zeile 13:
+
+    def makeSound([0;31m[1mloadness: int[0;0m) -> str: # self parameter omitted!

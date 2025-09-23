@@ -1,4 +1,0 @@
-File "/Users/swehr/devel/write-your-python-program/python/test-data-2.0/failing/testTraceback2.py", line 3
-    lst = [1,2,3
-          ^
-SyntaxError: '[' was never closed

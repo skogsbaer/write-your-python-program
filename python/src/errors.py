@@ -92,6 +92,17 @@ class WyppTypeError(TypeError, WyppError):
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
+    def invalidRecordAnnotation(loc: Optional[location.Loc]) -> WyppTypeError:
+        lines = []
+        lines.append(i18n.tr('invalid record definition'))
+        lines.append('')
+        if loc:
+            lines.append(f'## {i18n.tr("File")} {loc.filename}')
+            lines.append(f'## {i18n.tr("Line")} {loc.startLine}:\n')
+            lines.append(renderLoc(loc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
     def resultError(callableName: location.CallableName, resultTypeLoc: Optional[location.Loc], resultTy: Any,
                     returnLoc: Optional[location.Loc], givenValue: Any,
                     callLoc: Optional[location.Loc],

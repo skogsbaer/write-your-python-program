@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "test-data-2.0/extras/testWrongKeywordArg3.py", line 8, in <module>
+    p = Point(x=3, y=4, z=4)
+
+WyppTypeError: unbekanntes Schlüsselwort-Argument
+
+Konstruktor des Records `Point` akzeptiert kein Schlüsselwort-Argument `z`.
+
+## Datei test-data-2.0/extras/testWrongKeywordArg3.py
+## Fehlerhafter Aufruf in Zeile 8:
+
+p = [0;31m[1mPoint(x=3, y=4, z=4)[0;0m

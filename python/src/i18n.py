@@ -81,6 +81,7 @@ DE = {
     'But the default value has type `{ty}`.': 'Aber der Default-Wert hat Typ `{ty}`.',
 
     'File': 'Datei',
+    'Line': 'Zeile',
     'Result type declared in line': 'Rückgabetyp deklariert in Zeile',
     'Type declared in line': 'Typ deklariert in Zeile',
     'Parameter declared in line': 'Parameter deklariert in Zeile',
@@ -137,7 +138,9 @@ DE = {
     'Method `{method}` from class `{cls}` does not accept keyword argument `{name}`.':
         'Methode `{method}` der Klasse `{cls}` akzeptiert kein Schlüsselwort-Argument `{name}`.',
     'Constructor of record `{cls}` does not accept keyword argument `{name}`.':
-        'Konstruktor des Records `{cls}` akzeptiert kein Schlüsselwort-Argument `{name}`.'
+        'Konstruktor des Records `{cls}` akzeptiert kein Schlüsselwort-Argument `{name}`.',
+
+    'invalid record definition': 'ungültige Record-Definition'
 }
 
 def expectingNoReturn(cn: location.CallableName) -> str:

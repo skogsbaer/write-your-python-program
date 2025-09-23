@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "test-data-2.0/extras/testHintParentheses2.py", line 8, in <module>
+    foo(1, {})
+
+WyppTypeError: ungültiger Typ `dict[1, list(int)]`
+
+## Datei test-data-2.0/extras/testHintParentheses2.py
+## Typ deklariert in Zeile 5:
+
+def foo(a: 'int', [0;31m[1mb: 'dict[1, list(int)]'[0;0m) -> int:

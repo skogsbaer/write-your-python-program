@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "test-data-2.0/extras/testRecordTypes.py", line 8, in <module>
+    p = Point(1, '5')
+
+WyppTypeError: '5'
+
+Der Aufruf des Konstruktors des Records `Point` erwartet Wert vom Typ `int` als zweites Argument.
+Aber der übergebene Wert hat Typ `str`.
+
+## Datei test-data-2.0/extras/testRecordTypes.py
+## Fehlerhafter Aufruf in Zeile 8:
+
+p = [0;31m[1mPoint(1, '5')[0;0m
+
+## Typ deklariert in Zeile 6:
+
+    [0;31m[1my: int[0;0m

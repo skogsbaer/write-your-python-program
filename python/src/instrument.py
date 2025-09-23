@@ -11,6 +11,8 @@ from os import PathLike
 import utils
 from myLogging import *
 from contextlib import contextmanager
+import errors
+import location
 
 def parseExp(s: str) -> ast.expr:
     match ast.parse(s):
@@ -34,7 +36,8 @@ def transferLocs(old: ast.stmt | ast.expr, new: ast.stmt | ast.expr) -> Any:
     new.end_col_offset = old.end_col_offset
     return new
 
-def transformDecorator(e: ast.expr) -> ast.expr:
+def transformDecorator(e: ast.expr, path: str) -> ast.expr:
+    loc = location.Loc(path, e.lineno, e.col_offset, e.end_lineno, e.col_offset)
     match e:
         case ast.Name('record'):
             return transferLocs(e, Configs.immutableRecordConfig)
@@ -45,28 +48,27 @@ def transformDecorator(e: ast.expr) -> ast.expr:
                 case [ast.keyword('mutable', ast.Constant(False))]:
                     return transferLocs(e, Configs.immutableRecordConfig)
                 case _:
-                    #     print(ast.dump(e)) FIXME: proper error message
-                    raise ValueError(f'Invalid record config')
+                    raise errors.WyppTypeError.invalidRecordAnnotation(loc)
         case ast.Call(ast.Name('record'), _, _):
             raise ValueError(f'Invalid record config')
         case _:
             return e
 
-def transformStmt(stmt: ast.stmt, outerClassName: Optional[str]) -> ast.stmt:
+def transformStmt(stmt: ast.stmt, outerClassName: Optional[str], path: str) -> ast.stmt:
     cfg = Configs.methodConfig(outerClassName) if outerClassName else Configs.funConfig
     wrapExp = ast.Call(ast.Name(id='wrapTypecheck', ctx=ast.Load()), [cfg], [])
     match stmt:
         case ast.FunctionDef(name, args, body, decorators, returns, tyComment, tyParams):
-            newBody = [transformStmt(s, outerClassName=outerClassName) for s in body]
+            newBody = [transformStmt(s, outerClassName=outerClassName, path=path) for s in body]
             x = ast.FunctionDef(name, args, newBody, decorators + [wrapExp], returns, tyComment, tyParams)
             return transferLocs(stmt, x)
         case ast.AsyncFunctionDef(name, args, body, decorators, returns, tyComment, tyParams):
-            newBody = [transformStmt(s, outerClassName=outerClassName) for s in body]
+            newBody = [transformStmt(s, outerClassName=outerClassName, path=path) for s in body]
             x = ast.AsyncFunctionDef(name, args, newBody, decorators + [wrapExp], returns, tyComment, tyParams)
             return transferLocs(stmt, x)
         case ast.ClassDef(className, bases, keywords, body, decoratorList, type_params):
-            newBody = [transformStmt(s, outerClassName=className) for s in body]
-            newDecoratorList = [transformDecorator(e) for e in decoratorList]
+            newBody = [transformStmt(s, outerClassName=className, path=path) for s in body]
+            newDecoratorList = [transformDecorator(e, path=path) for e in decoratorList]
             x = ast.ClassDef(className, bases, keywords, newBody, newDecoratorList, type_params)
             return transferLocs(stmt, x)
         case _:
@@ -80,10 +82,10 @@ def isImport(t: ast.stmt) -> bool:
 
 importWrapTypecheck = ast.parse("from wypp import wrapTypecheck", mode="exec").body[0]
 
-def transformModule(m: ast.Module | ast.Expression | ast.Interactive) -> ast.Module | ast.Expression | ast.Interactive:
+def transformModule(m: ast.Module | ast.Expression | ast.Interactive, path: str) -> ast.Module | ast.Expression | ast.Interactive:
     match m:
         case ast.Module(body, type_ignores):
-            newStmts = [transformStmt(stmt, outerClassName=None) for stmt in body]
+            newStmts = [transformStmt(stmt, outerClassName=None, path=path) for stmt in body]
             (imports, noImports) = utils.split(newStmts, isImport)
             # avoid inserting before from __future__
             newStmts = imports + [importWrapTypecheck] + noImports
@@ -105,7 +107,13 @@ class InstrumentingLoader(SourceFileLoader):
             else:
                 source = decode_source(data)
             tree = utils._call_with_frames_removed(ast.parse, source, path, "exec")
-        tree = transformModule(tree)
+        if isinstance(path, PathLike):
+            pathStr = str(path)
+        elif isinstance(path, str):
+            pathStr = path
+        else:
+            pathStr = "<input>"
+        tree = transformModule(tree, pathStr)
         ast.fix_missing_locations(tree)
 
         debug(

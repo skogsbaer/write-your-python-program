@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "test-data-2.0/extras/main.py", line 4, in <module>
+    print(mod.foo(1))
+  File "test-data-2.0/modules/B/mod.py", line 5, in foo
+    return bar(i)
+
+WyppTypeError: 1
+
+Der Aufruf der Funktion `bar` erwartet Wert vom Typ `str` als erstes Argument.
+Aber der übergebene Wert hat Typ `int`.
+
+## Datei test-data-2.0/modules/B/mod.py
+## Fehlerhafter Aufruf in Zeile 5:
+
+    return bar([0;31m[1mi[0;0m)
+
+## Typ deklariert in Zeile 1:
+
+def bar([0;31m[1ms: str[0;0m) -> int:

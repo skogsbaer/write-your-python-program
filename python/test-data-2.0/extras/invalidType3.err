@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "test-data-2.0/extras/invalidType3.py", line 9, in <module>
+    foo()
+
+WyppTypeError: ungültiger Typ `Optional(list(int), list[float])`
+
+Wolltest du `Optional[list(int), list[float]]` schreiben?
+
+## Datei test-data-2.0/extras/invalidType3.py
+## Typ deklariert in Zeile 6:
+
+def foo() -> [0;31m[1mOptional(list(int), list[float])[0;0m:
