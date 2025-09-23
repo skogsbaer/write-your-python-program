@@ -1,9 +1,5 @@
-* Fix file tests in test-data-2.0
-* proper error messages for invalid @record
-* Avoid absolute paths in error messages
-
 * Integration tests
-
+* Python 3.12, 3.13 and 3.14?
 * Installation
 * Test windows
 

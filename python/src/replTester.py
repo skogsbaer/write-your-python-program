@@ -3,7 +3,7 @@ import doctest
 import os
 import argparse
 from dataclasses import dataclass
-from runner import runCode, importTypeguard, verbose, enableVerbose
+from runner2 import runCode, importTypeguard, verbose, enableVerbose
 
 usage = """python3 replTester.py [ ARGUMENTS ] LIB_1 ... LIB_n --repl SAMPLE_1 ... SAMPLE_m
 
