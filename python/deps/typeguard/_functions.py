@@ -108,6 +108,7 @@ def check_type(
     else:
         frame = sys._getframe(1)
         memo = TypeCheckMemo(frame.f_globals, frame.f_locals, config=config)
+        del frame
     try:
         check_type_internal(value, expected_type, memo)
     except TypeCheckError as exc:
