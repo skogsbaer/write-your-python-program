@@ -9,6 +9,7 @@ import renderTy
 import location
 import paths
 import utils
+import i18n
 
 _DEBUG = False
 def _debug(s):
@@ -147,23 +148,21 @@ def printTestResults(prefix='', loadingFailed=False):
     failing = _testCount['failing']
     bad = '🙁'
     good = '😀'
-    tests = f'{prefix}{total} Tests'
-    if total == 1:
-        tests = f'{prefix}{total} Test'
+    tests = f'{prefix}' + i18n.numTests(total)
     if total == 0:
         pass
     elif failing == 0:
         if loadingFailed:
-            print(f'{tests}, Abbruch der Ausführung {bad}')
+            print(f'{tests}, {i18n.tr("Stop of execution")} {bad}')
         elif total == 1:
-            print(f'1 erfolgreicher Test {good}')
+            print(f'{i18n.tr("1 successful test")} {good}')
         else:
-            print(f'{tests}, alle erfolgreich {good}')
+            print(f'{tests}, {i18n.tr("all successful")} {good}')
     else:
         if loadingFailed:
-            print(f'{tests}, {failing} Fehler und Abbruch der Ausführung {bad}')
+            print(f'{tests}, {i18n.numFailing(failing)} and stop of execution {bad}')
         else:
-            print(f'{tests}, {failing} Fehler {bad}')
+            print(f'{tests}, {i18n.numFailing(failing)} {bad}')
     return {'total': total, 'failing': failing}
 
 def checkEq(actual, expected):
@@ -197,7 +196,8 @@ def checkGeneric(actual, expected, *, structuralObjEq=True, floatEqWithDelta=Tru
         frame = stack[2] if len(stack) > 2 else None
         if frame:
             filename = paths.canonicalizePath(frame.filename)
-            caller = f"Datei {filename}, Zeile {frame.lineno}: "
+            caller = i18n.tr('File {filename}, line {lineno}: ',
+                             filename=filename, lineno=frame.lineno)
         else:
             caller = ""
         def fmt(x):
@@ -205,12 +205,11 @@ def checkGeneric(actual, expected, *, structuralObjEq=True, floatEqWithDelta=Tru
                 return repr(x)
             else:
                 return str(x)
-        msg = f"{caller}Erwartet wird {fmt(expected)}, aber das " \
-            f"Ergebnis ist {fmt(actual)}"
+        msg = caller + i18n.checkExpected(fmt(expected), fmt(actual))
         if _dieOnCheckFailures():
             raise Exception(msg)
         else:
-            print("FEHLER in " + msg)
+            print(i18n.tr('ERROR in ') + msg)
 
 def checkFail(msg: str):
     if not _checksEnabled:
@@ -220,15 +219,17 @@ def checkFail(msg: str):
     if _dieOnCheckFailures():
         raise Exception(msg)
     else:
-        print("FEHLER: " + msg)
+        print(i18n.tr('ERROR: ') + msg)
 
 def uncoveredCase():
     stack = inspect.stack()
     if len(stack) > 1:
         caller = stack[1]
-        raise Exception(f"{caller.filename}, Zeile {caller.lineno}: ein Fall ist nicht abgedeckt")
+        callerStr = i18n.tr('File {filename}, line {lineno}: ',
+                            filename=caller.filename, lineno=caller.lineno)
+        raise Exception(callerStr + i18n.tr('uncovered case'))
     else:
-        raise Exception(f"Ein Fall ist nicht abgedeckt")
+        raise Exception(i18n.tr('Uncovered case'))
 
 #
 # Deep equality
@@ -328,7 +329,8 @@ def todo(msg=None):
 
 def impossible(msg=None):
     if msg is None:
-        msg = 'Das Unmögliche ist passiert!'
+        msg = i18n.tr('The impossible happened!')
+        'Das Unmögliche ist passiert!'
     raise errors.ImpossibleError(msg)
 
 # Additional functions and aliases

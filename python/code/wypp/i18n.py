@@ -140,7 +140,22 @@ DE = {
     'Constructor of record `{cls}` does not accept keyword argument `{name}`.':
         'Konstruktor des Records `{cls}` akzeptiert kein Schlüsselwort-Argument `{name}`.',
 
-    'invalid record definition': 'ungültige Record-Definition'
+    'invalid record definition': 'ungültige Record-Definition',
+
+    'Expected {expected}, but the result is {actual}':
+        'Erwartet wird {expected}, aber das Ergebnis ist {actual}',
+    'ERROR: ': 'FEHLER: ',
+    'ERROR in ': 'FEHLER in ',
+    'File {filename}, line {lineno}: ': 'Datei {filename}, Zeile {lineno}: ',
+    'Uncovered case': 'Ein Fall ist nicht abgedeckt',
+    'uncovered case': 'ein Fall ist nicht abgedeckt',
+    'The impossible happened!': 'Das Unmögliche ist passiert!',
+    'Stop of execution': 'Abbruch der Ausführung',
+    '1 successful test': '1 erfolgreicher Test',
+    'all succesful': 'alle erfolgreich',
+    'and stop of execution': 'und Abbruch der Ausführung',
+    'all successful': 'alle erfolgreich'
+
 }
 
 def expectingNoReturn(cn: location.CallableName) -> str:
@@ -346,3 +361,40 @@ def unknownKeywordArgument(cn: location.CallableName, name: str) -> str:
             return tr('Constructor of record `{cls}` does not accept keyword argument `{name}`.',
                         cls=cls, name=name)
     raise ValueError(f'Unexpected: {cn}')
+
+def checkExpected(expected: str, actual: str) -> str:
+    return tr('Expected {expected}, but the result is {actual}', expected=expected,actual=actual)
+
+def numTests(n: int) -> str:
+    match getLang():
+        case 'en':
+            if n == 0:
+                return 'no tests'
+            elif n == 1:
+                return '1 test'
+            else:
+                return f'{n} tests'
+        case 'de':
+            if n == 0:
+                return 'keine Tests'
+            elif n == 1:
+                return '1 Test'
+            else:
+                return f'{n} Tests'
+
+def numFailing(n: int) -> str:
+    match getLang():
+        case 'en':
+            if n == 0:
+                return 'no errors'
+            elif n == 1:
+                return '1 error'
+            else:
+                return f'{n} errors'
+        case 'de':
+            if n == 0:
+                return 'keine Fehler'
+            elif n == 1:
+                return '1 Fehler'
+            else:
+                return f'{n} Fehler'
