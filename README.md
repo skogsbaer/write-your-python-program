@@ -33,29 +33,14 @@ After installation, you can use the `wypp` command
 for running your python files, making all features explained below available.
 Run `wypp --help` for usage information.
 
-## What's new?
-
-Here is the [Changelog](ChangeLog.md).
-
-* **Breaking change** in version 2.0.0 (2025-0-24): type annotations are now only
-  checked when entering/exiting a function. Before, certain things such as lists
-  or callable were put behind wrapper objects. For example, these wrappers ensured
-  that only ints could be appended to a list of type `list[int]`. However, these
-  wrappers came with several drawbacks, so they were removed in release 2.0.0
-* **Breaking change** in version 0.12.0 (2021-09-28): type annotations are now checked
-  dynamically when the code is executed.
-  This behavior can be deactivated in the settings of the extension.
-* **Breaking change** in version 0.11.0 (2021-03-11): wypp is no longer automatically imported.
-You need an explicit import statement such as `from wypp import *`.
-
 ## Features
 
 Here is a screen shot:
 
-![Screenshot](screenshot.png)
+![Screenshot](screenshot.jpg)
 
 There is also a visualization mode, similar to [Python Tutor](https://pythontutor.com/):
-![Screenshot](screenshot2.png)
+![Screenshot](screenshot2.jpg)
 
 When hitting the RUN button, the vscode extension saves the current file, opens
 a terminal and executes the file with Python, staying in interactive mode after
@@ -198,12 +183,26 @@ before the type being defined, for example to define recursive types or as
 the type of `self` inside of classes. In fact, there is no check at all to make sure
 that anotations refer to existing types.
 
-
 ## Module name and current working directory
 
 When executing a python file with the RUN button, the current working directory is set to
 the directory of the file being executed. The `__name__` attribute is set to the value
 `'__wypp__'`.
+
+## What's new?
+
+Here is the [Changelog](ChangeLog.md).
+
+* **Breaking change** in version 2.0.0 (2025-09-24): type annotations are now only
+  checked when entering/exiting a function. Before, certain things such as lists
+  or callable were put behind wrapper objects. For example, these wrappers ensured
+  that only ints could be appended to a list of type `list[int]`. However, these
+  wrappers came with several drawbacks, so they were removed in release 2.0.0
+* **Breaking change** in version 0.12.0 (2021-09-28): type annotations are now checked
+  dynamically when the code is executed.
+  This behavior can be deactivated in the settings of the extension.
+* **Breaking change** in version 0.11.0 (2021-03-11): wypp is no longer automatically imported.
+You need an explicit import statement such as `from wypp import *`.
 
 ## Bugs & Problems
 
