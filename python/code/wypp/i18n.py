@@ -157,8 +157,8 @@ DE = {
     'all successful': 'alle erfolgreich',
 
     'NOTE: running the code failed, some definitions might not be available in the interactive window!':
-        'ACHTUNG: der Code enthält Fehler, einige Definition sind möglicherweise in interaktiven Fenster nicht verfügbar!'
-
+        'ACHTUNG: der Code enthält Fehler, einige Definition sind möglicherweise im interaktiven Fenster nicht verfügbar!',
+    '=== WELCOME to ': '=== WILLKOMMEN bei '
 }
 
 def expectingNoReturn(cn: location.CallableName) -> str:
