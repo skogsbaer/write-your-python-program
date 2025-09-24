@@ -24,5 +24,4 @@ jobs:
           cd python && ./allTestsForPyVersion
       - name: Test pytrace-generator
         run: |
-          python3 python/src/runYourProgram.py --install-mode installOnly
           python3 pytrace-generator/test/runTests.py
