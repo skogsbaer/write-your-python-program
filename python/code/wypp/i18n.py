@@ -154,7 +154,10 @@ DE = {
     '1 successful test': '1 erfolgreicher Test',
     'all succesful': 'alle erfolgreich',
     'and stop of execution': 'und Abbruch der Ausführung',
-    'all successful': 'alle erfolgreich'
+    'all successful': 'alle erfolgreich',
+
+    'NOTE: running the code failed, some definitions might not be available in the interactive window!':
+        'ACHTUNG: der Code enthält Fehler, einige Definition sind möglicherweise in interaktiven Fenster nicht verfügbar!'
 
 }
 
