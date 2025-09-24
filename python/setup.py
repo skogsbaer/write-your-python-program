@@ -31,8 +31,12 @@ setup(name='wypp',
       author='Stefan Wehr',
       author_email='stefan.wehr@hs-offenburg.de',
       url='https://github.com/skogsbaer/write-your-python-program',
-      package_dir={'wypp': 'src', 'untypy': 'deps/untypy/untypy'},
-      packages=['wypp'] + find_packages("deps/untypy", exclude=['test', 'test.*']),
+      package_dir={
+          'wypp': 'code/wypp',
+          'typeguard': 'code/typeguard',
+          'typing_extensions': 'code'
+      },
+      packages=['wypp', 'typing_extensions', 'typeguard'],
       python_requires='>=3.12.0',
       scripts=['wypp']
       )
