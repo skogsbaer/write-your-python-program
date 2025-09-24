@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "test-data/testInvalidLiteral.py", line 5, in <module>
-    def gameFull(game:Game)->bool:
-WyppAnnotationError: Invalid type annotation: list[list[['x', 'o', '-']]]
-

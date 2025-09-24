@@ -1,1 +1,0 @@
-Street(name='Hauptstraße', cars=(Car(licensePlate='OG PY 123', color='rot'),))

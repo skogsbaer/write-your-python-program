@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/functionResult2.py", line 7, in <module>
+    foo(1)
+  File "file-test-data/basics/functionResult2.py", line 5, in foo
+    return "foo_" + str(i)
+
+WyppTypeError: "foo_1"
+
+Expecting no return value when calling function `foo`.
+But the call returns a value of type `str`.
+
+## File file-test-data/basics/functionResult2.py
+## Problematic return in line 5:
+
+    return "foo_" + str(i)
+
+## Call in line 7 causes the problematic return:
+
+foo(1)

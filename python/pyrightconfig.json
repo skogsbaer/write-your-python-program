@@ -1,0 +1,10 @@
+{
+    // See https://microsoft.github.io/pyright/#/configuration?id=pyright-configuration
+    "reportWildcardImportFromLibrary": false,
+    "reportMissingTypeStubs": false,
+    "exclude": ["file-test-data", "integration-test-data"],
+    "ignore": ["code/typing_extensions.py", "code/typeguard"],
+    "extraPaths": ["code/wypp"],
+    "typeCheckingMode": "basic"
+}
+

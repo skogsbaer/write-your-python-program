@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/typeAlias.py", line 7, in <module>
+    foo('foo')
+
+WyppTypeError: 'foo'
+
+Der Aufruf der Funktion `foo` erwartet Wert vom Typ `T` als erstes Argument.
+Aber der übergebene Wert hat Typ `str`.
+
+## Datei file-test-data/basics/typeAlias.py
+## Fehlerhafter Aufruf in Zeile 7:
+
+foo('foo')
+
+## Typ deklariert in Zeile 3:
+
+def foo([0;31m[1mi: T[0;0m) -> T:

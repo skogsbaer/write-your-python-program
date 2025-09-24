@@ -3,17 +3,13 @@ import { AddressInfo, createServer } from 'net';
 import { dirname } from 'path';
 import { MessagePort, isMainThread, parentPort } from 'worker_threads';
 
-function installWypp(pythonCmd: string[], runYourProgramPath: string, callback: (error: ExecFileException | null, stdout: string, stderr: string) => void) {
-    const args = pythonCmd.slice(1).concat([runYourProgramPath, '--install-mode', 'installOnly']);
-    execFile(pythonCmd[0], args, { windowsHide: true }, callback);
-}
-
-export function generateTrace(pythonCmd: string[], mainPath: string, filePath: string, tracePort: MessagePort, logPort: MessagePort) {
+export function generateTrace(pythonCmd: string[], traceGenPath: string, inputFilePath: string, tracePort: MessagePort, logPort: MessagePort) {
+    // traceGenPath is something like /Users/swehr/devel/write-your-python-program/pytrace-generator/main.py
     let childRef: ChildProcessWithoutNullStreams[] = [];
     let buffer = Buffer.alloc(0);
     const server = createServer((socket) => {
         socket.on('data', (data) => {
-            buffer = Buffer.concat([buffer, data]);
+            buffer = Buffer.concat([buffer as Uint8Array, data as Uint8Array]);
             while (buffer.length >= 4) {
                 const dataLen = buffer.readUint32BE(0);
                 if (buffer.length >= 4 + dataLen) {
@@ -41,9 +37,12 @@ export function generateTrace(pythonCmd: string[], mainPath: string, filePath: s
     });
     server.listen(0, '127.0.0.1', () => {
         const port = (server.address() as AddressInfo)?.port;
-        const traceArgs = [mainPath, filePath, port.toString()];
+        const traceArgs = [traceGenPath, inputFilePath, port.toString()];
         const args = pythonCmd.slice(1).concat(traceArgs);
-        const child = spawn(pythonCmd[0], args, { cwd: dirname(filePath), windowsHide: true });
+        const child = spawn(pythonCmd[0], args, {
+            cwd: dirname(inputFilePath),
+            windowsHide: true
+        });
         childRef.push(child);
         let err = "";
 
@@ -79,20 +78,6 @@ if (!isMainThread && parentPort) {
             initParams.tracePort.close();
             return;
         }
-        installWypp(initParams.pythonCmd, initParams.runYourProgramPath, (error, stdout, stderr) => {
-            if (stdout.length > 0) {
-                initParams.logPort.postMessage(`${stdout}\n`);
-            }
-            if (stderr.length > 0) {
-                initParams.logPort.postMessage(`${stderr}\n`);
-            }
-            if (error !== null) {
-                initParams.logPort.postMessage(`${error}\n`);
-                initParams.logPort.close();
-                initParams.tracePort.close();
-                return;
-            }
-            generateTrace(initParams.pythonCmd, initParams.mainPath, initParams.file, initParams.tracePort, initParams.logPort);
-        });
+        generateTrace(initParams.pythonCmd, initParams.mainPath, initParams.file, initParams.tracePort, initParams.logPort);
     });
 }

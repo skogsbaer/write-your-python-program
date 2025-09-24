@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/listResult.py", line 5, in <module>
+    foo([1, 2, 3])
+  File "file-test-data/basics/listResult.py", line 3, in foo
+    return l
+
+WyppTypeError: [1, 2, 3, '4']
+
+Expecting return value of type `list[int]` when calling function `foo`.
+
+## File file-test-data/basics/listResult.py
+## Result type declared in line 1:
+
+def foo(l: list[int]) -> [0;31m[1mlist[int][0;0m:
+
+## Problematic return in line 3:
+
+    return l
+
+## Call in line 5 causes the problematic return:
+
+foo([1, 2, 3])

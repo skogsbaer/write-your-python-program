@@ -1,0 +1,6 @@
+{
+    "python.analysis.diagnosticMode": "workspace",
+    "python.autoComplete.extraPaths": [
+        "/Users/swehr/.vscode/extensions/stefanwehr.write-your-python-program-1.3.2/python/src/"
+    ]
+}

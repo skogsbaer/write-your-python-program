@@ -254,7 +254,7 @@ class TraceStep:
     stack: Stack
     heap: Heap
     stdout: str
-    traceback_text: str
+    traceback_text: str | None
 
     def format(self):
         step = {
@@ -358,7 +358,8 @@ class PyTraceGenerator(bdb.Bdb):
             skip = filename != self.skip_until
         elif not filename.startswith(os.path.dirname(self.filename)):
             skip = True
-            self.skip_until = frame.f_back.f_code.co_filename
+            if frame.f_back:
+                self.skip_until = frame.f_back.f_code.co_filename
         if skip:
             return self.trace_dispatch
         else:
@@ -403,7 +404,8 @@ class PyTraceGenerator(bdb.Bdb):
                 traceback_text = traceback_text_tmp.getvalue()
 
 
-            step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap), accumulated_stdout, traceback_text)
+            step = TraceStep(line, filename, copy.deepcopy(self.stack), copy.deepcopy(heap),
+                             accumulated_stdout, traceback_text)
 
             is_annotation = next_source_line.startswith("@")
             should_display_step = not is_annotation
@@ -467,6 +469,13 @@ with open(filename, "r", encoding="utf-8") as f:
 # Add a 'pass' at the end to also get the last trace step
 # It's a bit hacky but probably the easiest solution
 script_str += "\npass\n"
+
+# Add code directory of wypp to path
+thisDir = os.path.normpath(os.path.dirname(__file__))
+codeDir = os.path.normpath(os.path.join(thisDir, '..', 'python', 'code'))
+wyppDir = os.path.join(codeDir, 'wypp')
+sys.path.insert(0, wyppDir)
+sys.path.insert(0, codeDir)
 
 # Add script directory to path
 sys.path.insert(0, os.path.dirname(filename))

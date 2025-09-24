@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "test-data/testWrapperError.py", line 9, in <module>
-    foo(bar)
-  File "test-data/testWrapperError.py", line 4, in foo
-    return f(42)
-  File "test-data/testWrapperError.py", line 7, in bar
-    raise ValueError(str(i))
-ValueError: 42

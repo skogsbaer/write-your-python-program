@@ -217,20 +217,43 @@ function disableTypechecking(context: vscode.ExtensionContext): boolean {
     return !!config[disableTypecheckingConfigKey];
 }
 
-function fixPythonConfig(context: vscode.ExtensionContext) {
-    const libDir = context.asAbsolutePath('python/src/');
-    const pyComplConfig = vscode.workspace.getConfiguration("python.autoComplete");
-    const oldPath: string[] = pyComplConfig.get("extraPaths") || [];
-    const newPath = oldPath.filter(v => {
-        return !v.includes(extensionId);
-    });
-    if (!newPath.includes(libDir)) {
-        newPath.push(libDir);
-    }
-    pyComplConfig.update("extraPaths", newPath);
+async function fixPylanceConfig(
+    context: vscode.ExtensionContext,
+    folder?: vscode.WorkspaceFolder
+) {
+    // disable warnings about wildcard imports, add wypp to pylance's extraPaths
+    const libDir = context.asAbsolutePath('python/code/');
 
-    // const pyLintConfig = vscode.workspace.getConfiguration("python.linting");
-    // pyLintConfig.update("enabled", false);
+    // Use the "python" section; Pylance contributes python.analysis.*
+    const cfg = vscode.workspace.getConfiguration('python', folder?.uri);
+    const target = folder ? vscode.ConfigurationTarget.WorkspaceFolder
+                   : vscode.ConfigurationTarget.Workspace;
+
+    // Read existing overrides (don’t clobber other rules)
+    const keyOverride = 'analysis.diagnosticSeverityOverrides';
+    const overrides = cfg.get<Record<string, string>>(keyOverride) ?? {};
+    if (overrides.reportWildcardImportFromLibrary !== 'none') {
+        const updated = {
+            ...overrides,
+            reportWildcardImportFromLibrary: 'none',
+        };
+        await cfg.update(
+            'analysis.diagnosticSeverityOverrides',
+            updated,
+            target
+        );
+    }
+
+    const keyExtraPaths = 'analysis.extraPaths';
+    const extra = cfg.get<string[]>(keyExtraPaths) ?? [];
+    if (!extra.includes(libDir)) {
+        const updated = [...extra, libDir];
+        await cfg.update(
+            keyExtraPaths,
+            [...extra, libDir],
+            target
+        );
+  }
 }
 
 class Location implements vscode.TerminalLink {
@@ -329,7 +352,7 @@ export class PythonExtension {
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     disposables.forEach(d => d.dispose());
 
     console.log('Activating extension ' + extensionId);
@@ -337,16 +360,15 @@ export function activate(context: vscode.ExtensionContext) {
     const outChannel = vscode.window.createOutputChannel("Write Your Python Program");
     disposables.push(outChannel);
 
-    fixPythonConfig(context);
+    await fixPylanceConfig(context);
     const terminals: { [name: string]: TerminalContext } = {};
 
     installButton("Write Your Python Program", undefined);
 
     const linkProvider = new TerminalLinkProvider(terminals);
     const pyExt = new PythonExtension();
+    const runProg = context.asAbsolutePath('python/code/wypp/runYourProgram.py');
 
-    // Run
-    const runProg = context.asAbsolutePath('python/src/runYourProgram.py');
     installCmd(
         context,
         "run",
@@ -383,7 +405,6 @@ export function activate(context: vscode.ExtensionContext) {
                     "WYPP - RUN",
                     pythonCmd +  " " + fileToCommandArgument(runProg) + verboseOpt +
                         disableOpt +
-                        " --install-mode install" +
                         " --interactive " +
                         " --change-directory " +
                         fileToCommandArgument(file)
