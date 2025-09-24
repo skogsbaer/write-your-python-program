@@ -3,11 +3,11 @@
 	"displayName": "Write Your Python Program!",
 	"description": "A user friendly python environment for beginners",
 	"license": "See license in LICENSE",
-	"version": "1.3.2",
+	"version": "2.0.",
 	"publisher": "StefanWehr",
 	"icon": "icon.png",
 	"engines": {
-		"vscode": "^1.85.0"
+		"vscode": "^1.94.2"
 	},
 	"keywords": [
 		"Python",

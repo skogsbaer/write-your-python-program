@@ -37,6 +37,11 @@ Run `wypp --help` for usage information.
 
 Here is the [Changelog](ChangeLog.md).
 
+* **Breaking change** in version 2.0.0 (2025-0-24): type annotations are now only
+  checked when entering/exiting a function. Before, certain things such as lists
+  or callable were put behind wrapper objects. For example, these wrappers ensured
+  that only ints could be appended to a list of type `list[int]`. However, these
+  wrappers came with several drawbacks, so they were removed in release 2.0.0
 * **Breaking change** in version 0.12.0 (2021-09-28): type annotations are now checked
   dynamically when the code is executed.
   This behavior can be deactivated in the settings of the extension.
@@ -47,7 +52,10 @@ You need an explicit import statement such as `from wypp import *`.
 
 Here is a screen shot:
 
-![Screenshot](screenshot.jpg)
+![Screenshot](screenshot.png)
+
+There is also a visualization mode, similar to [Python Tutor](https://pythontutor.com/):
+![Screenshot](screenshot2.png)
 
 When hitting the RUN button, the vscode extension saves the current file, opens
 a terminal and executes the file with Python, staying in interactive mode after
@@ -56,7 +64,7 @@ all definitions have been executed.
 The file being executed should contain the following import statement in the first line:
 
 ~~~python
-from wypp import*
+from wypp import *
 ~~~
 
 Running the file with the RUN button makes the following features available:
@@ -190,39 +198,6 @@ before the type being defined, for example to define recursive types or as
 the type of `self` inside of classes. In fact, there is no check at all to make sure
 that anotations refer to existing types.
 
-For builtin `list[T]` the following operations are typechecked:
-- `list[idx]`
-- `list[idx] = value`
-- `list += [...]`
-- `list.append(value)`
-- `list.insert(idx, value)`
-- `list.extend(iterator)`
-- `for i in list:` (Iterator)
-
-For builtin `set[T]` these operations are typechecked:
-- `set.add(value)`
-- `set.pop()`
-- `set.remove(value)` Value must be of `T`
-- `set.update(other, ...)`
-- `value in set` Value must be of `T`
-- `for i in set:` (Iterator)
-
-For builtin `dict[K,V]` the supported typechecked operations are:
-- `dict.get(key)`
-- `dict.items()`
-- `dict.keys()`
-- `dict.pop()`
-- `dict.popitem()`
-- `dict.setdefault(key, default)` <br/>_Note:_ In contrast to the standard library `default` is required, to avoid inserting `None` as value into otherwise typed dicts.
-- `dict.update(other)`
-- `dict.update(key=value, ...)`
-- `dict.values()`
-- `key in dict` Key must be of `K`
-- `del dict[key]`
-- `for k in dict` (Iterator)
-- `reversed(dict)`
-- `dict[key]`
-- `dict[key] = value`
 
 ## Module name and current working directory
 
