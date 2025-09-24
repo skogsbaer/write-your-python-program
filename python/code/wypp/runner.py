@@ -92,7 +92,7 @@ def main(globals, argList=None):
             globals = runCode.runStudentCode(fileToRun, globals, args.checkRunnable,
                                              doTypecheck=args.checkTypes, extraDirs=args.extraDirs)
         except Exception as e:
-            verbose(f'Error while running code in {fileToRun}: {e}')
+            verbose(f'Error while running code in {fileToRun}')
             exceptionHandler.handleCurrentException(exit=not isInteractive)
             loadingFailed = True
 
