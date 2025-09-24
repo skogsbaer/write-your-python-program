@@ -5,6 +5,24 @@ sys.path.insert(0, constants.CODE_DIR)
 import sys
 import os
 
+requiredVersion = (3, 12, 0)
+def pythonVersionOk(v):
+    (reqMajor, reqMinor, reqMicro) = requiredVersion
+    if v.major < reqMajor or v.minor < reqMinor:
+        return False
+    if v.major == reqMajor and v.minor == reqMinor and v.micro < reqMicro:
+        return False
+    else:
+        return True
+
+if not pythonVersionOk(sys.version_info):
+    vStr = sys.version.split()[0]
+    reqVStr = '.'.join([str(x) for x in requiredVersion])
+    print(f"""
+Python in version {reqVStr} or newer is required. You are still using version {vStr}, please upgrade!
+""")
+    sys.exit(1)
+
 # local imports
 from constants import *
 import i18n
@@ -16,15 +34,6 @@ import runCode
 import exceptionHandler
 import cmdlineArgs
 
-requiredVersion = (3, 12, 0)
-def pythonVersionOk(v):
-    (reqMajor, reqMinor, reqMicro) = requiredVersion
-    if v.major < reqMajor or v.minor < reqMinor:
-        return False
-    if v.major == reqMajor and v.minor == reqMinor and v.micro < reqMicro:
-        return False
-    else:
-        return True
 
 def printWelcomeString(file, version, doTypecheck):
     cwd = os.getcwd() + "/"
@@ -35,19 +44,10 @@ def printWelcomeString(file, version, doTypecheck):
     tycheck = ''
     if not doTypecheck:
         tycheck = ', no typechecking'
-    printStderr('=== WELCOME to "Write Your Python Program" ' +
+    printStderr(i18n.tr('=== WELCOME to ') + '"Write Your Python Program" ' +
                 '(%sPython %s, %s%s) ===' % (versionStr, pythonVersion, file, tycheck))
 
 def main(globals, argList=None):
-    v = sys.version_info
-    if not pythonVersionOk(v):
-        vStr = sys.version.split()[0]
-        reqVStr = '.'.join([str(x) for x in requiredVersion])
-        print(f"""
-Python in version {reqVStr} or newer is required. You are still using version {vStr}, please upgrade!
-""")
-        sys.exit(1)
-
     (args, restArgs) = cmdlineArgs.parseCmdlineArgs(argList)
     if args.verbose:
         enableVerbose()
