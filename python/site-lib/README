@@ -1,3 +1,0 @@
-This directory contains symlinks for wypp, typeguard and typing_extensions.
-
-Add this directory to PYTHONPATH if you want to import these modules in-place.

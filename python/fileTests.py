@@ -7,10 +7,6 @@ directories = [Path("file-test-data/basics"),
 #directories = [Path("file-test-data/basics")]
 #directories = [Path("file-test-data/extras")]
 
-checkInstall('file-test-data/imports/fileWithImport.py')
-checkInstall('file-test-data/imports/fileWithoutImport.py')
-checkInstall('file-test-data/imports/fileWithBothImports.py')
-
 for d in directories:
     for file in d.iterdir():
         if file.is_file():

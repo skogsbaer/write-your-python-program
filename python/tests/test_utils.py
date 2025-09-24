@@ -1,5 +1,5 @@
 import unittest
-from src.utils import dropWhile
+from utils import dropWhile
 
 class TestUtils(unittest.TestCase):
 

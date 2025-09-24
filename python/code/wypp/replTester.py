@@ -1,9 +1,13 @@
 import sys
+import constants
+sys.path.insert(0, constants.CODE_DIR)
+
 import doctest
 import os
 import argparse
 from dataclasses import dataclass
 from myLogging import *
+import runCode
 
 usage = """python3 replTester.py [ ARGUMENTS ] LIB_1 ... LIB_n --repl SAMPLE_1 ... SAMPLE_m
 
@@ -54,14 +58,8 @@ if opts.verbose:
     enableVerbose()
 
 libDir = os.path.dirname(__file__)
-siteDir = os.path.join(libDir, "..", "site-lib")
-if siteDir not in sys.path:
-    sys.path.insert(0, siteDir)
 libFile = os.path.join(libDir, 'writeYourProgram.py')
 defs = globals()
-
-from runner2 import runCode, importTypeguard
-importTypeguard()
 
 for lib in opts.libs:
     d = os.path.dirname(lib)
@@ -70,7 +68,7 @@ for lib in opts.libs:
 
 for lib in opts.libs:
     verbose(f"Loading lib {lib}")
-    defs = runCode(lib, defs)
+    defs = runCode.runCode(lib, defs)
 
 totalFailures = 0
 totalTests = 0

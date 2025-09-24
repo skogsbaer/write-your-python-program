@@ -47,7 +47,7 @@ def parseArgs() -> TestOpts:
 
     scriptDir = os.path.dirname(__file__)
     return TestOpts(
-        cmd=f'{scriptDir}/src/runYourProgram.py',
+        cmd=f'{scriptDir}/code/wypp/runYourProgram.py',
         baseDir=scriptDir,
         startAt=args.start_at,
         only=args.only,
@@ -232,7 +232,7 @@ def _runTest(testFile: str,
     cmd.append(lang)
     cmd.extend(args)
     env = os.environ.copy()
-    env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'site-lib')] + pythonPath)
+    env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'code')] + pythonPath)
     env['WYPP_UNDER_TEST'] = 'True'
     with open(actualStdoutFile, 'w') as stdoutFile, \
             open(actualStderrFile, 'w') as stderrFile:

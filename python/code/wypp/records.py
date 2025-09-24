@@ -81,7 +81,6 @@ def _patchDataClass(cls, mutable: bool, ns: myTypeguard.Namespaces):
         setattr(cls, "__setattr__", lambda obj, k, v: _call_with_frames_removed(_setattr, obj, k, v))
     return cls
 
-@typing.dataclass_transform()
 def record(cls=None, mutable=False, globals={}, locals={}):
     ns = myTypeguard.Namespaces(globals, locals)
     def wrap(cls: type):

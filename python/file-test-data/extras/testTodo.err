@@ -1,7 +1,7 @@
 Traceback (most recent call last):
   File "file-test-data/extras/testTodo.py", line 3, in <module>
     todo()
-  File "site-lib/wypp/writeYourProgram.py", line 326, in todo
+  File "code/wypp/writeYourProgram.py", line 326, in todo
     raise errors.TodoError(msg)
 
 TODO

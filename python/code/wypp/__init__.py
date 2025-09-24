@@ -1,4 +1,9 @@
-from . import writeYourProgram as w
+try:
+    from . import writeYourProgram as w
+except (ImportError, ModuleNotFoundError):
+    import writeYourProgram as w
+
+import typing
 
 # Exported names that are available for star imports (in alphabetic order)
 Any = w.Any
@@ -26,7 +31,11 @@ intNonPositive = w.intNonPositive
 intPositive = w.intPositive
 math = w.math
 nat = w.nat
-record = w.record
+
+@typing.dataclass_transform()
+def record(cls=None, mutable=False, globals={}, locals={}):
+    return w.record(cls, mutable, globals, locals)
+
 T = w.T
 todo = w.todo
 U = w.U

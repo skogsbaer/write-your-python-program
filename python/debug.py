@@ -11,7 +11,7 @@ thisDir = os.path.dirname(__file__)
 file = os.path.join(thisDir, FILE)
 args = [file]
 
-sys.path.insert(0, os.path.join(thisDir, 'site-lib'))
+sys.path.insert(0, os.path.join(thisDir, 'code'))
 
 from wypp import runner # type: ignore
 runner.main(globals(), args)

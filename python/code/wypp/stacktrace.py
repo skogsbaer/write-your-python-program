@@ -23,9 +23,14 @@ def isCallWithNextFrameRemoved(frame: types.FrameType):
 
 def isWyppFrame(frame: types.FrameType):
     modName = frame.f_globals.get("__name__") or '__wypp__'
-    return '__wypp_runYourProgram' in frame.f_globals or \
-        modName == 'typeguard' or modName.startswith('typeguard.') or \
-        modName == 'wypp' or modName.startswith('wypp.')
+    fname = frame.f_code.co_filename
+    directDir = os.path.basename(os.path.dirname(fname))
+    if '__wypp_runYourProgram' in frame.f_globals:
+        return True
+    for prefix in ['wypp', 'typeguard']:
+        if modName == prefix or modName.startswith(prefix + '.') or directDir == prefix:
+            return True
+    return False
 
 def isRunpyFrame(frame: types.FrameType) -> bool:
     f = frame.f_code.co_filename
@@ -38,6 +43,7 @@ def isRunpyFrame(frame: types.FrameType) -> bool:
 def limitTraceback(frameList: list[types.FrameType],
                    extraFrames: list[inspect.FrameInfo],
                    filter: bool) -> traceback.StackSummary:
+    origFrameList = frameList
     if filter:
         # Step 1: remove all frames that appear after the first _call_with_frames_removed
         endIdx = len(frameList)

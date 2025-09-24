@@ -3,9 +3,9 @@ import unittest
 import os
 
 def runWithFlags(path, flags, onError, input=''):
-    cmd = f'python3 src/runYourProgram.py {" ".join(flags)} {path}'
+    cmd = f'python3 code/wypp/runYourProgram.py {" ".join(flags)} {path}'
     res = shell.run(cmd, input=input, captureStdout=True, stderrToStdout=True, onError=onError,
-                    env={'PYTHONPATH': f'./site-lib'})
+                    env={'PYTHONPATH': f'./code'})
     return res
 
 def run(path, input='', tycheck=True, ecode=0):
@@ -38,7 +38,7 @@ class StudentSubmissionTests(unittest.TestCase):
         flags = ['--check']
         if not tycheck:
             flags.append('--no-typechecking')
-        cmd = f"python3 src/runYourProgram.py {' '.join(flags)} --test-file {testFile} {file} {LOG_REDIR}"
+        cmd = f"python3 code/wypp/runYourProgram.py {' '.join(flags)} --test-file {testFile} {file} {LOG_REDIR}"
         res = shell.run(cmd, onError='ignore')
         self.assertEqual(ecode, res.exitcode)
 
@@ -89,6 +89,6 @@ class ReplTesterTests(unittest.TestCase):
 
     def test_replTester(self):
         d = shell.pwd()
-        cmd = f'python3 {d}/src/replTester.py {d}/integration-test-data/repl-test-lib.py --repl {d}/integration-test-data/repl-test-checks.py'
+        cmd = f'python3 {d}/code/wypp/replTester.py {d}/integration-test-data/repl-test-lib.py --repl {d}/integration-test-data/repl-test-checks.py'
         res = shell.run(cmd, captureStdout=True, onError='die', cwd='/tmp')
         self.assertIn('All 1 tests succeeded. Great!', res.stdout)

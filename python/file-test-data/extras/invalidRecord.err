@@ -1,14 +1,3 @@
-Traceback (most recent call last):
-  File "src/instrument.py", line 116, in source_to_code
-    tree = transformModule(tree, pathStr)
-  File "src/instrument.py", line 88, in transformModule
-    newStmts = [transformStmt(stmt, outerClassName=None, path=path) for stmt in body]
-  File "src/instrument.py", line 71, in transformStmt
-    newDecoratorList = [transformDecorator(e, path=path) for e in decoratorList]
-  File "src/instrument.py", line 51, in transformDecorator
-    raise errors.WyppTypeError.invalidRecordAnnotation(loc)
-  File "src/errors.py", line 103, in invalidRecordAnnotation
-    raise WyppTypeError('\n'.join(lines))
 
 WyppTypeError: ungültige Record-Definition
 
