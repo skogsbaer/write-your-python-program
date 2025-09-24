@@ -231,7 +231,7 @@ class Heap:
                 except:
                     # Just ignore it in case getattr fails
                     continue
-                if should_ignore_on_heap(field, v, self.script_path):
+                if callable(v) or should_ignore_on_heap(field, v, self.script_path):
                     continue
 
                 prim_value = PrimitiveValue(v)
