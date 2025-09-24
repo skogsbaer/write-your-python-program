@@ -221,15 +221,15 @@ async function fixPylanceConfig(
     context: vscode.ExtensionContext,
     folder?: vscode.WorkspaceFolder
 ) {
-    // disable warnings about wildcard imports, add wypp to pylance's extraPaths
+    // disable warnings about wildcard imports, add wypp to pylance's extraPaths,
+    // turn typechecking off
     const libDir = context.asAbsolutePath('python/code/');
 
-    // Use the "python" section; Pylance contributes python.analysis.*
     const cfg = vscode.workspace.getConfiguration('python', folder?.uri);
     const target = folder ? vscode.ConfigurationTarget.WorkspaceFolder
                    : vscode.ConfigurationTarget.Workspace;
 
-    // Read existing overrides (don’t clobber other rules)
+    // wildcard warnings
     const keyOverride = 'analysis.diagnosticSeverityOverrides';
     const overrides = cfg.get<Record<string, string>>(keyOverride) ?? {};
     if (overrides.reportWildcardImportFromLibrary !== 'none') {
@@ -244,6 +244,7 @@ async function fixPylanceConfig(
         );
     }
 
+    // extraPaths
     const keyExtraPaths = 'analysis.extraPaths';
     const extra = cfg.get<string[]>(keyExtraPaths) ?? [];
     if (!extra.includes(libDir)) {
@@ -253,7 +254,14 @@ async function fixPylanceConfig(
             [...extra, libDir],
             target
         );
-  }
+    }
+
+    // typechecking off
+    await cfg.update(
+        'analysis.typeCheckingMode',
+        'off',
+        target
+    );
 }
 
 class Location implements vscode.TerminalLink {
