@@ -34,13 +34,11 @@ def _normLang(tag: str) -> str:
 
 def pickLanguage[T: str](supported: list[T], default: T) -> T:
     """Return best match like 'de' or 'de_DE' from supported codes."""
-    (raw, _) = locale.getlocale(locale.LC_MESSAGES)
+    (raw, _) = locale.getlocale()
     if not raw:
-        (raw, _) = locale.getlocale()
+        raw = _langFromEnv(os.environ)
         if not raw:
-            raw = _langFromEnv(os.environ)
-            if not raw:
-                return default
+            return default
     want = _normLang(raw)
     # exact match first
     for s in supported:
