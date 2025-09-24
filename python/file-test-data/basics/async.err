@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/async.py", line 10, in <module>
+    asyncio.run(main())
+  File "runners.py", line ?, in run
+    return runner.run(main)
+  File "runners.py", line ?, in run
+    signal.signal(signal.SIGINT, signal.default_int_handler)
+  File "base_events.py", line ?, in run_until_complete
+    return future.result()
+  File "file-test-data/basics/async.py", line 7, in main
+    x = await foo("blub")
+
+WyppTypeError: "blub"
+
+Der Aufruf der Funktion `foo` erwartet Wert vom Typ `int` als erstes Argument.
+Aber der übergebene Wert hat Typ `str`.
+
+## Datei file-test-data/basics/async.py
+## Fehlerhafter Aufruf in Zeile 7:
+
+    x = await foo([0;31m[1m"blub"[0;0m)
+
+## Typ deklariert in Zeile 3:
+
+async def foo([0;31m[1mi: int[0;0m):

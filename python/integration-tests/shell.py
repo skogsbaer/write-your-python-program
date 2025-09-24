@@ -407,6 +407,18 @@ def registerAtExit(action, mode):
             debug('Not running exit action')
     atexit.register(f)
 
+def safeRm(f):
+    try:
+        rm(f)
+    except Exception:
+        pass
+
+def safeRmdir(f, b):
+    try:
+        rmdir(f, b)
+    except Exception:
+        pass
+
 # deleteAtExit is one of the following:
 # - True: the file is deleted unconditionally
 # - 'ifSuccess': the file is deleted if the program exists with code 0
@@ -414,13 +426,13 @@ def registerAtExit(action, mode):
 def mkTempFile(suffix='', prefix='', dir=None, deleteAtExit=True):
     f = tempfile.mktemp(suffix, prefix, dir)
     if deleteAtExit:
-        registerAtExit(lambda: rm(f), deleteAtExit)
+        registerAtExit(lambda: safeRm(f), deleteAtExit)
     return f
 
 def mkTempDir(suffix='', prefix='tmp', dir=None, deleteAtExit=True):
     d = tempfile.mkdtemp(suffix, prefix, dir)
     if deleteAtExit:
-        registerAtExit(lambda: rmdir(d, True), deleteAtExit)
+        registerAtExit(lambda: safeRmdir(d, True), deleteAtExit)
     return d
 
 class tempDir:

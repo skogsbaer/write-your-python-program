@@ -1,0 +1,2 @@
+* Code duplication
+- wrappedclass.py, protocol.py and typedfunction.py

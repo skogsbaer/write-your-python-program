@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "test-data/testForwardRef2.py", line 10, in <module>
-    t = Test(FooX())
-WyppNameError: name 'Foo' is not defined.
-Type annotation of function 'Test.__init__' could not be resolved.
-declared at: test-data/testForwardRef2.py:2

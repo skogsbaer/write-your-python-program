@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/optionalAttr2.py", line 9, in <module>
+    c = C(1)
+
+WyppTypeError: argument count mismatch
+
+Constructor of record `C` takes at least 2 arguments.
+Given: 1 argument
+
+## File file-test-data/basics/optionalAttr2.py
+## Call in line 9:
+
+c = [0;31m[1mC(1)[0;0m

@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/iterator.py", line 6, in <module>
+    g = my_generator()
+  File "file-test-data/basics/iterator.py", line 4, in my_generator
+    return 1
+
+WyppTypeError: 1
+
+Expecting return value of type `Iterator[int]` when calling function `my_generator`.
+But the call returns a value of type `int`.
+
+## File file-test-data/basics/iterator.py
+## Result type declared in line 3:
+
+def my_generator() -> [0;31m[1mIterator[int][0;0m:
+
+## Problematic return in line 4:
+
+    return 1
+
+## Call in line 6 causes the problematic return:
+
+g = [0;31m[1mmy_generator()[0;0m

@@ -1,0 +1,4 @@
+  File "testTraceback2.py", line ?
+    lst = [1,2,3
+          ^
+SyntaxError: '[' was never closed

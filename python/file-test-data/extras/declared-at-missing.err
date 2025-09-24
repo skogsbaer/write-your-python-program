@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/declared-at-missing.py", line 22, in <module>
+    semester1_2020 = Semester('AKI', '1. Semester 2020/21', (prog1, ))
+
+WyppTypeError: (Course(name='Programmierung 1', teacher='Wehr', students=()),)
+
+Der Aufruf des Konstruktors des Records `Semester` erwartet Wert vom Typ `tuple[CourseM, ...]` als drittes Argument.
+
+## Datei file-test-data/extras/declared-at-missing.py
+## Fehlerhafter Aufruf in Zeile 22:
+
+semester1_2020 = [0;31m[1mSemester('AKI', '1. Semester 2020/21', (prog1, ))[0;0m
+
+## Typ deklariert in Zeile 19:
+
+    [0;31m[1mcourses: tuple[CourseM, ...][0;0m

@@ -1,9 +1,0 @@
-Traceback (most recent call last):
-  File "test-data/testWrongNumOfArguments.py", line 4, in <module>
-    foo(1)
-WyppTypeError: missing a required argument: 'y'
-
-context: foo(x: int, y: float) -> float
-declared at: test-data/testWrongNumOfArguments.py:1
-caused by: test-data/testWrongNumOfArguments.py:4
-  | foo(1)

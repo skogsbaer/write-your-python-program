@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/testGetSource.py", line 11, in <module>
+    Art = Literal('klein','mittag')  # <= problem is here
+
+WyppTypeError: ungültiger Typ `Literal('klein', 'mittag')`
+
+Wolltest du `Literal['klein', 'mittag']` schreiben?
+
+## Datei file-test-data/extras/testGetSource.py
+## Typ deklariert in Zeile 11:
+
+Art = [0;31m[1mLiteral('klein','mittag')[0;0m  # <= problem is here

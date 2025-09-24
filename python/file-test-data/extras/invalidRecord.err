@@ -1,0 +1,7 @@
+
+WyppTypeError: ungültige Record-Definition
+
+## Datei file-test-data/extras/invalidRecord.py
+## Zeile 1:
+
+@[0;31m[1m[0;0mrecord(mut=True)

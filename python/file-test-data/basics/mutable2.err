@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/mutable2.py", line 8, in <module>
+    p = Point(1, '2')
+
+WyppTypeError: '2'
+
+Der Aufruf des Konstruktors des Records `Point` erwartet Wert vom Typ `int` als zweites Argument.
+Aber der übergebene Wert hat Typ `str`.
+
+## Datei file-test-data/basics/mutable2.py
+## Fehlerhafter Aufruf in Zeile 8:
+
+p = [0;31m[1mPoint(1, '2')[0;0m
+
+## Typ deklariert in Zeile 6:
+
+    [0;31m[1my: int[0;0m

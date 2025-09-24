@@ -1,2 +1,0 @@
-FEHLER in test-data/testFunEq.py:9: Erwartet wird <function bar at 0x00>, aber das Ergebnis ist <function foo at 0x00>
-1 Test, 1 Fehler 🙁

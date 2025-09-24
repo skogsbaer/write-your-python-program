@@ -1,11 +1,13 @@
 #!/bin/bash
 
-PY=python3.13 
+if [ -z "$PY" ]; then
+    PY=python3.13
+fi
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 OPTS="--quiet"
 # OPTS="--verbose"
 
-PYTHONPATH="$SCRIPT_DIR"/site-lib:"$PYTHONPATH" $PY "$SCRIPT_DIR"/src/runYourProgram.py \
+PYTHONPATH="$SCRIPT_DIR"/code:"$PYTHONPATH" $PY "$SCRIPT_DIR"/code/wypp/runYourProgram.py \
     --no-clear $OPTS "$@"
 exit $?

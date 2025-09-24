@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/testHintParentheses3.py", line 9, in <module>
+    foo()
+
+WyppTypeError: ungültiger Typ `Union(list, str)`
+
+Wolltest du `Union[list, str]` schreiben?
+
+## Datei file-test-data/extras/testHintParentheses3.py
+## Typ deklariert in Zeile 6:
+
+def foo() -> [0;31m[1mUnion(list, str)[0;0m:
