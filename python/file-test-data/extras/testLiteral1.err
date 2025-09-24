@@ -1,10 +1,6 @@
 Traceback (most recent call last):
   File "file-test-data/extras/testLiteral1.py", line 3, in <module>
     T = Literal('a', 'b')
-  File "code/wypp/writeYourProgram.py", line 92, in _invalidCall
-    raise errors.WyppTypeError.invalidType(tyStr, loc)
-  File "code/wypp/errors.py", line 79, in invalidType
-    raise WyppTypeError('\n'.join(lines))
 
 WyppTypeError: ungültiger Typ `Literal('a', 'b')`
 

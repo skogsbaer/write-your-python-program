@@ -7,6 +7,8 @@ import records
 import stacktrace
 import renderTy
 import location
+import paths
+import utils
 
 _DEBUG = False
 def _debug(s):
@@ -89,9 +91,7 @@ def _invalidCall(self, *args, **kwds):
     loc = None if caller is None else location.Loc.fromFrameInfo(caller)
     argStr = ', '.join([formatArg(x) for x in args])
     tyStr = f'{name}({argStr})'
-    raise errors.WyppTypeError.invalidType(tyStr, loc)
-    #argStr = ', '.join([formatArg(untypy.util.typehints.qualname(x)) for x in args])
-    #raise untypy.error.WyppTypeError(f"Cannot call {name} like a function. Did you mean {name}[{argStr}]?")
+    raise utils._call_with_frames_removed(errors.WyppTypeError.invalidType, tyStr, loc)
 
 # This patch is needed to provide better error messages if a student passes type arguments
 # with paranthesis instead of square brackets
@@ -196,7 +196,8 @@ def checkGeneric(actual, expected, *, structuralObjEq=True, floatEqWithDelta=Tru
         stack = inspect.stack()
         frame = stack[2] if len(stack) > 2 else None
         if frame:
-            caller = f"{frame.filename}:{frame.lineno}: "
+            filename = paths.canonicalizePath(frame.filename)
+            caller = f"Datei {filename}, Zeile {frame.lineno}: "
         else:
             caller = ""
         def fmt(x):

@@ -43,7 +43,6 @@ def isRunpyFrame(frame: types.FrameType) -> bool:
 def limitTraceback(frameList: list[types.FrameType],
                    extraFrames: list[inspect.FrameInfo],
                    filter: bool) -> traceback.StackSummary:
-    origFrameList = frameList
     if filter:
         # Step 1: remove all frames that appear after the first _call_with_frames_removed
         endIdx = len(frameList)
