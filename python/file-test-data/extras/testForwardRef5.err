@@ -1,12 +1,16 @@
 Traceback (most recent call last):
-  File "testForwardRef5.py", line 23, in <module>
-    for car in garage.cars:
-WyppTypeError: list is not a list[Car]
-given:    [Car(color='red'), 'Not A Car']
-expected: value of type list[Car]
+  File "file-test-data/extras/testForwardRef5.py", line 22, in <module>
+    garage = Garage(cars=[Car(color='red'), "Not A Car"])
 
-context: record constructor Garage(cars: list[Car]) -> Self
-                                         ^^^^^^^^^
-declared at: test-data/testForwardRef5.py:10
-caused by: test-data/testForwardRef5.py:23
-  | for car in garage.cars:
+WyppTypeError: [Car(color='red'), 'Not A Car']
+
+Der Aufruf des Konstruktors des Records `Garage` erwartet Wert vom Typ `list[Car]` als Argument `cars`.
+
+## Datei file-test-data/extras/testForwardRef5.py
+## Fehlerhafter Aufruf in Zeile 22:
+
+garage = Garage(cars=[0;31m[1m[Car(color='red'), "Not A Car"][0;0m)
+
+## Typ deklariert in Zeile 11:
+
+    [0;31m[1mcars: list['Car'][0;0m

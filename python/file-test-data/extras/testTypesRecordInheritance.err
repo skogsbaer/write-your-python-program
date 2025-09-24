@@ -1,12 +1,17 @@
 Traceback (most recent call last):
-  File "testTypesRecordInheritance.py", line 18, in <module>
+  File "file-test-data/extras/testTypesRecordInheritance.py", line 18, in <module>
     Point3D(1,2, "foo")
-WyppTypeError: got value of wrong type
-given:    'foo'
-expected: value of type int
 
-context: record constructor Point3D(x: int, y: int, z: int) -> Self
-                                                       ^^^
-declared at: test-data/testTypesRecordInheritance.py:10
-caused by: test-data/testTypesRecordInheritance.py:18
-  | Point3D(1,2, "foo")
+WyppTypeError: "foo"
+
+Der Aufruf des Konstruktors des Records `Point3D` erwartet Wert vom Typ `int` als drittes Argument.
+Aber der übergebene Wert hat Typ `str`.
+
+## Datei file-test-data/extras/testTypesRecordInheritance.py
+## Fehlerhafter Aufruf in Zeile 18:
+
+Point3D(1,2, "foo")
+
+## Typ deklariert in Zeile 11:
+
+    [0;31m[1mz: int[0;0m

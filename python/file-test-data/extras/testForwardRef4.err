@@ -1,6 +1,10 @@
 Traceback (most recent call last):
-  File "testForwardRef4.py", line 11, in <module>
+  File "file-test-data/extras/testForwardRef4.py", line 11, in <module>
     t = Test(Foo())
-WyppNameError: name 'FooX' is not defined.
-Type annotation inside of class 'Test' could not be resolved.
-declared at: test-data/testForwardRef4.py:4
+
+WyppTypeError: ungültiger Typ `FooX`
+
+## Datei file-test-data/extras/testForwardRef4.py
+## Typ deklariert in Zeile 5:
+
+    [0;31m[1mfoo: 'FooX'[0;0m

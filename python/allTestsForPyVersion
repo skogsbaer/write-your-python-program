@@ -5,7 +5,7 @@ set -u
 
 cd $(dirname $0)
 
-unit_test_path=src:tests:deps
+unit_test_path=site-lib:src:tests:deps
 
 function prepare_integration_tests()
 {

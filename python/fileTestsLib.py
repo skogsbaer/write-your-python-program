@@ -202,6 +202,7 @@ def fixOutput(filePath: str):
     """
     content = readFile(filePath)
     content = re.sub(r'at 0x[0-9a-f][0-9a-f]*>', 'at 0x00>', content, flags=re.MULTILINE)  # Remove memory addresses
+    content = re.sub(r'  File "/[^"]*/([^"/]+)", line \d+', '  File "\\1", line ?', content, flags=re.MULTILINE)  # Remove absolute file paths from traceback
     with open(filePath, 'w') as f:
         f.write(content)
 
@@ -296,8 +297,6 @@ def _check(testFile: str,
           checkOutputs: bool,
           ctx: TestContext,
           what: str) -> TestStatus:
-    if shouldSkip(testFile, ctx, minVersion):
-        return 'skipped'
     status1 = _checkForLang(testFile, exitCode, typecheck, args, pythonPath, checkOutputs, defaultLang, ctx, what)
     baseFile = os.path.splitext(testFile)[0]
     enOut = getVersionedFile(f"{baseFile}.out", typcheck=typecheck, lang='en')
@@ -374,6 +373,8 @@ def check(testFile: str,
           minVersion: Optional[tuple[int, int]] = None,
           checkOutputs: bool = True,
           ctx: TestContext = globalCtx,):
+    if shouldSkip(testFile, ctx, minVersion):
+        return 'skipped'
     cfg = readWyppTestConfig(testFile)
     args = cfg.args
     pythonPath = []
@@ -387,9 +388,10 @@ def check(testFile: str,
                       pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,
                       ctx=ctx, what=' (no typecheck)')
     else:
+        what = ' (no typecheck)' if not cfg.typecheck else ''
         checkNoConfig(testFile, exitCode, typecheck=cfg.typecheck, args=args,
                       pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,
-                      ctx=ctx, what=' (no typecheck)')
+                      ctx=ctx, what=what)
 
 def checkBasic(testFile: str, ctx: TestContext = globalCtx):
     check(testFile, checkOutputs=False, ctx=ctx)

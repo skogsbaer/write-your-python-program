@@ -12,7 +12,8 @@ from myLogging import *
 from runnerCommon import *
 
 FILES_TO_INSTALL = ['writeYourProgram.py', 'drawingLib.py', '__init__.py']
-TYPEGUARD_DIR = os.path.join(LIB_DIR, "..", "deps", "typeguard")
+DEPS_DIR = os.path.join(LIB_DIR, "..", "deps")
+TYPEGUARD_DIR = os.path.join(DEPS_DIR, "typeguard")
 TYPEGUARD_MODULE_NAME = 'typeguard'
 SITELIB_DIR = os.path.join(LIB_DIR, "..", "site-lib")
 
@@ -143,7 +144,8 @@ def installLib(mode):
     targetDir = os.getenv('WYPP_INSTALL_DIR', site.USER_SITE)
     try:
         allEq1 = installFromDir(LIB_DIR, targetDir, INSTALLED_MODULE_NAME, FILES_TO_INSTALL)
-        allEq2 = installFromDir(TYPEGUARD_DIR, targetDir, TYPEGUARD_MODULE_NAME)
+        allEq2 = True # installFromDir(TYPEGUARD_DIR, targetDir, TYPEGUARD_MODULE_NAME)
+        #allEq3 = installFromDir(DEPS_DIR, targetDir, '.', 'typing_extensions.py')
         if allEq1 and allEq2:
             verbose(f'WYPP library in {targetDir} already up to date')
             if mode == InstallMode.installOnly:
