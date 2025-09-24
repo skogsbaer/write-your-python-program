@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from constants import *
 from myLogging import *
 from exceptionHandler import handleCurrentException
+import i18n
 
 def prepareInteractive(reset=True):
     print()
@@ -41,7 +42,7 @@ def enterInteractive(userDefs: dict, checkTypes: bool, loadingFailed: bool):
         globals()[k] = v
     print()
     if loadingFailed:
-        print('NOTE: running the code failed, some definitions might not be available!')
+        print(i18n.tr('NOTE: running the code failed, some definitions might not be available in the interactive window!'))
         print()
     if checkTypes:
         consoleClass = TypecheckedInteractiveConsole

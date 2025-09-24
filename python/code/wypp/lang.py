@@ -4,7 +4,6 @@ from _collections_abc import MutableMapping
 
 def _langFromEnv(env: MutableMapping) -> str | None:
     # 1) GNU LANGUAGE: colon-separated fallbacks (e.g., "de:en_US:en")
-    os.getenv
     lng = env.get("LANGUAGE")
     if lng:
         for part in lng.split(":"):
@@ -35,9 +34,11 @@ def _normLang(tag: str) -> str:
 
 def pickLanguage[T: str](supported: list[T], default: T) -> T:
     """Return best match like 'de' or 'de_DE' from supported codes."""
-    raw = _langFromEnv(os.environ)
+    (raw, _) = locale.getlocale()
     if not raw:
-        return default
+        raw = _langFromEnv(os.environ)
+        if not raw:
+            return default
     want = _normLang(raw)
     # exact match first
     for s in supported:

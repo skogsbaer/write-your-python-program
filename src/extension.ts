@@ -221,15 +221,17 @@ async function fixPylanceConfig(
     context: vscode.ExtensionContext,
     folder?: vscode.WorkspaceFolder
 ) {
-    // disable warnings about wildcard imports, add wypp to pylance's extraPaths
+    // disable warnings about wildcard imports, set pylance's extraPaths to wypp
+    // turn typechecking off
+    // This is a quite distructive change, so we do it on first hit of the run button
+    // not on-load of the plugin
     const libDir = context.asAbsolutePath('python/code/');
 
-    // Use the "python" section; Pylance contributes python.analysis.*
     const cfg = vscode.workspace.getConfiguration('python', folder?.uri);
     const target = folder ? vscode.ConfigurationTarget.WorkspaceFolder
                    : vscode.ConfigurationTarget.Workspace;
 
-    // Read existing overrides (don’t clobber other rules)
+    // wildcard warnings
     const keyOverride = 'analysis.diagnosticSeverityOverrides';
     const overrides = cfg.get<Record<string, string>>(keyOverride) ?? {};
     if (overrides.reportWildcardImportFromLibrary !== 'none') {
@@ -244,16 +246,27 @@ async function fixPylanceConfig(
         );
     }
 
+    // extraPaths
     const keyExtraPaths = 'analysis.extraPaths';
     const extra = cfg.get<string[]>(keyExtraPaths) ?? [];
-    if (!extra.includes(libDir)) {
-        const updated = [...extra, libDir];
+    if (extra.length !== 1 || extra[0] !== libDir) {
         await cfg.update(
             keyExtraPaths,
-            [...extra, libDir],
+            [libDir],
             target
         );
-  }
+    }
+
+    // typechecking off
+    const keyMode = 'analysis.typeCheckingMode';
+    const mode = cfg.get<string>(keyMode) ?? '';
+    if (mode !== 'off') {
+        await cfg.update(
+            'analysis.typeCheckingMode',
+            'off',
+            target
+        );
+    }
 }
 
 class Location implements vscode.TerminalLink {
@@ -360,7 +373,6 @@ export async function activate(context: vscode.ExtensionContext) {
     const outChannel = vscode.window.createOutputChannel("Write Your Python Program");
     disposables.push(outChannel);
 
-    await fixPylanceConfig(context);
     const terminals: { [name: string]: TerminalContext } = {};
 
     installButton("Write Your Python Program", undefined);
@@ -374,6 +386,7 @@ export async function activate(context: vscode.ExtensionContext) {
         "run",
         "▶ RUN",
         async (cmdId) => {
+            await fixPylanceConfig(context);
             const file =
                 (vscode.window.activeTextEditor) ?
                 vscode.window.activeTextEditor.document.fileName :
