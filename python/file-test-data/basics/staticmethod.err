@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: "2"
 
-Der Aufruf der Methode `method` aus Klasse `C` erwartet Wert vom Typ `int` als erstes Argument.
-Aber der übergebene Wert hat Typ `str`.
+Der Aufruf der Methode `method` der Klasse `C` erwartet einen Wert vom Typ `int` als erstes Argument.
+Aber der übergebene Wert hat den Typ `str`.
 
 ## Datei file-test-data/basics/staticmethod.py
 ## Fehlerhafter Aufruf in Zeile 6:

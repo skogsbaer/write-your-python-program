@@ -5,7 +5,7 @@ Traceback (most recent call last):
 WyppTypeError: 'foo'
 
 Default-Wert des Attributs `y` des Records `C` muss vom Typ `int` sein.
-Aber der Default-Wert hat Typ `str`.
+Aber der Default-Wert hat den Typ `str`.
 
 ## Datei file-test-data/basics/optionalAttr.py
 ## Parameter deklariert in Zeile 6:

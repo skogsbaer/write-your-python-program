@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: <__wypp__.A object at 0x00>
 
-Der Aufruf der Methode `foo` aus Klasse `A` erwartet Wert vom Typ `B` als erstes Argument.
-Aber der übergebene Wert hat Typ `A`.
+Der Aufruf der Methode `foo` der Klasse `A` erwartet einen Wert vom Typ `B` als erstes Argument.
+Aber der übergebene Wert hat den Typ `A`.
 
 ## Datei file-test-data/basics/forwardRefs.py
 ## Fehlerhafter Aufruf in Zeile 12:

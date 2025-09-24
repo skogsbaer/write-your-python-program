@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: "foo"
 
-Der Aufruf des Konstruktors des Records `Point3D` erwartet Wert vom Typ `int` als drittes Argument.
-Aber der übergebene Wert hat Typ `str`.
+Der Aufruf des Konstruktors des Records `Point3D` erwartet einen Wert vom Typ `int` als drittes Argument.
+Aber der übergebene Wert hat den Typ `str`.
 
 ## Datei file-test-data/extras/testTypesRecordInheritance.py
 ## Fehlerhafter Aufruf in Zeile 18:

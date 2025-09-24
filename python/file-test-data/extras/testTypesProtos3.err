@@ -6,8 +6,8 @@ Traceback (most recent call last):
 
 WyppTypeError: <Dog>
 
-Der Aufruf der Methode `makeSound` aus Klasse `Dog` erwartet Wert vom Typ `int` als erstes Argument.
-Aber der übergebene Wert hat Typ `Dog`.
+Der Aufruf der Methode `makeSound` der Klasse `Dog` erwartet einen Wert vom Typ `int` als erstes Argument.
+Aber der übergebene Wert hat den Typ `Dog`.
 
 ## Datei file-test-data/extras/testTypesProtos3.py
 ## Fehlerhafter Aufruf in Zeile 19:

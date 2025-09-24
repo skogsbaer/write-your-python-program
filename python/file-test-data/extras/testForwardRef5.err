@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: [Car(color='red'), 'Not A Car']
 
-Der Aufruf des Konstruktors des Records `Garage` erwartet Wert vom Typ `list[Car]` als Argument `cars`.
+Der Aufruf des Konstruktors des Records `Garage` erwartet einen Wert vom Typ `list[Car]` als Argument `cars`.
 
 ## Datei file-test-data/extras/testForwardRef5.py
 ## Fehlerhafter Aufruf in Zeile 22:

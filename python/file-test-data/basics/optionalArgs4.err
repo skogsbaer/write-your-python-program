@@ -6,8 +6,8 @@ Traceback (most recent call last):
 
 WyppTypeError: 2
 
-Default-Wert des Parameters `s` der Methode `__init__` aus Klasse `C` muss vom Typ `str` sein.
-Aber der Default-Wert hat Typ `int`.
+Default-Wert des Parameters `s` der Methode `__init__` der Klasse `C` muss vom Typ `str` sein.
+Aber der Default-Wert hat den Typ `int`.
 
 ## Datei file-test-data/basics/optionalArgs4.py
 ## Parameter deklariert in Zeile 2:

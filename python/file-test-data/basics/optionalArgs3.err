@@ -2,7 +2,7 @@ Traceback (most recent call last):
   File "file-test-data/basics/optionalArgs3.py", line 4, in <module>
     foo(1, 2, 3, 4)
 
-WyppTypeError: Anzahl der Argument passt nicht
+WyppTypeError: Anzahl der Argumente stimmt nicht
 
 Funktion `foo` akzeptiert höchstens 3 Argumente.
 Gegeben: 4 Argumente

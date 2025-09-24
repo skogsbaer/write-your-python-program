@@ -12,8 +12,8 @@ Traceback (most recent call last):
 
 WyppTypeError: File('notes.txt')
 
-Der Aufruf der Methode `visitFile` aus Klasse `TotalSizeVisitor` erwartet Wert vom Typ `str` als erstes Argument.
-Aber der übergebene Wert hat Typ `File`.
+Der Aufruf der Methode `visitFile` der Klasse `TotalSizeVisitor` erwartet einen Wert vom Typ `str` als erstes Argument.
+Aber der übergebene Wert hat den Typ `File`.
 
 ## Datei file-test-data/extras/testTypesProtos7.py
 ## Fehlerhafter Aufruf in Zeile 47:

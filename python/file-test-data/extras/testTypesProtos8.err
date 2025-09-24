@@ -6,8 +6,8 @@ Traceback (most recent call last):
 
 WyppTypeError: "foo"
 
-Der Aufruf der Methode `foo` aus Klasse `Sub` erwartet Wert vom Typ `float` als zweites Argument.
-Aber der übergebene Wert hat Typ `str`.
+Der Aufruf der Methode `foo` der Klasse `Sub` erwartet einen Wert vom Typ `float` als zweites Argument.
+Aber der übergebene Wert hat den Typ `str`.
 
 ## Datei file-test-data/extras/testTypesProtos8.py
 ## Fehlerhafter Aufruf in Zeile 10:

@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: 42
 
-Der Aufruf der Funktion `mkGamePoints` erwartet Wert vom Typ `Callable[[int, int], bool]` als erstes Argument.
-Aber der übergebene Wert hat Typ `int`.
+Der Aufruf der Funktion `mkGamePoints` erwartet einen Wert vom Typ `Callable[[int, int], bool]` als erstes Argument.
+Aber der übergebene Wert hat den Typ `int`.
 
 ## Datei file-test-data/extras/testTypesHigherOrderFuns3.py
 ## Fehlerhafter Aufruf in Zeile 38:

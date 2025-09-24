@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: ['foo']
 
-Der Aufruf der Funktion `foo` erwartet Wert vom Typ `list[T]` als erstes Argument.
+Der Aufruf der Funktion `foo` erwartet einen Wert vom Typ `list[T]` als erstes Argument.
 
 ## Datei file-test-data/basics/typeAlias2.py
 ## Fehlerhafter Aufruf in Zeile 7:

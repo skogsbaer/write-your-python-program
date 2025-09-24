@@ -49,15 +49,15 @@ def tr(key: str, **kws) -> str:
 DE = {
     'Expecting no return value when calling function `{fun}`.':
         'Kein Rückgabewert erwartet bei Aufruf der Funktion `{fun}`.',
-    'Expecting no return value when calling method `{method}` of class `{cls}.':
-        'Kein Rückgabewert erwartet bei Aufruf der Methode `{method}` aus Klasse `{cls}`.',
+    'Expecting no return value when calling method `{method}` of class `{cls}`.':
+        'Kein Rückgabewert erwartet bei Aufruf der Methode `{method}` der Klasse `{cls}`.',
     'Expecting no return value when calling constructor of record `{cls}`.':
         'Kein Rückgabewert erwartet bei Aufruf des Konstruktors des Records `{cls}`.',
 
     'Expecting return value of type `{ty}` when calling function `{fun}`.':
         'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf der Funktion `{fun}`.',
     'Expecting return value of type `{ty}` when calling method `{method}` of class `{cls}`.':
-        'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf von Methode `{method}` aus Klasse `{cls}`.',
+        'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf der Methode `{method}` der Klasse `{cls}`.',
     'Expecting return value of type `{ty}` when calling constructor of record `{cls}`.':
         'Rückgabewert vom Typ `{ty}` erwartet bei Aufruf des Konstruktors des Records `{cls}`.',
 
@@ -71,14 +71,14 @@ DE = {
         'Aufruf in Zeile {line} führt dazu, dass die Funktion keinen Wert zurückgibt:',
 
     'The call of function `{fun}` expects value of type `{ty}` as {arg}.':
-        'Der Aufruf der Funktion `{fun}` erwartet Wert vom Typ `{ty}` als {arg}.',
+        'Der Aufruf der Funktion `{fun}` erwartet einen Wert vom Typ `{ty}` als {arg}.',
     'The call of method `{method}` of class `{cls}` expects value of type `{ty}` as {arg}.':
-        'Der Aufruf der Methode `{method}` aus Klasse `{cls}` erwartet Wert vom Typ `{ty}` als {arg}.',
+        'Der Aufruf der Methode `{method}` der Klasse `{cls}` erwartet einen Wert vom Typ `{ty}` als {arg}.',
     'The call of the constructor of record `{cls}` expects value of type `{ty}` as {arg}.':
-        'Der Aufruf des Konstruktors des Records `{cls}` erwartet Wert vom Typ `{ty}` als {arg}.',
+        'Der Aufruf des Konstruktors des Records `{cls}` erwartet einen Wert vom Typ `{ty}` als {arg}.',
 
-    'But the value given has type `{ty}`.': 'Aber der übergebene Wert hat Typ `{ty}`.',
-    'But the default value has type `{ty}`.': 'Aber der Default-Wert hat Typ `{ty}`.',
+    'But the value given has type `{ty}`.': 'Aber der übergebene Wert hat den Typ `{ty}`.',
+    'But the default value has type `{ty}`.': 'Aber der Default-Wert hat den Typ `{ty}`.',
 
     'File': 'Datei',
     'Line': 'Zeile',
@@ -93,22 +93,22 @@ DE = {
     'Parameter `{param}` of function `{fun}` requires a type annotation.':
         'Parameter `{param}` der Funktion `{fun}` benötigt eine Typannotation.',
     'Parameter `{param}` of method `{method}` from class `{cls}` requires a type annotation.':
-        'Parameter `{param}` der Methode `{method}` aus Klasse `{cls}` benötigt eine Typannotation.',
+        'Parameter `{param}` der Methode `{method}` der Klasse `{cls}` benötigt eine Typannotation.',
     'Parameter `{param}` of constructor of record `{cls}` requires a type annotation.':
         'Parameter `{param}` des Konstruktors des Records `{cls}` benötigt eine Typannotation.',
 
-    'Attribute `{name}` of record `{record}` required a type annotation.':
+    'Attribute `{name}` of record `{record}` requires a type annotation.':
         'Attribut `{name}` des Records `{record}` benötigt eine Typannotation.',
 
     'invalid type `{ty}`':
         'ungültiger Typ `{ty}`',
     'Cannot set attribute to value of type `{ty}`.':
-        'Das Attribute kann nicht auf einen Wert vom Typ `{ty}` gesetzt werden.',
+        'Das Attribut kann nicht auf einen Wert vom Typ `{ty}` gesetzt werden.',
     'Problematic assignment in line': 'Fehlerhafte Zuweisung in Zeile',
-    'Attribute `{attrName}` of record `{recordName}` declared with type `{ty}.`':
+    'Attribute `{attrName}` of record `{recordName}` declared with type `{ty}`.':
         'Attribut `{attrName}` des Records `{recordName}` deklariert als Typ `{ty}`.',
 
-    'argument count mismatch': 'Anzahl der Argument passt nicht',
+    'argument count mismatch': 'Anzahl der Argumente stimmt nicht',
     'Call in line': 'Aufruf in Zeile',
     'Function `{fun}` takes ': 'Funktion `{fun}` benötigt ',
     'Function `{fun}` takes at least ': 'Funktion `{fun}` benötigt mindestens ',
@@ -124,12 +124,12 @@ DE = {
     'Default value for parameter `{paramName}` of function `{fun}` must have type `{ty}`.':
         'Default-Wert des Parameters `{paramName}` der Funktion `{fun}` muss vom Typ `{ty}` sein.',
     'Default value for parameter `{paramName}` of method `{method}` in class `{cls}` must have type `{ty}`.':
-        'Default-Wert des Parameters `{paramName}` der Methode `{method}` aus Klasse `{cls}` muss vom Typ `{ty}` sein.',
+        'Default-Wert des Parameters `{paramName}` der Methode `{method}` der Klasse `{cls}` muss vom Typ `{ty}` sein.',
     'Default value for attribute `{paramName}` of record `{cls}` must have type `{ty}`.':
         'Default-Wert des Attributs `{paramName}` des Records `{cls}` muss vom Typ `{ty}` sein.',
 
     'Unknown attribute {attrName} for record {clsName}':
-        'Attribut {attrName} ist nicht bekannt für Record {clsName}',
+        'Attribut {attrName} ist nicht bekannt für den Record {clsName}',
     'Did you mean `{ty}`?': 'Wolltest du `{ty}` schreiben?',
 
     'unknown keyword argument': 'unbekanntes Schlüsselwort-Argument',
@@ -152,12 +152,11 @@ DE = {
     'The impossible happened!': 'Das Unmögliche ist passiert!',
     'Stop of execution': 'Abbruch der Ausführung',
     '1 successful test': '1 erfolgreicher Test',
-    'all succesful': 'alle erfolgreich',
-    'and stop of execution': 'und Abbruch der Ausführung',
     'all successful': 'alle erfolgreich',
+    'and stop of execution': 'und Abbruch der Ausführung',
 
     'NOTE: running the code failed, some definitions might not be available in the interactive window!':
-        'ACHTUNG: der Code enthält Fehler, einige Definition sind möglicherweise im interaktiven Fenster nicht verfügbar!',
+        'ACHTUNG: Das Ausführen des Codes ist fehlgeschlagen; einige Definitionen sind möglicherweise im interaktiven Fenster nicht verfügbar!',
     '=== WELCOME to ': '=== WILLKOMMEN bei '
 }
 
@@ -167,7 +166,7 @@ def expectingNoReturn(cn: location.CallableName) -> str:
             return tr('Expecting no return value when calling function `{fun}`.',
                     fun=cn.name)
         case location.ClassMember('method', cls):
-            return tr('Expecting no return value when calling method `{method}` of class `{cls}.',
+            return tr('Expecting no return value when calling method `{method}` of class `{cls}`.',
                     method=cn.name, cls=cls)
         case location.ClassMember('recordConstructor', cls):
             return tr('Expecting no return value when calling constructor of record `{cls}`.',
@@ -339,7 +338,7 @@ def expectingTypeAnnotation(cn: location.CallableName, param: str) -> str:
     raise ValueError(f'Unexpected: {cn}')
 
 def noTypeAnnotationForAttribute(attrName: str, recordName: str) -> str:
-    return tr('Attribute `{name}` of record `{record}` required a type annotation.',
+    return tr('Attribute `{name}` of record `{record}` requires a type annotation.',
               name=attrName, record=recordName)
 
 def invalidTy(ty: Any) -> str:
@@ -349,7 +348,7 @@ def didYouMean(ty: str) -> str:
     return tr('Did you mean `{ty}`?', ty=ty)
 
 def recordAttrDeclTy(recordName: str, attrName: str, ty: Any) -> str:
-    return tr('Attribute `{attrName}` of record `{recordName}` declared with type `{ty}.`',
+    return tr('Attribute `{attrName}` of record `{recordName}` declared with type `{ty}`.',
               recordName=recordName, attrName=attrName, ty=ty)
 
 def unknownKeywordArgument(cn: location.CallableName, name: str) -> str:

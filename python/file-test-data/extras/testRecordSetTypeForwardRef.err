@@ -7,7 +7,7 @@ Traceback (most recent call last):
 WyppTypeError: "hello"
 
 Attribut `x` des Records `Record` deklariert als Typ `A`.
-Das Attribute kann nicht auf einen Wert vom Typ `str` gesetzt werden.
+Das Attribut kann nicht auf einen Wert vom Typ `str` gesetzt werden.
 
 ## Datei file-test-data/extras/testRecordSetTypeForwardRef.py
 ## Fehlerhafte Zuweisung in Zeile 13:

@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: [1, 2, '3']
 
-Der Aufruf der Funktion `foo` erwartet Wert vom Typ `list[int]` als erstes Argument.
+Der Aufruf der Funktion `foo` erwartet einen Wert vom Typ `list[int]` als erstes Argument.
 
 ## Datei file-test-data/basics/listArg.py
 ## Fehlerhafter Aufruf in Zeile 4:

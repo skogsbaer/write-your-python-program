@@ -2,7 +2,7 @@ Traceback (most recent call last):
   File "file-test-data/basics/tooFewArgs.py", line 4, in <module>
     foo(1)
 
-WyppTypeError: Anzahl der Argument passt nicht
+WyppTypeError: Anzahl der Argumente stimmt nicht
 
 Funktion `foo` benötigt 2 Argumente.
 Gegeben: 1 Argument

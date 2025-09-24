@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: NotIterable
 
-Der Aufruf der Funktion `foo` erwartet Wert vom Typ `Iterable` als erstes Argument.
-Aber der übergebene Wert hat Typ `NotIterable`.
+Der Aufruf der Funktion `foo` erwartet einen Wert vom Typ `Iterable` als erstes Argument.
+Aber der übergebene Wert hat den Typ `NotIterable`.
 
 ## Datei file-test-data/extras/testIterableImplicitAny.py
 ## Fehlerhafter Aufruf in Zeile 13:

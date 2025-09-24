@@ -4,7 +4,7 @@ Traceback (most recent call last):
 
 WyppTypeError: (Course(name='Programmierung 1', teacher='Wehr', students=()),)
 
-Der Aufruf des Konstruktors des Records `Semester` erwartet Wert vom Typ `tuple[CourseM, ...]` als drittes Argument.
+Der Aufruf des Konstruktors des Records `Semester` erwartet einen Wert vom Typ `tuple[CourseM, ...]` als drittes Argument.
 
 ## Datei file-test-data/extras/declared-at-missing.py
 ## Fehlerhafter Aufruf in Zeile 22:

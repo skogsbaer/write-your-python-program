@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: CarM(licensePlate='OG PY 123', color='rot')
 
-Der Aufruf der Methode `turnIntoStreet` aus Klasse `StreetM` erwartet Wert vom Typ `Car` als erstes Argument.
-Aber der übergebene Wert hat Typ `CarM`.
+Der Aufruf der Methode `turnIntoStreet` der Klasse `StreetM` erwartet einen Wert vom Typ `Car` als erstes Argument.
+Aber der übergebene Wert hat den Typ `CarM`.
 
 ## Datei file-test-data/extras/wrong-caused-by.py
 ## Fehlerhafter Aufruf in Zeile 31:
