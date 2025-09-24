@@ -1,6 +1,6 @@
 # Write Your Python Program - CHANGELOG
 
-* 2.0.1 - 2.0.4 (2025-09-24)
+* 2.0.1 - 2.0.5 (2025-09-24)
   * Many minor fixes
 * 2.0.0 (2025-09-24)
   * Remove wrappers, only check types at function enter/exit points
