@@ -99,6 +99,10 @@ def main(globals, argList=None):
         runCode.performChecks(args.check, args.testFile, globals, libDefs, doTypecheck=args.checkTypes,
                               extraDirs=args.extraDirs, loadingFailed=loadingFailed)
 
+        if args.repls:
+            import replTester
+            replTester.testRepls(args.repls, globals)
+
         if isInteractive:
             interactive.enterInteractive(globals, args.checkTypes, loadingFailed)
 

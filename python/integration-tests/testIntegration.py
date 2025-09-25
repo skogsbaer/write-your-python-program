@@ -89,6 +89,6 @@ class ReplTesterTests(unittest.TestCase):
 
     def test_replTester(self):
         d = shell.pwd()
-        cmd = f'python3 {d}/code/wypp/replTester.py {d}/integration-test-data/repl-test-lib.py --repl {d}/integration-test-data/repl-test-checks.py'
+        cmd = f'{d}/run {d}/integration-test-data/repl-test-lib.py --repl {d}/integration-test-data/repl-test-checks.py'
         res = shell.run(cmd, captureStdout=True, onError='die', cwd='/tmp')
         self.assertIn('All 1 tests succeeded. Great!', res.stdout)
