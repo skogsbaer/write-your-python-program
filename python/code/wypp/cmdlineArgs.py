@@ -39,6 +39,8 @@ def parseCmdlineArgs(argList):
     parser.add_argument('--no-typechecking', dest='checkTypes', action='store_const',
                         const=False, default=True,
                         help='Do not check type annotations')
+    parser.add_argument('--repl', action='extend', type=str, nargs='+', default=[], dest='repls',
+                        help='Run repl tests in the file given')
     parser.add_argument('file', metavar='FILE',
                         help='The file to run', nargs='?')
     if argList is None:

@@ -1,86 +1,67 @@
 import sys
-import constants
-sys.path.insert(0, constants.CODE_DIR)
-
 import doctest
-import os
-import argparse
-from dataclasses import dataclass
 from myLogging import *
-import runCode
-
-usage = """python3 replTester.py [ ARGUMENTS ] LIB_1 ... LIB_n --repl SAMPLE_1 ... SAMPLE_m
-
-If no library files should be used to test the REPL samples, omit LIB_1 ... LIB_n
-and the --repl flag.
-The definitions of LIB_1 ... LIB_n are made available when testing
-SAMPLE_1 ... SAMPLE_m, where identifer in LIB_i takes precedence over identifier in
-LIB_j if i > j.
-"""
-
-@dataclass
-class Options:
-    verbose: bool
-    diffOutput: bool
-    libs: list[str]
-    repls: list[str]
-
-def parseCmdlineArgs():
-    parser = argparse.ArgumentParser(usage=usage,
-                        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--verbose', dest='verbose', action='store_const',
-                        const=True, default=False,
-                        help='Be verbose')
-    parser.add_argument('--diffOutput', dest='diffOutput',
-                        action='store_const', const=True, default=False,
-                        help='print diff of expected/given output')
-    args, restArgs = parser.parse_known_args()
-    libs = []
-    repls = []
-    replFlag = '--repl'
-    if replFlag in restArgs:
-        cur = libs
-        for x in restArgs:
-            if x == replFlag:
-                cur = repls
-            else:
-                cur.append(x)
-    else:
-        repls = restArgs
-    if len(repls) == 0:
-        print('No SAMPLE arguments given')
-        sys.exit(1)
-    return Options(verbose=args.verbose, diffOutput=args.diffOutput, libs=libs, repls=repls)
-
-opts = parseCmdlineArgs()
-
-if opts.verbose:
-    enableVerbose()
-
-libDir = os.path.dirname(__file__)
-libFile = os.path.join(libDir, 'writeYourProgram.py')
-defs = globals()
-
-for lib in opts.libs:
-    d = os.path.dirname(lib)
-    if d not in sys.path:
-        sys.path.insert(0, d)
-
-for lib in opts.libs:
-    verbose(f"Loading lib {lib}")
-    defs = runCode.runCode(lib, defs)
-
-totalFailures = 0
-totalTests = 0
-
-doctestOptions = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-
-if opts.diffOutput:
-    doctestOptions = doctestOptions | doctest.REPORT_NDIFF
 
 # We use our own DocTestParser to replace exception names in stacktraces
+
+
+def rewriteLines(lines: list[str]):
+    """
+    Each line has exactly one of the following four kinds:
+    - COMMENT: if it starts with '#' (leading whitespace stripped)
+    - PROMPT: if it starts with '>>>' (leading whitespace stripped)
+    - EMPTY: if it contains only whitespace
+    - OUTPUT: otherwise
+
+    rewriteLines replaces every EMPTY lines with '<BLANKLINE>', provided
+    the first non-EMPTY line before the line has kind PROMPT OR OUTPUT
+    and the next non-EMPTY line after the line has kind OUTPUT.
+    """
+
+    def get_line_kind(line: str) -> str:
+        stripped = line.lstrip()
+        if not stripped:
+            return 'EMPTY'
+        elif stripped.startswith('#'):
+            return 'COMMENT'
+        elif stripped.startswith('>>>'):
+            return 'PROMPT'
+        else:
+            return 'OUTPUT'
+
+    def find_prev_non_empty(idx: int) -> tuple[int, str]:
+        """Find the first non-EMPTY line before idx. Returns (index, kind)"""
+        for i in range(idx - 1, -1, -1):
+            kind = get_line_kind(lines[i])
+            if kind != 'EMPTY':
+                return i, kind
+        return -1, 'NONE'
+
+    def find_next_non_empty(idx: int) -> tuple[int, str]:
+        """Find the first non-EMPTY line after idx. Returns (index, kind)"""
+        for i in range(idx + 1, len(lines)):
+            kind = get_line_kind(lines[i])
+            if kind != 'EMPTY':
+                return i, kind
+        return -1, 'NONE'
+
+    # Process each line
+    for i in range(len(lines)):
+        if get_line_kind(lines[i]) == 'EMPTY':
+            # Check conditions for replacement
+            prev_idx, prev_kind = find_prev_non_empty(i)
+            next_idx, next_kind = find_next_non_empty(i)
+
+            # Replace if previous is PROMPT or OUTPUT and next is OUTPUT
+            if prev_kind in ['PROMPT', 'OUTPUT'] and next_kind == 'OUTPUT':
+                lines[i] = '<BLANKLINE>'
+
+
 class MyDocTestParser(doctest.DocTestParser):
     def get_examples(self, string, name='<string>'):
+        """
+        The string is the docstring from the file which we want to test.
+        """
         prefs = {'WyppTypeError: ': 'errors.WyppTypeError: ',
                  'WyppNameError: ': 'errors.WyppNameError: ',
                  'WyppAttributeError: ': 'errors.WyppAttributeError: '}
@@ -88,18 +69,17 @@ class MyDocTestParser(doctest.DocTestParser):
         for l in string.split('\n'):
             for pref,repl in prefs.items():
                 if l.startswith(pref):
-                    l = repl + l[len(pref):]
+                    l = repl + l
             lines.append(l)
+        rewriteLines(lines)
         string = '\n'.join(lines)
         x = super().get_examples(string, name)
         return x
 
-for repl in opts.repls:
+def testRepl(repl: str, defs: dict) -> tuple[int, int]:
+    doctestOptions = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
     (failures, tests) = doctest.testfile(repl, globs=defs, module_relative=False,
                                          optionflags=doctestOptions, parser=MyDocTestParser())
-
-    totalFailures += failures
-    totalTests += tests
     if failures == 0:
         if tests == 0:
             print(f'No tests in {repl}')
@@ -107,13 +87,22 @@ for repl in opts.repls:
             print(f'All {tests} tests in {repl} succeeded')
     else:
         print(f'ERROR: {failures} out of {tests} in {repl} failed')
+    return (failures, tests)
 
-if totalFailures == 0:
-    if totalTests == 0:
-        print('ERROR: No tests found at all!')
-        sys.exit(1)
+def testRepls(repls: list[str], defs: dict):
+    totalFailures = 0
+    totalTests = 0
+    for r in repls:
+        (failures, tests) = testRepl(r, defs)
+        totalFailures += failures
+        totalTests += tests
+
+    if totalFailures == 0:
+        if totalTests == 0:
+            print('ERROR: No tests found at all!')
+            sys.exit(1)
+        else:
+            print(f'All {totalTests} tests succeeded. Great!')
     else:
-        print(f'All {totalTests} tests succeeded. Great!')
-else:
-    print(f'ERROR: {failures} out of {tests} failed')
-    sys.exit(1)
+        print(f'ERROR: {failures} out of {tests} failed')
+        sys.exit(1)
