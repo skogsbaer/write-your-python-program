@@ -2,7 +2,7 @@ Traceback (most recent call last):
   File "file-test-data/extras/testWrongKeywordArg5.py", line 4, in <module>
     foo()
 
-WyppTypeError: Anzahl der Argument passt nicht
+WyppTypeError: Anzahl der Argumente stimmt nicht
 
 Funktion `foo` benötigt 1 Argument.
 Gegeben: keine Argumente

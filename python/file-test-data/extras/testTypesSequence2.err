@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: "Hello!"
 
-Der Aufruf der Funktion `foo` erwartet Wert vom Typ `Sequence[int]` als erstes Argument.
-Aber der übergebene Wert hat Typ `str`.
+Der Aufruf der Funktion `foo` erwartet einen Wert vom Typ `Sequence[int]` als erstes Argument.
+Aber der übergebene Wert hat den Typ `str`.
 
 ## Datei file-test-data/extras/testTypesSequence2.py
 ## Fehlerhafter Aufruf in Zeile 11:

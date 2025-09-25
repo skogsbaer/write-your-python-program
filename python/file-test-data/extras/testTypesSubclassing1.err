@@ -6,8 +6,8 @@ Traceback (most recent call last):
 
 WyppTypeError: <AnimalFood>
 
-Der Aufruf der Methode `feed` aus Klasse `Dog` erwartet Wert vom Typ `DogFood` als erstes Argument.
-Aber der übergebene Wert hat Typ `AnimalFood`.
+Der Aufruf der Methode `feed` der Klasse `Dog` erwartet einen Wert vom Typ `DogFood` als erstes Argument.
+Aber der übergebene Wert hat den Typ `AnimalFood`.
 
 ## Datei file-test-data/extras/testTypesSubclassing1.py
 ## Fehlerhafter Aufruf in Zeile 26:

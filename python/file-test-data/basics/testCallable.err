@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: 42
 
-Der Aufruf der Funktion `foo` erwartet Wert vom Typ `Callable[[int, bool], str]` als erstes Argument.
-Aber der übergebene Wert hat Typ `int`.
+Der Aufruf der Funktion `foo` erwartet einen Wert vom Typ `Callable[[int, bool], str]` als erstes Argument.
+Aber der übergebene Wert hat den Typ `int`.
 
 ## Datei file-test-data/basics/testCallable.py
 ## Fehlerhafter Aufruf in Zeile 6:

@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: "30"
 
-Der Aufruf des Konstruktors des Records `Person` erwartet Wert vom Typ `int` als zweites Argument.
-Aber der übergebene Wert hat Typ `str`.
+Der Aufruf des Konstruktors des Records `Person` erwartet einen Wert vom Typ `int` als zweites Argument.
+Aber der übergebene Wert hat den Typ `str`.
 
 ## Datei file-test-data/basics/record.py
 ## Fehlerhafter Aufruf in Zeile 8:

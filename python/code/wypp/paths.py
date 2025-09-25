@@ -10,8 +10,9 @@ def projectDir(d: str):
     global _projectDir
     old = _projectDir
     _projectDir = _normPath(d)
-    if _projectDir and not _projectDir[-1] == '/':
-        _projectDir = _projectDir + '/'
+    sep = os.path.sep
+    if _projectDir and _projectDir[-1] != sep:
+        _projectDir = _projectDir + sep
     try:
         yield
     finally:

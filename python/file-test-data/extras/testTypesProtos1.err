@@ -6,8 +6,8 @@ Traceback (most recent call last):
 
 WyppTypeError: 3.14
 
-Der Aufruf der Methode `makeSound` aus Klasse `Dog` erwartet Wert vom Typ `int` als erstes Argument.
-Aber der übergebene Wert hat Typ `float`.
+Der Aufruf der Methode `makeSound` der Klasse `Dog` erwartet einen Wert vom Typ `int` als erstes Argument.
+Aber der übergebene Wert hat den Typ `float`.
 
 ## Datei file-test-data/extras/testTypesProtos1.py
 ## Fehlerhafter Aufruf in Zeile 19:

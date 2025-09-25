@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: "1"
 
-Der Aufruf der Funktion `foo` erwartet Wert vom Typ `int` als zweites Argument.
-Aber der übergebene Wert hat Typ `str`.
+Der Aufruf der Funktion `foo` erwartet einen Wert vom Typ `int` als zweites Argument.
+Aber der übergebene Wert hat den Typ `str`.
 
 ## Datei file-test-data/basics/functionArg.py
 ## Fehlerhafter Aufruf in Zeile 8:

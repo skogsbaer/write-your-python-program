@@ -5,7 +5,7 @@ Traceback (most recent call last):
 WyppTypeError: "foo"
 
 Attribut `y` des Records `Point` deklariert als Typ `int`.
-Das Attribute kann nicht auf einen Wert vom Typ `str` gesetzt werden.
+Das Attribut kann nicht auf einen Wert vom Typ `str` gesetzt werden.
 
 ## Datei file-test-data/basics/mutable.py
 ## Fehlerhafte Zuweisung in Zeile 10:

@@ -4,8 +4,8 @@ Traceback (most recent call last):
 
 WyppTypeError: 'foo'
 
-Der Aufruf der Funktion `foo` erwartet Wert vom Typ `T` als erstes Argument.
-Aber der übergebene Wert hat Typ `str`.
+Der Aufruf der Funktion `foo` erwartet einen Wert vom Typ `T` als erstes Argument.
+Aber der übergebene Wert hat den Typ `str`.
 
 ## Datei file-test-data/basics/typeAlias.py
 ## Fehlerhafter Aufruf in Zeile 7:

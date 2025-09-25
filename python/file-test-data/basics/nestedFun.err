@@ -6,8 +6,8 @@ Traceback (most recent call last):
 
 WyppTypeError: "foo"
 
-Der Aufruf der Funktion `bar` erwartet Wert vom Typ `int` als erstes Argument.
-Aber der übergebene Wert hat Typ `str`.
+Der Aufruf der Funktion `bar` erwartet einen Wert vom Typ `int` als erstes Argument.
+Aber der übergebene Wert hat den Typ `str`.
 
 ## Datei file-test-data/basics/nestedFun.py
 ## Fehlerhafter Aufruf in Zeile 7:

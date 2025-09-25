@@ -5,7 +5,7 @@ Traceback (most recent call last):
 WyppTypeError: 2
 
 Default-Wert des Parameters `s` der Funktion `foo` muss vom Typ `str` sein.
-Aber der Default-Wert hat Typ `int`.
+Aber der Default-Wert hat den Typ `int`.
 
 ## Datei file-test-data/basics/optionalArgs.py
 ## Parameter deklariert in Zeile 1:
