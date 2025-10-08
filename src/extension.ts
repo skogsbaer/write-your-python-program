@@ -231,6 +231,30 @@ async function fixPylanceConfig(
     const target = folder ? vscode.ConfigurationTarget.WorkspaceFolder
                    : vscode.ConfigurationTarget.Workspace;
 
+    const errors: string[] = [];
+
+    // Two special errors
+    const noWorkspaceOpen = '__NO_WORKSPACE_OPEN__';
+
+    // helper to update config and collect errors; treat "no folder open" specially
+    async function tryUpdate(key: string, value: any) {
+        // If target is workspace-wide and there is no workspace open at all
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            // nothing to update at workspace level
+            errors.push(noWorkspaceOpen);
+            return;
+        }
+
+        try {
+            await cfg.update(key, value, target);
+        } catch (e) {
+            // If the error message explicitly mentions the workspace/folder, capture it, but prefer the proactive checks above
+            const msg = e instanceof Error ? e.message : String(e);
+            errors.push(`Failed to update ${key}: ${msg}`);
+        }
+    }
+
     // wildcard warnings
     const keyOverride = 'analysis.diagnosticSeverityOverrides';
     const overrides = cfg.get<Record<string, string>>(keyOverride) ?? {};
@@ -239,33 +263,36 @@ async function fixPylanceConfig(
             ...overrides,
             reportWildcardImportFromLibrary: 'none',
         };
-        await cfg.update(
-            'analysis.diagnosticSeverityOverrides',
-            updated,
-            target
-        );
+        await tryUpdate(keyOverride, updated);
     }
 
     // extraPaths
     const keyExtraPaths = 'analysis.extraPaths';
     const extra = cfg.get<string[]>(keyExtraPaths) ?? [];
     if (extra.length !== 1 || extra[0] !== libDir) {
-        await cfg.update(
-            keyExtraPaths,
-            [libDir],
-            target
-        );
+        await tryUpdate(keyExtraPaths, [libDir]);
     }
 
     // typechecking off
     const keyMode = 'analysis.typeCheckingMode';
     const mode = cfg.get<string>(keyMode) ?? '';
     if (mode !== 'off') {
-        await cfg.update(
-            'analysis.typeCheckingMode',
-            'off',
-            target
-        );
+        await tryUpdate(keyMode, 'off');
+    }
+
+    if (errors.length > 0) {
+        let msg: string;
+        if (errors.every(e => e === noWorkspaceOpen)) {
+            msg = 'Write Your Python Program: settings were not changed because no folder is open. Open a folder to apply wypp settings.';
+        } else {
+            const sanitized = errors.map(e => e === noWorkspaceOpen ? 'Skipped workspace update because no folder is open' : e);
+            msg = `Write Your Python Program: failed to update settings. ` + sanitized.join('. ');
+        }
+        try {
+            vscode.window.showWarningMessage(msg);
+        } catch (_e) {
+            // ignore any error while showing the warning
+        }
     }
 }
 
