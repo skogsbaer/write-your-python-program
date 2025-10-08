@@ -41,9 +41,6 @@ def enterInteractive(userDefs: dict, checkTypes: bool, loadingFailed: bool):
     for k, v in userDefs.items():
         globals()[k] = v
     print()
-    if loadingFailed:
-        print(i18n.tr('NOTE: running the code failed, some definitions might not be available in the interactive window!'))
-        print()
     if checkTypes:
         consoleClass = TypecheckedInteractiveConsole
     else:
