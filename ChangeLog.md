@@ -1,5 +1,9 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.0.6 (2025-10-08)
+  * Settings for language #180
+  * Only warn of settings cannot be saved #182
+  * Remove unnecessary warning line #181
 * 2.0.1 - 2.0.5 (2025-09-24)
   * Many minor fixes
 * 2.0.0 (2025-09-24)

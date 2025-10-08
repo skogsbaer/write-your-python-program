@@ -155,8 +155,6 @@ DE = {
     'all successful': 'alle erfolgreich',
     'and stop of execution': 'und Abbruch der Ausführung',
 
-    'NOTE: running the code failed, some definitions might not be available in the interactive window!':
-        'ACHTUNG: Das Ausführen des Codes ist fehlgeschlagen; einige Definitionen sind möglicherweise im interaktiven Fenster nicht verfügbar!',
     '=== WELCOME to ': '=== WILLKOMMEN bei '
 }
 

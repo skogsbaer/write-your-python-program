@@ -3,7 +3,7 @@
 	"displayName": "Write Your Python Program!",
 	"description": "A user friendly python environment for beginners",
 	"license": "See license in LICENSE",
-	"version": "2.0.5",
+	"version": "2.0.6",
 	"publisher": "StefanWehr",
 	"icon": "icon.png",
 	"engines": {
@@ -68,6 +68,12 @@
 					"type": "boolean",
 					"required": false,
 					"description": "Disable checking of type annotations."
+				},
+				"write-your-python-program.language": {
+					"type": "string",
+					"enum": ["german", "english", "system default"],
+					"default": "system default",
+					"description": "Choose the language for error messages."
 				}
 			}
 		}
