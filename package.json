@@ -68,6 +68,12 @@
 					"type": "boolean",
 					"required": false,
 					"description": "Disable checking of type annotations."
+				},
+				"write-your-python-program.language": {
+					"type": "string",
+					"enum": ["german", "english", "system default"],
+					"default": "system default",
+					"description": "Choose the language for error messages."
 				}
 			}
 		}

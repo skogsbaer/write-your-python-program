@@ -13,6 +13,7 @@ const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
 const verboseConfigKey = 'verbose';
 const debugConfigKey = 'debug';
+const languageKey = 'language';
 const disableTypecheckingConfigKey = 'disableTypechecking';
 const isWindows = process.platform === "win32";
 const exeExt = isWindows ? ".exe" : "";
@@ -217,6 +218,19 @@ function disableTypechecking(context: vscode.ExtensionContext): boolean {
     return !!config[disableTypecheckingConfigKey];
 }
 
+function getLanguage(context: vscode.ExtensionContext): 'en' | 'de' | undefined {
+    const config = vscode.workspace.getConfiguration(extensionId);
+    const lang = config[languageKey];
+    if (lang === 'english') {
+        return 'en';
+    } else if (lang === 'german') {
+        return 'de';
+    } else {
+        return undefined;
+    }
+}
+
+
 async function fixPylanceConfig(
     context: vscode.ExtensionContext,
     folder?: vscode.WorkspaceFolder
@@ -413,7 +427,6 @@ export async function activate(context: vscode.ExtensionContext) {
         "run",
         "▶ RUN",
         async (cmdId) => {
-            await fixPylanceConfig(context);
             const file =
                 (vscode.window.activeTextEditor) ?
                 vscode.window.activeTextEditor.document.fileName :
@@ -426,6 +439,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 vscode.window.showWarningMessage('Not a python file');
                 return;
             }
+            await fixPylanceConfig(context);
             await vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd(pyExt);
             let verboseOpt = "";
@@ -437,6 +451,11 @@ export async function activate(context: vscode.ExtensionContext) {
             if (verboseOpt !== "") {
                 verboseOpt = " " + verboseOpt + " --no-clear";
             }
+            const lang = getLanguage(context);
+            let langOpt = "";
+            if (lang) {
+                langOpt = " --lang " + lang;
+            }
             const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
                 const pythonCmd = commandListToArgument(pyCmd.cmd);
@@ -444,7 +463,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     terminals[cmdId]?.terminal,
                     "WYPP - RUN",
                     pythonCmd +  " " + fileToCommandArgument(runProg) + verboseOpt +
-                        disableOpt +
+                        disableOpt + langOpt +
                         " --interactive " +
                         " --change-directory " +
                         fileToCommandArgument(file)
