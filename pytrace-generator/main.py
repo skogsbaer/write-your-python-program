@@ -14,6 +14,12 @@ import traceback
 import types
 import typing
 
+_DEBUG = False
+
+def debug(s):
+    if _DEBUG:
+        eprint(s)
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
@@ -330,6 +336,36 @@ class ShownClassDefs:
     def pop_frame(self):
         self.frames.pop()
 
+Skip = typing.Literal['SKIP', 'DONT_SKIP']
+
+class Skipper:
+    def __init__(self):
+        # skipStartFile is a tuple (filename, counter) or None
+        # If None, then we are not in skipping mode
+        # Otherwise, we are in skipping mode. Each call event with the
+        # same filename increases the counter by 1. Each return event
+        # with the same filename decreases the counter by 0.
+        # The counter starts at 0 when entering skipping event. If it
+        # goes back to zero, we leave skipping mode
+        self.skipStartFile: tuple[str, int] | None = None
+
+    def handleEvent(self, event: str, filename: str, isExternalMod: bool) -> Skip:
+        if event == 'call':
+            if self.skipStartFile is None and isExternalMod:
+                # start skipping
+                self.skipStartFile = (filename, 1)
+            elif self.skipStartFile is not None and filename == self.skipStartFile[0]:
+                self.skipStartFile = (self.skipStartFile[0], self.skipStartFile[1] + 1)
+        elif event == 'return':
+            if self.skipStartFile is not None and filename == self.skipStartFile[0]:
+                self.skipStartFile = (self.skipStartFile[0], self.skipStartFile[1] - 1)
+                if self.skipStartFile[1] == 0:
+                    self.skipStartFile = None
+                return 'SKIP'
+        if self.skipStartFile is None:
+            return 'DONT_SKIP'
+        else:
+            return 'SKIP'
 
 class PyTraceGenerator(bdb.Bdb):
     def __init__(self, trace_socket):
@@ -339,7 +375,7 @@ class PyTraceGenerator(bdb.Bdb):
         self.stack_ignore = []
         self.init = False
         self.filename = ""
-        self.skip_until = None
+        self.skipper = Skipper()
         self.import_following = False
         self.last_step_was_class = False
         self.prev_num_frames = 0
@@ -348,22 +384,14 @@ class PyTraceGenerator(bdb.Bdb):
         self.captured_stdout = io.StringIO()
         self.last_event = ""
 
-    def trace_dispatch(self, frame, event, arg):
+    def trace_dispatch(self, frame, event: str, arg):
         filename = frame.f_code.co_filename
 
-        # Skip built-in modules
-        # This might not be the best solution. Adjust if required.
-        skip = False
-        if self.skip_until is not None:
-            skip = filename != self.skip_until
-        elif not filename.startswith(os.path.dirname(self.filename)):
-            skip = True
-            if frame.f_back:
-                self.skip_until = frame.f_back.f_code.co_filename
-        if skip:
+        skipRes = self.skipper.handleEvent(
+            event, filename, not filename.startswith(os.path.dirname(self.filename))
+        )
+        if skipRes == 'SKIP':
             return self.trace_dispatch
-        else:
-            self.skip_until = None
 
         line = frame.f_lineno
         if not self.init:
