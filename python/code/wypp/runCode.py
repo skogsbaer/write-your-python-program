@@ -67,8 +67,8 @@ def prepareLib(onlyCheckRunnable, enableTypeChecking):
 def runCode(fileToRun, globals, doTypecheck=True, extraDirs=None) -> dict:
     if not extraDirs:
         extraDirs = []
-    with instrument.setupFinder(os.path.dirname(fileToRun), extraDirs, doTypecheck):
-        modName = os.path.basename(os.path.splitext(fileToRun)[0])
+    modName = os.path.basename(os.path.splitext(fileToRun)[0])
+    with instrument.setupFinder(os.path.dirname(fileToRun), modName, extraDirs, doTypecheck):
         sys.dont_write_bytecode = True
         res = runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=False)
         return res

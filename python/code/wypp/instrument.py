@@ -4,7 +4,8 @@ import ast
 import importlib
 import importlib.abc
 from importlib.machinery import ModuleSpec, SourceFileLoader
-from importlib.util import decode_source
+import importlib.machinery
+from importlib.util import decode_source, spec_from_file_location
 from collections.abc import Buffer
 import types
 from os import PathLike
@@ -126,8 +127,9 @@ class InstrumentingLoader(SourceFileLoader):
         return code
 
 class InstrumentingFinder(importlib.abc.MetaPathFinder):
-    def __init__(self, finder, modDir: str, extraDirs: list[str]):
+    def __init__(self, finder, modDir: str, modName: str, extraDirs: list[str]):
         self._origFinder = finder
+        self.mainModName = modName
         self.modDir = os.path.realpath(modDir) + '/'
         self.extraDirs = [os.path.realpath(d) for d in extraDirs]
 
@@ -137,9 +139,27 @@ class InstrumentingFinder(importlib.abc.MetaPathFinder):
             path: Sequence[str] | None,
             target: types.ModuleType | None = None,
         ) -> ModuleSpec | None:
+
+        # 1) The fullname is the name of the main module. This might be a dotted name such as x.y.z.py
+        #    so we have special logic here
+        fp = os.path.join(self.modDir, f"{fullname}.py")
+        if self.mainModName == fullname and os.path.isfile(fp):
+            loader = InstrumentingLoader(fullname, fp)
+            return spec_from_file_location(fullname, fp, loader=loader)
+        # 2) The fullname is a prefix of the main module. We want to load main modules with
+        #    dotted names such as x.y.z.py, hence we synthesize a namespace pkg
+        #    e.g. if 'x.y.z.py' exists and we're asked for 'x', return a package spec.
+        elif self.mainModName.startswith(fullname + '.'):
+            spec = importlib.machinery.ModuleSpec(fullname, loader=None, is_package=True)
+            # Namespace package marker (PEP 451)
+            spec.submodule_search_locations = []
+            return spec
+        # 3) Fallback: use the original PathFinder
         spec = self._origFinder.find_spec(fullname, path, target)
+        debug(f'spec for {fullname}: {spec}')
         if spec is None:
-            return None
+            return spec
+
         origin = os.path.realpath(spec.origin)
         dirs = [self.modDir] + self.extraDirs
         isLocalModule = False
@@ -153,7 +173,7 @@ class InstrumentingFinder(importlib.abc.MetaPathFinder):
         return spec
 
 @contextmanager
-def setupFinder(modDir: str, extraDirs: list[str], typechecking: bool):
+def setupFinder(modDir: str, modName: str, extraDirs: list[str], typechecking: bool):
     if not typechecking:
         yield
     else:
@@ -169,7 +189,7 @@ def setupFinder(modDir: str, extraDirs: list[str], typechecking: bool):
             raise RuntimeError("Cannot find a PathFinder in sys.meta_path")
 
         # Create and install our custom finder
-        instrumenting_finder = InstrumentingFinder(finder, modDir, extraDirs)
+        instrumenting_finder = InstrumentingFinder(finder, modDir, modName, extraDirs)
         sys.meta_path.insert(0, instrumenting_finder)
 
         try:
