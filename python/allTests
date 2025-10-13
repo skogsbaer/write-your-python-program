@@ -17,3 +17,4 @@ function run()
 
 PYENV_VERSION=3.12 run
 PYENV_VERSION=3.13 run
+PYENV_VERSION=3.14 run
