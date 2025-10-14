@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.0.7 (2025-10-14)
+  * Fix #184 (filenames with dots)
+  * Support python 3.13
 * 2.0.6 (2025-10-08)
   * Settings for language #180
   * Only warn of settings cannot be saved #182

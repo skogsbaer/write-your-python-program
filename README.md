@@ -7,10 +7,11 @@ The ideas of this environment are based on the great ideas from
 
 ## Quick start
 
-* Step 1. Install **Python 3.12.x** or **Python 3.13.x**.
+* Step 1. Install **Python 3.12.x** or **Python 3.13.x** or **Python 3.14.x**.
 * Step 2. Install Visual Studio Code, at least version Version: 1.94.2
-* Step 2. Install the **write-your-python-program** extension for Visual Studio Code.
-* Step 3. Open or create a Python file. The "RUN" button in the taskbar at the bottom will
+* Step 3. Install the **write-your-python-program** extension for Visual Studio Code.
+* Step 4. Open a folder in Visual Studio Code.
+* Step 5. Open or create a Python file inside this folder. The "RUN" button in the taskbar at the bottom will
   run your file with the teaching language provided by write-your-python-program.
 
 ### Troubleshooting
