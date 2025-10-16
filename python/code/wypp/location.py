@@ -52,8 +52,11 @@ def getline(filename, lineno):
     if p in _cache:
         lines = _cache[p]
     else:
-        with open(filename, 'rb') as f:
-            byteLines = f.readlines()
+        try:
+            with open(filename, 'rb') as f:
+                byteLines = f.readlines()
+        except Exception:
+            byteLines = []
         i = 0
         def nextLine() -> bytes:
             nonlocal i

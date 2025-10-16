@@ -4,6 +4,7 @@ import sys
 import traceback
 import dataclasses
 import stacktrace
+from typing import Literal
 
 initModule()
 
