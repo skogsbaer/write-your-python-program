@@ -1,8 +1,11 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.0.8 (2025-10-16)
+  * Fix vscode warning for literals
+  * Fix highlighting for files with umlauts
 * 2.0.7 (2025-10-14)
   * Fix #184 (filenames with dots)
-  * Support python 3.13
+  * Support python 3.14
 * 2.0.6 (2025-10-08)
   * Settings for language #180
   * Only warn of settings cannot be saved #182
