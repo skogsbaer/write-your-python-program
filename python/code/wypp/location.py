@@ -13,6 +13,63 @@ import abc
 import parsecache
 from parsecache import FunMatcher
 import paths
+import tokenize
+import os
+
+@dataclass
+class EncodedBytes:
+    bytes: bytes
+    encoding: str
+    def __len__(self):
+        return len(self.bytes)
+    def countLeadingSpaces(self) -> int:
+        return len(self.bytes) - len(self.bytes.lstrip())
+    def decoded(self) -> str:
+        return self.bytes.decode(self.encoding, errors='replace')
+    @overload
+    def __getitem__(self, key: int) -> int: ...
+    @overload
+    def __getitem__(self, key: slice) -> str: ...
+    def __getitem__(self, key: int | slice) -> int | str:
+        if isinstance(key, int):
+            return self.bytes[key]
+        else:
+            b = self.bytes[key]
+            return b.decode(self.encoding, errors='replace')
+
+@dataclass
+class EncodedByteLines:
+    bytes: list[bytes]
+    encoding: str
+
+_cache: dict[str, EncodedByteLines] = {}
+def getline(filename, lineno):
+    """
+    Returns a line of some source file as a bytearray. We use byte arrays because
+    location offsets are byte offsets.
+    """
+    p = os.path.normpath(os.path.abspath(filename))
+    if p in _cache:
+        lines = _cache[p]
+    else:
+        with open(filename, 'rb') as f:
+            byteLines = f.readlines()
+        i = 0
+        def nextLine() -> bytes:
+            nonlocal i
+            if i < len(byteLines):
+                x = byteLines[i]
+                i = i + 1
+                return x
+            else:
+                return b''
+        encoding, _ = tokenize.detect_encoding(nextLine)
+        lines = EncodedByteLines(byteLines, encoding)
+    if 1 <= lineno <= len(lines.bytes):
+        x = lines.bytes[lineno - 1].rstrip(b'\n')
+    else:
+        x = b''
+    return EncodedBytes(x, encoding)
 
 @dataclass
 class Loc:
@@ -38,7 +95,7 @@ class Loc:
             case (startLine, startCol, endLine, endCol):
                 result = []
                 for lineNo in range(startLine, startLine+1):
-                    line = linecache.getline(self.filename, lineNo).rstrip("\n")
+                    line = getline(self.filename, lineNo)
                     c1 = startCol if lineNo == startLine else 0
                     c2 = endCol if lineNo == endLine else len(line)
                     result.append(line[c1:c2])
@@ -84,27 +141,27 @@ def highlight(s: str, mode: HighlightMode) -> str:
 
 @dataclass
 class SourceLine:
-    line: str                        # without trailing \n
+    line: EncodedBytes               # without trailing \n
     span: Optional[tuple[int, int]]  # (inclusive, exclusive)
 
-    def highlight(self, mode: HighlightMode | Literal['fromEnv'] = 'fromEnv'):
+    def highlight(self, mode: HighlightMode | Literal['fromEnv'] = 'fromEnv') -> str:
         mode = getHighlightMode(mode)
         if self.span:
             l = self.line
             return l[:self.span[0]] + highlight(l[self.span[0]:self.span[1]], mode) + l[self.span[1]:]
         else:
-            return self.line
+            return self.line.decoded()
 
 def highlightedLines(loc: Loc) -> list[SourceLine]:
     match loc.fullSpan():
         case None:
-            line = linecache.getline(loc.filename, loc.startLine).rstrip("\n")
+            line = getline(loc.filename, loc.startLine)
             return [SourceLine(line, None)]
         case (startLine, startCol, endLine, endCol):
             result = []
             for lineNo in range(startLine, startLine+1):
-                line = linecache.getline(loc.filename, lineNo).rstrip("\n")
-                leadingSpaces = len(line) - len(line.lstrip())
+                line = getline(loc.filename, lineNo)
+                leadingSpaces = line.countLeadingSpaces()
                 c1 = startCol if lineNo == startLine else leadingSpaces
                 c2 = endCol if lineNo == endLine else len(line)
                 result.append(SourceLine(line, (c1, c2)))
