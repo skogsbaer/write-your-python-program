@@ -1,4 +1,5 @@
 import typing
+from typing import Any
 import dataclasses
 import inspect
 import errors
@@ -16,23 +17,6 @@ def _debug(s):
     if _DEBUG:
         print('[DEBUG] ' + s)
 
-# Types
-Any = typing.Any
-Optional = typing.Optional
-Union = typing.Union
-Literal = typing.Literal
-Iterable = typing.Iterable
-Iterator = typing.Iterator
-Sequence = typing.Sequence
-Generator = typing.Generator
-ForwardRef = typing.ForwardRef
-Protocol = typing.Protocol
-
-Mapping = typing.Mapping
-
-Callable = typing.Callable
-
-dataclass = dataclasses.dataclass
 record = records.record
 
 intPositive = typing.Annotated[int, lambda i: i > 0, 'intPositive']
@@ -46,7 +30,7 @@ floatNonNegative = typing.Annotated[float, lambda x: x >= 0, 'floatNonNegative']
 floatNegative = typing.Annotated[float, lambda x: x < 0, 'floatNegative']
 floatNonPositive = typing.Annotated[float, lambda x: x <= 0, 'floatNonPositive']
 
-class Lock(Protocol):
+class Lock(typing.Protocol):
     def acquire(self, blocking: bool = True, timeout:int = -1) -> Any:
        pass
     def release(self) -> Any:
@@ -54,7 +38,7 @@ class Lock(Protocol):
     def locked(self) -> Any:
         pass
 
-LockFactory = typing.Annotated[Callable[[], Lock], 'LockFactory']
+LockFactory = typing.Annotated[typing.Callable[[], Lock], 'LockFactory']
 
 T = typing.TypeVar('T')
 U = typing.TypeVar('U')

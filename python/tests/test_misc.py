@@ -1,5 +1,6 @@
 import unittest
 from writeYourProgram import *
+from typing import *
 
 setDieOnCheckFailures(True)
 

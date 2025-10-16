@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/umlaute.py", line 6, in <module>
+    check(äüßö("1"), 1)
+
+WyppTypeError: "1"
+
+Der Aufruf der Funktion `äüßö` erwartet einen Wert vom Typ `int` als erstes Argument.
+Aber der übergebene Wert hat den Typ `str`.
+
+## Datei file-test-data/basics/umlaute.py
+## Fehlerhafter Aufruf in Zeile 6:
+
+check(äüßö([0;31m[1m"1"[0;0m), 1)
+
+## Typ deklariert in Zeile 3:
+
+def äüßö([0;31m[1mx: int[0;0m) -> int:

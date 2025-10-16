@@ -1,6 +1,8 @@
 import time
 import threading
 import writeYourProgram as _w
+from typing import Literal, Sequence
+
 # Do not import tkinter at the top-level. Someone with no installation of tkinter should
 # be able to user WYPP without drawing support.
 
@@ -14,9 +16,9 @@ class Point:
     x: float
     y: float
 
-ShapeKind = _w.Literal['ellipsis', 'rectangle']
+type ShapeKind = Literal['ellipsis', 'rectangle']
 
-Color = _w.Literal['red', 'green', 'blue', 'yellow', 'black', 'white']
+type Color = Literal['red', 'green', 'blue', 'yellow', 'black', 'white']
 
 @_w.record
 class FixedShape:
@@ -58,7 +60,7 @@ def _drawCoordinateSystem(canvas, windowSize: Size):
     canvas.create_line(x, 0, x, windowSize.height, dash=(4,2))
     canvas.create_line(0, y, windowSize.width, y, dash=(4,2))
 
-def drawFixedShapes(shapes: _w.Sequence[FixedShape],
+def drawFixedShapes(shapes: Sequence[FixedShape],
                     withCoordinateSystem=False,
                     stopAfter=None) -> None:
     try:

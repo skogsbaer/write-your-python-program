@@ -5,21 +5,13 @@ except (ImportError, ModuleNotFoundError):
 
 import typing
 
-# Exported names that are available for star imports (in alphabetic order)
-Any = w.Any
-Callable = w.Callable
-Generator = w.Generator
-Iterable = w.Iterable
-Iterator = w.Iterator
-Literal = w.Literal
-Mapping = w.Mapping
-Optional = w.Optional
-Sequence = w.Sequence
-Protocol = w.Protocol
-Union = w.Union
+# Exported names that are available for star imports (mostly in alphabetic order)
+from typing import Any, Callable, Generator, Iterable, Iterator, Literal, Mapping, Optional, \
+    Protocol, Sequence, Union
+from dataclasses import dataclass
+
 check = w.check
 checkFail = w.checkFail
-dataclass = w.dataclass
 floatNegative = w.floatNegative
 floatNonNegative = w.floatNonNegative
 floatNonPositive = w.floatNonPositive
