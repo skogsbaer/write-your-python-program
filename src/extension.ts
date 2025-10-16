@@ -283,8 +283,9 @@ async function fixPylanceConfig(
     // extraPaths
     const keyExtraPaths = 'analysis.extraPaths';
     const extra = cfg.get<string[]>(keyExtraPaths) ?? [];
-    if (extra.length !== 1 || extra[0] !== libDir) {
-        await tryUpdate(keyExtraPaths, [libDir]);
+    if (!extra.includes(libDir)) {
+        const newExtra = [...extra, libDir];
+        await tryUpdate(keyExtraPaths, newExtra);
     }
 
     // typechecking off
