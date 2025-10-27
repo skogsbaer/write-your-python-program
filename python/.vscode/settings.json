@@ -1,6 +1,10 @@
 {
     "python.analysis.diagnosticMode": "workspace",
-    "python.autoComplete.extraPaths": [
-        "/Users/swehr/.vscode/extensions/stefanwehr.write-your-python-program-1.3.2/python/src/"
-    ]
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportWildcardImportFromLibrary": "none"
+    },
+    "python.analysis.extraPaths": [
+        "/Users/swehr/.vscode/extensions/stefanwehr.write-your-python-program-2.0.7/python/code/"
+    ],
+    "python.analysis.typeCheckingMode": "off"
 }

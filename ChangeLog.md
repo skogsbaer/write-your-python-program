@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.0.9 (2025-10-27)
+  * Overwrite path to old plugin versions #188
 * 2.0.8 (2025-10-16)
   * Fix vscode warning for literals
   * Fix highlighting for files with umlauts
