@@ -239,7 +239,8 @@ async function fixPylanceConfig(
     // turn typechecking off
     // This is a quite distructive change, so we do it on first hit of the run button
     // not on-load of the plugin
-    const libDir = context.asAbsolutePath('python/code/');
+    const subDir = 'python/code';
+    const libDir = context.asAbsolutePath(subDir);
 
     const cfg = vscode.workspace.getConfiguration('python', folder?.uri);
     const target = folder ? vscode.ConfigurationTarget.WorkspaceFolder
@@ -283,9 +284,17 @@ async function fixPylanceConfig(
     // extraPaths
     const keyExtraPaths = 'analysis.extraPaths';
     const extra = cfg.get<string[]>(keyExtraPaths) ?? [];
-    if (!extra.includes(libDir)) {
-        const newExtra = [...extra, libDir];
+    // Filter out old plugin paths (paths containing 'write-your-python-program' but not matching current libDir)
+    const filtered = extra.filter(p => {
+        const isPluginPath = p.includes('stefanwehr.write-your-python-program') && p.includes(subDir);
+        return !isPluginPath;
+    });
+    if (!filtered.includes(libDir)) {
+        const newExtra = [...filtered, libDir];
         await tryUpdate(keyExtraPaths, newExtra);
+    } else if (filtered.length !== extra.length) {
+        // libDir is already present but we removed old paths, so update anyway
+        await tryUpdate(keyExtraPaths, filtered);
     }
 
     // typechecking off
