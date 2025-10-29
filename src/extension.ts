@@ -46,20 +46,31 @@ function showButtons() {
 async function startTerminal(
     existing: vscode.Terminal | undefined, name: string, cmd: string
 ): Promise<vscode.Terminal> {
+    let terminal: vscode.Terminal | undefined;
     if (existing) {
-        existing.dispose();
+        // We try to re-use the existing terminal. But we need to terminate a potentially
+        // running python process first. If there is no python process, the shell
+        // complains about the "import sys; sys.exit(0)" command, but we don't care.
+        if (!existing.exitStatus) {
+            terminal = existing;
+            terminal.sendText("import sys; sys.exit(0)");
+        } else {
+            existing.dispose();
+        }
     }
-    const terminalOptions: vscode.TerminalOptions = {name: name};
-    if (isWindows) {
-        // We don't know which shell will be used by default.
-        // If PowerShell is the default, we need to prefix the command with "& ".
-        // Otherwise, the prefix is not allowed and results in a syntax error.
-        // -> Just force cmd.exe.
-        terminalOptions.shellPath = "cmd.exe";
+    if (!terminal) {
+         const terminalOptions: vscode.TerminalOptions = {name: name};
+        if (isWindows) {
+            // We don't know which shell will be used by default.
+            // If PowerShell is the default, we need to prefix the command with "& ".
+            // Otherwise, the prefix is not allowed and results in a syntax error.
+            // -> Just force cmd.exe.
+            terminalOptions.shellPath = "cmd.exe";
+        }
+        terminal = vscode.window.createTerminal(terminalOptions);
+        // Sometimes the terminal takes some time to start up before it can start accepting input.
+        await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    const terminal = vscode.window.createTerminal(terminalOptions);
-    // Sometimes the terminal takes some time to start up before it can start accepting input.
-    await new Promise((resolve) => setTimeout(resolve, 100));
     terminal.show(false); // focus the terminal
     terminal.sendText(cmd);
     return terminal;
@@ -425,6 +436,16 @@ export async function activate(context: vscode.ExtensionContext) {
     disposables.push(outChannel);
 
     const terminals: { [name: string]: TerminalContext } = {};
+    vscode.window.onDidCloseTerminal((t) => {
+        // Loop through terminals and delete the entry if it matches the closed terminal
+        for (const [key, termContext] of Object.entries(terminals)) {
+            if (termContext.terminal === t) {
+                delete terminals[key];
+                console.log(`Terminal closed and removed from map: ${t.name} (key: ${key})`);
+                break;
+            }
+        }
+    });
 
     installButton("Write Your Python Program", undefined);
 
