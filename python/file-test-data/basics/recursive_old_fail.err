@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/recursive_old_fail.py", line 13, in <module>
+    class Confluence:
+  File "file-test-data/basics/recursive_old_fail.py", line 15, in Confluence
+    mainStem: RiverSection
+NameError: name 'RiverSection' is not defined

@@ -10,6 +10,7 @@ import re
 import shutil
 import json
 import re
+import fnmatch
 
 GLOBAL_CHECK_OUTPUTS = True
 
@@ -24,6 +25,7 @@ class TestOpts:
     keepGoing: bool
     record: Optional[str]
     lang: Optional[str]
+    patterns: list[str]
 
 def parseArgs() -> TestOpts:
     parser = argparse.ArgumentParser(
@@ -41,7 +43,9 @@ def parseArgs() -> TestOpts:
                         type=str, help='Record the expected output for the given file.')
     parser.add_argument('--lang', dest='lang',
                         type=str, help='Display error messages in this language (either en or de, only for recording).')
-
+    parser.add_argument('patterns', metavar='PATTERN',
+                        help='Glob patterns, a test is executed only if it matches at least one pattern',
+                        nargs='*')
     # Parse the arguments
     args = parser.parse_args()
 
@@ -53,7 +57,8 @@ def parseArgs() -> TestOpts:
         only=args.only,
         keepGoing=args.keepGoing,
         record=args.record,
-        lang=args.lang
+        lang=args.lang,
+        patterns=args.patterns,
     )
 
 defaultLang = 'de'
@@ -82,6 +87,8 @@ class TestResults:
         print(f"Passed: {len(self.passed)}")
         print(f"Skipped: {len(self.skipped)}")
         print(f"Failed: {len(self.failed)}")
+        print()
+        print('Python version: ' + sys.version)
         if self.failed:
             print()
             print("Failed tests:")
@@ -136,6 +143,9 @@ def shouldSkip(testFile: str, ctx: TestContext, minVersion: Optional[tuple[int, 
     """
     global _started
     opts = ctx.opts
+    if opts.patterns:
+        if not matchesAnyPattern(testFile, opts.patterns):
+            return True
     if opts.startAt:
         if _started:
             return False
@@ -367,6 +377,12 @@ def checkNoConfig(testFile: str,
     if status == 'failed':
         if not ctx.opts.keepGoing:
             ctx.results.finish()
+
+def matchesAnyPattern(testFile: str, patterns: list[str]) -> bool:
+    for p in patterns:
+        if fnmatch.fnmatch(testFile, p) or p in testFile:
+            return True
+    return False
 
 def check(testFile: str,
           exitCode: int = 1,

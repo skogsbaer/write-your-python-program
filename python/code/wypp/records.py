@@ -17,13 +17,6 @@ def init(enableTypeChecking=True):
     global _typeCheckingEnabled
     _typeCheckingEnabled = enableTypeChecking
 
-def _collectDataClassAttributes(cls):
-    result = dict()
-    for c in cls.mro():
-        if hasattr(c, '__kind') and c.__kind == 'record' and hasattr(c, '__annotations__'):
-            result = c.__annotations__ | result
-    return result
-
 def _checkRecordAttr(cls: typing.Any,
                      ns: myTypeguard.Namespaces,
                      name: str,
@@ -48,11 +41,8 @@ def _patchDataClass(cls, mutable: bool, ns: myTypeguard.Namespaces):
     fieldNames = [f.name for f in dataclasses.fields(cls)]
     setattr(cls, EQ_ATTRS_ATTR, fieldNames)
 
-    if hasattr(cls, '__annotations__'):
-        # add annotions for type checked constructor.
-        cls.__kind = 'record'
-        cls.__init__.__annotations__ = _collectDataClassAttributes(cls)
-        cls.__init__ = typecheck.wrapTypecheckRecordConstructor(cls, ns)
+    cls.__kind = 'record'
+    cls.__init__ = typecheck.wrapTypecheckRecordConstructor(cls, ns)
 
     if mutable:
         # prevent new fields being added
