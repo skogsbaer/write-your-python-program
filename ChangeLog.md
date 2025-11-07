@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.1.0 (2025-11-07)
+  * Fix bug with recursive types #192
+  * Improve startup performance and other minor improvements #190
 * 2.0.9 (2025-10-27)
   * Overwrite path to old plugin versions #188
 * 2.0.8 (2025-10-16)
