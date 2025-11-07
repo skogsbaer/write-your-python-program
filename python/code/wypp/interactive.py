@@ -36,11 +36,12 @@ def enterInteractive(userDefs: dict, checkTypes: bool, loadingFailed: bool):
     historyFile = getHistoryFilePath()
     try:
         import readline
+    except:
+        readline = None
+    if readline:
         readline.parse_and_bind('tab: complete')
         if historyFile and os.path.exists(historyFile):
             readline.read_history_file(historyFile)
-    except:
-        pass
     try:
         consoleClass(locals=userDefs).interact(banner="", exitmsg='')
     finally:
