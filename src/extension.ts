@@ -44,19 +44,23 @@ function showButtons() {
 }
 
 async function startTerminal(
-    existing: vscode.Terminal | undefined, name: string, cmd: string
+    existing: vscode.Terminal | undefined, name: string, cmd: string, outChannel: vscode.OutputChannel
 ): Promise<vscode.Terminal> {
     let terminal: vscode.Terminal | undefined;
     if (existing) {
         // We try to re-use the existing terminal. But we need to terminate a potentially
         // running python process first. If there is no python process, the shell
-        // complains about the "import sys; sys.exit(0)" command, but we don't care.
+        // complains about the "import sys; sys.exit(0)" command, but we do not care.
         if (!existing.exitStatus) {
+            outChannel.appendLine("Reusing existing terminal");
             terminal = existing;
             terminal.sendText("import sys; sys.exit(0)");
         } else {
+            outChannel.appendLine("Disposing existing terminal because it's already terminated");
             existing.dispose();
         }
+    } else {
+        outChannel.appendLine("No terminal exists yet, creating new terminal");
     }
     if (!terminal) {
          const terminalOptions: vscode.TerminalOptions = {name: name};
@@ -434,6 +438,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const outChannel = vscode.window.createOutputChannel("Write Your Python Program");
     disposables.push(outChannel);
+    outChannel.appendLine('Write Your Python Program extension activated.');
 
     const terminals: { [name: string]: TerminalContext } = {};
     vscode.window.onDidCloseTerminal((t) => {
@@ -497,7 +502,8 @@ export async function activate(context: vscode.ExtensionContext) {
                         disableOpt + langOpt +
                         " --interactive " +
                         " --change-directory " +
-                        fileToCommandArgument(file)
+                        fileToCommandArgument(file),
+                    outChannel
                 );
                 terminals[cmdId] = {terminal: cmdTerm, directory: path.dirname(file)};
                 if (pyCmd.kind === "warning") {
