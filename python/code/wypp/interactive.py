@@ -8,18 +8,6 @@ from dataclasses import dataclass
 from constants import *
 from myLogging import *
 from exceptionHandler import handleCurrentException
-import i18n
-
-def prepareInteractive(reset=True):
-    print()
-    if reset:
-        if os.name == 'nt':
-            # clear the terminal
-            os.system('cls')
-        else:
-            # On linux & mac use ANSI Sequence for this
-            print('\033[2J\033[H')
-
 
 HISTORY_SIZE = 1000
 
@@ -48,11 +36,12 @@ def enterInteractive(userDefs: dict, checkTypes: bool, loadingFailed: bool):
     historyFile = getHistoryFilePath()
     try:
         import readline
+    except:
+        readline = None
+    if readline:
         readline.parse_and_bind('tab: complete')
         if historyFile and os.path.exists(historyFile):
             readline.read_history_file(historyFile)
-    except:
-        pass
     try:
         consoleClass(locals=userDefs).interact(banner="", exitmsg='')
     finally:

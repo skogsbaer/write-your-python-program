@@ -23,7 +23,7 @@ def color(s, color):
     return color + s + RESET
 
 def green(s):
-    return color(s, GREEN)
+    return color(s, GREEN + BOLD)
 
 def red(s):
     return color(s, RED + BOLD)

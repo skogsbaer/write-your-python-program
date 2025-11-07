@@ -1,0 +1,10 @@
+{
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportWildcardImportFromLibrary": "none"
+    },
+    "python.analysis.extraPaths": [
+        "../python/code",
+        "/Users/swehr/devel/write-your-python-program/python/code"
+    ],
+    "python.analysis.typeCheckingMode": "off"
+}

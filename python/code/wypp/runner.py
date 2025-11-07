@@ -33,7 +33,7 @@ import interactive
 import runCode
 import exceptionHandler
 import cmdlineArgs
-
+import ansi
 
 def printWelcomeString(file, version, doTypecheck):
     cwd = os.getcwd() + "/"
@@ -44,8 +44,10 @@ def printWelcomeString(file, version, doTypecheck):
     tycheck = ''
     if not doTypecheck:
         tycheck = ', no typechecking'
-    printStderr(i18n.tr('=== WELCOME to ') + '"Write Your Python Program" ' +
-                '(%sPython %s, %s%s) ===' % (versionStr, pythonVersion, file, tycheck))
+    msg = i18n.tr('=== WELCOME to ') + '"Write Your Python Program" ' + \
+          '(%sPython %s, %s%s) ===' % (versionStr, pythonVersion, file, tycheck)
+    fullMsg = (10 * '\n') + ansi.green(msg) + '\n'
+    printStderr(fullMsg)
 
 def main(globals, argList=None):
     (args, restArgs) = cmdlineArgs.parseCmdlineArgs(argList)
@@ -70,8 +72,6 @@ def main(globals, argList=None):
 
     isInteractive = args.interactive
     version = versionMod.readVersion()
-    if isInteractive:
-        interactive.prepareInteractive(reset=not args.noClear)
 
     if fileToRun is None:
         return
