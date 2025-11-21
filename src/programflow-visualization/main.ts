@@ -29,7 +29,7 @@ export function getProgFlowVizCallback(context: vscode.ExtensionContext, outChan
                 tracePort = startBackend(context, file, outChannel);
             }
 
-            const result = await startFrontend(context, file.fsPath, fileHash, tracePort);
+            const result = await startFrontend(context, outChannel, file.fsPath, fileHash, tracePort);
             if (result) {
                 await vscode.window.showErrorMessage("Error ProgramFlow-Visualization: " + result.errorMessage);
                 return;

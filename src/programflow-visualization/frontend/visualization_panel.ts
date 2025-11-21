@@ -18,8 +18,17 @@ export class VisualizationPanel {
   private _trace: FrontendTrace;
   private _traceIndex: number;
   private _tracePortSelfClose: boolean;
+  private _outChannel: vscode.OutputChannel;
 
-  private constructor(context: vscode.ExtensionContext, filePath: string, fileHash: string, trace: BackendTrace, tracePort: MessagePort | null) {
+  private constructor(
+    context: vscode.ExtensionContext,
+    outChannel: vscode.OutputChannel,
+    filePath: string,
+    fileHash: string,
+    trace: BackendTrace,
+    tracePort: MessagePort | null
+  ) {
+    this._outChannel = outChannel;
     this._fileHash = fileHash;
     this._tracePort = tracePort;
     this._backendTrace = { trace: trace, complete: trace.length > 0 };
@@ -74,8 +83,8 @@ export class VisualizationPanel {
       if (this._panel?.active) {
         this.updateLineHighlight();
       }
-    }, undefined, context.subscriptions); 
-      
+    }, undefined, context.subscriptions);
+
 
     // Message Receivers
     this._panel.webview.onDidReceiveMessage(
@@ -118,12 +127,13 @@ export class VisualizationPanel {
 
   public static async getVisualizationPanel(
     context: vscode.ExtensionContext,
+    outChannel: vscode.OutputChannel,
     filePath: string,
     fileHash: string,
     trace: BackendTrace,
     tracePort: MessagePort | null
   ): Promise<VisualizationPanel | undefined> {
-    return new VisualizationPanel(context, filePath, fileHash, trace, tracePort);
+    return new VisualizationPanel(context, outChannel, filePath, fileHash, trace, tracePort);
   }
 
   // TODO: Look if Typescript is possible OR do better documentation in all files
@@ -186,34 +196,45 @@ export class VisualizationPanel {
 
   private async updateLineHighlight(remove: boolean = false) {
     if (this._trace.length === 0) {
+      this._outChannel.appendLine("updateLineHighlight: no trace available, aborting");
       return;
     }
+    const traceFile = this._trace[this._traceIndex][3]!;
     let editor: vscode.TextEditor | undefined = vscode.window.visibleTextEditors.filter(
-      editor => path.basename(editor.document.uri.path) === path.basename(this._trace[this._traceIndex][3]!)
+      editor => path.basename(editor.document.uri.path) === path.basename(traceFile)
     )[0];
 
-    const openPath = vscode.Uri.parse(this._trace[this._traceIndex][3]!);
+    const openPath = vscode.Uri.parse(traceFile);
     if (!editor || editor.document.uri.path !== openPath.path) {
+      // How can it be that editor is not null/undefined, but the path does not match?
       await vscode.commands.executeCommand('workbench.action.focusFirstEditorGroup');
       const document = await vscode.workspace.openTextDocument(openPath);
       editor = await vscode.window.showTextDocument(document);
     }
 
-    if (remove || editor.document.lineCount < this._trace[this._traceIndex][0]) {
+    const traceLine = this._trace[this._traceIndex][0];
+    if (remove) {
+      this._outChannel.appendLine(
+        "updateLineHighlight: removing highlighting in " + editor.document.fileName);
+      editor.setDecorations(nextLineExecuteHighlightType, []);
+    } else if (editor.document.lineCount < traceLine) {
+      // How can it be that traceLine is out of range?
+      this._outChannel.appendLine(
+        "updateLineHighlight: removing highlighting in " + editor.document.fileName +
+        "(out of range)");
       editor.setDecorations(nextLineExecuteHighlightType, []);
     } else {
-      this.setNextLineHighlighting(editor);
-    }
-  }
-
-  private setNextLineHighlighting(editor: vscode.TextEditor) {
-    if (this._trace.length === 0) {
-      return;
-    }
-    const nextLine = this._trace[this._traceIndex][0] - 1;
-
-    if (nextLine > -1) {
-      this.setEditorDecorations(editor, nextLineExecuteHighlightType, nextLine);
+      const hlLine = traceLine - 1; // why - 1
+      if (hlLine > -1) {
+        this._outChannel.appendLine(
+          "updateLineHighlight: highlighting line " + hlLine + " in " + editor.document.fileName);
+        this.setEditorDecorations(editor, nextLineExecuteHighlightType, hlLine);
+      } else {
+        // how can this happen?
+        this._outChannel.appendLine(
+          "updateLineHighlight: cannot highlight line " + hlLine + " in " +
+          editor.document.fileName + "(out of range)");
+      }
     }
   }
 
