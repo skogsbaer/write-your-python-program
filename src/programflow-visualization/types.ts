@@ -7,6 +7,7 @@ type Failure = { errorMessage: string };
 
 // State Types for the Frontend
 type FrontendTrace = Array<FrontendTraceElem>;
+// FIXME: what are this array elements? Why isn't there a type with named fields?
 type FrontendTraceElem = [number, string, string, string, string];
 // ############################################################################################
 // State Types for the Backend
