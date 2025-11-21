@@ -18,8 +18,17 @@ export class VisualizationPanel {
   private _trace: FrontendTrace;
   private _traceIndex: number;
   private _tracePortSelfClose: boolean;
+  private _outChannel: vscode.OutputChannel;
 
-  private constructor(context: vscode.ExtensionContext, filePath: string, fileHash: string, trace: BackendTrace, tracePort: MessagePort | null) {
+  private constructor(
+    context: vscode.ExtensionContext,
+    outChannel: vscode.OutputChannel,
+    filePath: string,
+    fileHash: string,
+    trace: BackendTrace,
+    tracePort: MessagePort | null
+  ) {
+    this._outChannel = outChannel;
     this._fileHash = fileHash;
     this._tracePort = tracePort;
     this._backendTrace = { trace: trace, complete: trace.length > 0 };
@@ -74,8 +83,8 @@ export class VisualizationPanel {
       if (this._panel?.active) {
         this.updateLineHighlight();
       }
-    }, undefined, context.subscriptions); 
-      
+    }, undefined, context.subscriptions);
+
 
     // Message Receivers
     this._panel.webview.onDidReceiveMessage(
@@ -118,12 +127,13 @@ export class VisualizationPanel {
 
   public static async getVisualizationPanel(
     context: vscode.ExtensionContext,
+    outChannel: vscode.OutputChannel,
     filePath: string,
     fileHash: string,
     trace: BackendTrace,
     tracePort: MessagePort | null
   ): Promise<VisualizationPanel | undefined> {
-    return new VisualizationPanel(context, filePath, fileHash, trace, tracePort);
+    return new VisualizationPanel(context, outChannel, filePath, fileHash, trace, tracePort);
   }
 
   // TODO: Look if Typescript is possible OR do better documentation in all files

@@ -1,4 +1,4 @@
-/** 
+/**
  * For better readable code
 */
 type Try = Success | Failure;
