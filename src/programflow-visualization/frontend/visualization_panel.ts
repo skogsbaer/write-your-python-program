@@ -109,7 +109,7 @@ export class VisualizationPanel {
       this._trace.push((new HTMLGenerator()).generateHTML(backendTraceElem));
       await this.postMessagesToWebview('updateButtons', 'updateContent');
       if (firstElement) {
-        this.updateLineHighlight();
+        await this.updateLineHighlight();
       }
     });
     this._tracePort?.on('close', async () => {
@@ -195,45 +195,58 @@ export class VisualizationPanel {
   }
 
   private async updateLineHighlight(remove: boolean = false) {
-    if (this._trace.length === 0) {
-      this._outChannel.appendLine("updateLineHighlight: no trace available, aborting");
-      return;
-    }
-    const traceFile = this._trace[this._traceIndex][3]!;
-    let editor: vscode.TextEditor | undefined = vscode.window.visibleTextEditors.filter(
-      editor => path.basename(editor.document.uri.path) === path.basename(traceFile)
-    )[0];
-
-    const openPath = vscode.Uri.parse(traceFile);
-    if (!editor || editor.document.uri.path !== openPath.path) {
-      // How can it be that editor is not null/undefined, but the path does not match?
-      await vscode.commands.executeCommand('workbench.action.focusFirstEditorGroup');
-      const document = await vscode.workspace.openTextDocument(openPath);
-      editor = await vscode.window.showTextDocument(document);
-    }
-
-    const traceLine = this._trace[this._traceIndex][0];
-    if (remove) {
+    try {
+      if (this._trace.length === 0) {
+        this._outChannel.appendLine("updateLineHighlight: no trace available, aborting");
+        return;
+      }
+      const traceFile = this._trace[this._traceIndex].filename;
       this._outChannel.appendLine(
-        "updateLineHighlight: removing highlighting in " + editor.document.fileName);
-      editor.setDecorations(nextLineExecuteHighlightType, []);
-    } else if (editor.document.lineCount < traceLine) {
-      // How can it be that traceLine is out of range?
-      this._outChannel.appendLine(
-        "updateLineHighlight: removing highlighting in " + editor.document.fileName +
-        "(out of range)");
-      editor.setDecorations(nextLineExecuteHighlightType, []);
-    } else {
-      const hlLine = traceLine - 1; // why - 1
-      if (hlLine > -1) {
+        `updateLineHighlight: traceFile=${traceFile}, traceIndex=${this._traceIndex}, remove=${remove}`);
+
+      // Use vscode.Uri.file() for proper file path to URI conversion
+      const openPath = vscode.Uri.file(traceFile);
+
+      // Find editor by full normalized path, not just basename
+      let editor: vscode.TextEditor | undefined = vscode.window.visibleTextEditors.find(
+        editor => editor.document.uri.fsPath === openPath.fsPath
+      );
+
+      if (!editor && remove) {
+        return;
+      } else if (!editor){
+        this._outChannel.appendLine(`updateLineHighlight: editor not found, opening document: ${openPath.fsPath}`);
+        await vscode.commands.executeCommand('workbench.action.focusFirstEditorGroup');
+        const document = await vscode.workspace.openTextDocument(openPath);
+        editor = await vscode.window.showTextDocument(document, { preserveFocus: false });
+        // Give the editor time to fully initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!editor) {
+          this._outChannel.appendLine(`updateLineHighlight: failed to get editor after opening document`);
+          return;
+        }
+      }
+
+      const traceLine = this._trace[this._traceIndex].lineNumber;
+      const lineNo = traceLine - 1; // zero-based indexing in vscode
+      if (remove) {
         this._outChannel.appendLine(
-          "updateLineHighlight: highlighting line " + hlLine + " in " + editor.document.fileName);
-        this.setEditorDecorations(editor, nextLineExecuteHighlightType, hlLine);
+          "updateLineHighlight: removing highlighting in " + editor.document.fileName);
+        editor.setDecorations(nextLineExecuteHighlightType, []);
+      } else if (lineNo < 0 || lineNo >= editor.document.lineCount) {
+        this._outChannel.appendLine(
+          "updateLineHighlight: traceLine " + traceLine + " out of range (doc has " +
+          editor.document.lineCount + " lines) in " + editor.document.fileName);
+        editor.setDecorations(nextLineExecuteHighlightType, []);
       } else {
-        // how can this happen?
         this._outChannel.appendLine(
-          "updateLineHighlight: cannot highlight line " + hlLine + " in " +
-          editor.document.fileName + "(out of range)");
+          "updateLineHighlight: highlighting line " + traceLine + " in " + editor.document.fileName);
+        this.setEditorDecorations(editor, nextLineExecuteHighlightType, lineNo);
+      }
+    } catch (error) {
+      this._outChannel.appendLine(`updateLineHighlight: ERROR - ${error}`);
+      if (error instanceof Error) {
+        this._outChannel.appendLine(`Stack: ${error.stack}`);
       }
     }
   }

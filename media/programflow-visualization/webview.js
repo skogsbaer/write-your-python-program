@@ -36,7 +36,7 @@ window.addEventListener("message", (event) => {
 /**
  * Updates the Visualization in the Webview, with the given BackendTraceElem.
  *
- * @param traceElem A BackendTraceElem with 3 fields (line, stack, heap)
+ * @param traceElem A FrontendTraceElem
  */
 function updateVisualization(traceElem) {
   const data = `
@@ -56,10 +56,10 @@ function updateVisualization(traceElem) {
     </div>
     <div class="row">
       <div class="column floating-left floating-left-content" id="frames">
-      ${traceElem[1]}
+      ${traceElem.stackHTML}
       </div>
       <div class="column floating-right floating-right-content" id="objects">
-      ${traceElem[2]}
+      ${traceElem.heapHTML}
       </div>
     </div>
   `;
@@ -78,17 +78,17 @@ function updateVisualization(traceElem) {
   }
 
   const stdoutLog = document.getElementById("stdout-log");
-  stdoutLog.innerHTML = traceElem[4];
+  stdoutLog.innerHTML = traceElem.outputState;
   stdoutLog.scrollTo(0, stdoutLog.scrollHeight);
 }
 
 /**
  * Updates the indendation for heap elements, if a other heap element references it.
  *
- * @param traceElem A BackendTraceElem with 3 fields (line, stack, heap)
+ * @param traceElem A FrontendTraceElem
  */
 function updateIntend(traceElem) {
-  const heapTags = traceElem[2].match(/(?<=startPointer)[0-9]+/g);
+  const heapTags = traceElem.heapHTML.match(/(?<=startPointer)[0-9]+/g);
   if (heapTags) {
     heapTags.forEach((tag) => {
       const element = document.getElementById("objectItem" + tag);
@@ -117,7 +117,7 @@ function updateRefArrows(traceElem) {
       return new LinkerLine({
         parent: document.getElementById("viz"),
         start: tag.elem1,
-        end: tag.elem2, 
+        end: tag.elem2,
         size: 2,
         path: "magnet",
         startSocket: "right",
@@ -139,9 +139,9 @@ function updateRefArrows(traceElem) {
  * @returns A list with all ids that have either a start or end pointer id in the html
  */
 function getCurrentTags(traceElem) {
-  const stackTags = traceElem[1].match(/(?<=id=")(.+)Pointer[0-9]+/g);
-  const heapTags = traceElem[2].match(/(?<=startPointer)[0-9]+/g);
-  const uniqueId = traceElem[2].match(/(?<=)\d+(?=startPointer)/g);
+  const stackTags = traceElem.stackHTML.match(/(?<=id=")(.+)Pointer[0-9]+/g);
+  const heapTags = traceElem.heapHTML.match(/(?<=startPointer)[0-9]+/g);
+  const uniqueId = traceElem.heapHTML.match(/(?<=)\d+(?=startPointer)/g);
 
   if (!stackTags) {
     return;
