@@ -18,8 +18,17 @@ export class VisualizationPanel {
   private _trace: FrontendTrace;
   private _traceIndex: number;
   private _tracePortSelfClose: boolean;
+  private _outChannel: vscode.OutputChannel;
 
-  private constructor(context: vscode.ExtensionContext, filePath: string, fileHash: string, trace: BackendTrace, tracePort: MessagePort | null) {
+  private constructor(
+    context: vscode.ExtensionContext,
+    outChannel: vscode.OutputChannel,
+    filePath: string,
+    fileHash: string,
+    trace: BackendTrace,
+    tracePort: MessagePort | null
+  ) {
+    this._outChannel = outChannel;
     this._fileHash = fileHash;
     this._tracePort = tracePort;
     this._backendTrace = { trace: trace, complete: trace.length > 0 };
@@ -74,8 +83,8 @@ export class VisualizationPanel {
       if (this._panel?.active) {
         this.updateLineHighlight();
       }
-    }, undefined, context.subscriptions); 
-      
+    }, undefined, context.subscriptions);
+
 
     // Message Receivers
     this._panel.webview.onDidReceiveMessage(
@@ -100,7 +109,7 @@ export class VisualizationPanel {
       this._trace.push((new HTMLGenerator()).generateHTML(backendTraceElem));
       await this.postMessagesToWebview('updateButtons', 'updateContent');
       if (firstElement) {
-        this.updateLineHighlight();
+        await this.updateLineHighlight();
       }
     });
     this._tracePort?.on('close', async () => {
@@ -118,12 +127,13 @@ export class VisualizationPanel {
 
   public static async getVisualizationPanel(
     context: vscode.ExtensionContext,
+    outChannel: vscode.OutputChannel,
     filePath: string,
     fileHash: string,
     trace: BackendTrace,
     tracePort: MessagePort | null
   ): Promise<VisualizationPanel | undefined> {
-    return new VisualizationPanel(context, filePath, fileHash, trace, tracePort);
+    return new VisualizationPanel(context, outChannel, filePath, fileHash, trace, tracePort);
   }
 
   // TODO: Look if Typescript is possible OR do better documentation in all files
@@ -185,35 +195,59 @@ export class VisualizationPanel {
   }
 
   private async updateLineHighlight(remove: boolean = false) {
-    if (this._trace.length === 0) {
-      return;
-    }
-    let editor: vscode.TextEditor | undefined = vscode.window.visibleTextEditors.filter(
-      editor => path.basename(editor.document.uri.path) === path.basename(this._trace[this._traceIndex][3]!)
-    )[0];
+    try {
+      if (this._trace.length === 0) {
+        this._outChannel.appendLine("updateLineHighlight: no trace available, aborting");
+        return;
+      }
+      const traceFile = this._trace[this._traceIndex].filename;
+      this._outChannel.appendLine(
+        `updateLineHighlight: traceFile=${traceFile}, traceIndex=${this._traceIndex}, remove=${remove}`);
 
-    const openPath = vscode.Uri.parse(this._trace[this._traceIndex][3]!);
-    if (!editor || editor.document.uri.path !== openPath.path) {
-      await vscode.commands.executeCommand('workbench.action.focusFirstEditorGroup');
-      const document = await vscode.workspace.openTextDocument(openPath);
-      editor = await vscode.window.showTextDocument(document);
-    }
+      // Use vscode.Uri.file() for proper file path to URI conversion
+      const openPath = vscode.Uri.file(traceFile);
 
-    if (remove || editor.document.lineCount < this._trace[this._traceIndex][0]) {
-      editor.setDecorations(nextLineExecuteHighlightType, []);
-    } else {
-      this.setNextLineHighlighting(editor);
-    }
-  }
+      // Find editor by full normalized path, not just basename
+      let editor: vscode.TextEditor | undefined = vscode.window.visibleTextEditors.find(
+        editor => editor.document.uri.fsPath === openPath.fsPath
+      );
 
-  private setNextLineHighlighting(editor: vscode.TextEditor) {
-    if (this._trace.length === 0) {
-      return;
-    }
-    const nextLine = this._trace[this._traceIndex][0] - 1;
+      if (!editor && remove) {
+        return;
+      } else if (!editor){
+        this._outChannel.appendLine(`updateLineHighlight: editor not found, opening document: ${openPath.fsPath}`);
+        await vscode.commands.executeCommand('workbench.action.focusFirstEditorGroup');
+        const document = await vscode.workspace.openTextDocument(openPath);
+        editor = await vscode.window.showTextDocument(document, { preserveFocus: false });
+        // Give the editor time to fully initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!editor) {
+          this._outChannel.appendLine(`updateLineHighlight: failed to get editor after opening document`);
+          return;
+        }
+      }
 
-    if (nextLine > -1) {
-      this.setEditorDecorations(editor, nextLineExecuteHighlightType, nextLine);
+      const traceLine = this._trace[this._traceIndex].lineNumber;
+      const lineNo = traceLine - 1; // zero-based indexing in vscode
+      if (remove) {
+        this._outChannel.appendLine(
+          "updateLineHighlight: removing highlighting in " + editor.document.fileName);
+        editor.setDecorations(nextLineExecuteHighlightType, []);
+      } else if (lineNo < 0 || lineNo >= editor.document.lineCount) {
+        this._outChannel.appendLine(
+          "updateLineHighlight: traceLine " + traceLine + " out of range (doc has " +
+          editor.document.lineCount + " lines) in " + editor.document.fileName);
+        editor.setDecorations(nextLineExecuteHighlightType, []);
+      } else {
+        this._outChannel.appendLine(
+          "updateLineHighlight: highlighting line " + traceLine + " in " + editor.document.fileName);
+        this.setEditorDecorations(editor, nextLineExecuteHighlightType, lineNo);
+      }
+    } catch (error) {
+      this._outChannel.appendLine(`updateLineHighlight: ERROR - ${error}`);
+      if (error instanceof Error) {
+        this._outChannel.appendLine(`Stack: ${error.stack}`);
+      }
     }
   }
 

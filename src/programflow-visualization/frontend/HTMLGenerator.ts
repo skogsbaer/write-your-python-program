@@ -50,7 +50,13 @@ export class HTMLGenerator {
         if (traceElement.traceback !== undefined) {
             output += `<span class="traceback-text">${traceElement.traceback}</span>`;
         }
-        return [traceElement.line, frameItems, objectItems, traceElement.filePath, output];
+        return {
+            lineNumber: traceElement.line,
+            stackHTML: frameItems,
+            heapHTML: objectItems,
+            filename: traceElement.filePath,
+            outputState: output
+        };
     }
 
     private objectItem(name: string, value: HeapValue): string {

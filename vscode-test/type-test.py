@@ -12,4 +12,5 @@ class Point:
     x: int
     y: int
 
-p = Point()
+p = Point(1, 2)
+print(p)

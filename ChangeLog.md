@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.1.1 (2025-11-26)
+  * Fix a couple of glitches with highlighting in the visualization
 * 2.1.0 (2025-11-07)
   * Fix bug with recursive types #192
   * Improve startup performance and other minor improvements #190

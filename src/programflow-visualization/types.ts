@@ -1,4 +1,4 @@
-/** 
+/**
  * For better readable code
 */
 type Try = Success | Failure;
@@ -7,7 +7,15 @@ type Failure = { errorMessage: string };
 
 // State Types for the Frontend
 type FrontendTrace = Array<FrontendTraceElem>;
-type FrontendTraceElem = [number, string, string, string, string];
+
+type FrontendTraceElem = {
+  lineNumber: number, // 1-based
+  stackHTML: string,
+  heapHTML: string,
+  filename: string,
+  outputState: string,
+};
+
 // ############################################################################################
 // State Types for the Backend
 type PartialBackendTrace = {
