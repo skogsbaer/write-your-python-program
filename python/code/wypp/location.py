@@ -195,6 +195,10 @@ class CallableInfo(abc.ABC):
     @abc.abstractmethod
     def name(self) -> str:
         pass
+    @property
+    @abc.abstractmethod
+    def isAsync(self) -> bool:
+        pass
     @abc.abstractmethod
     def getResultTypeLocation(self) -> Optional[Loc]:
         pass
@@ -213,6 +217,8 @@ class StdCallableInfo(CallableInfo):
         self.__lineno = f.__code__.co_firstlineno
         self.__name = f.__name__
         self.__ast = parsecache.getAST(self.file)
+        func = inspect.unwrap(f)
+        self.__async = inspect.iscoroutinefunction(func) or inspect.isasyncgenfunction(func)
 
     def __repr__(self):
         return f'StdCallableInfo({self.name}, {self.kind})'
@@ -220,6 +226,10 @@ class StdCallableInfo(CallableInfo):
     @property
     def name(self):
         return self.__name
+
+    @property
+    def isAsync(self) -> bool:
+        return self.__async
 
     def _findDef(self) -> Optional[ast.FunctionDef | ast.AsyncFunctionDef]:
         m = FunMatcher(self.__name, self.__lineno)
@@ -303,6 +313,9 @@ class RecordConstructorInfo(CallableInfo):
     @property
     def name(self):
         return self.__cls.__name__
+    @property
+    def isAsync(self) -> bool:
+        return False
     def getResultTypeLocation(self) -> Optional[Loc]:
         return None
     def getParamSourceLocation(self, paramName: str) -> Optional[Loc]:

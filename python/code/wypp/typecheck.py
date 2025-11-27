@@ -131,7 +131,11 @@ def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo]
         t = None
     debug(f'Checking return value when calling {info}, return type: {t}')
     locDecl = info.getResultTypeLocation()
-    if not handleMatchesTyResult(matchesTy(result, t, cfg.ns), locDecl):
+    if info.isAsync:
+        tyOk = inspect.iscoroutine(result)
+    else:
+        tyOk = handleMatchesTyResult(matchesTy(result, t, cfg.ns), locDecl)
+    if not tyOk:
         fi = stacktrace.callerOutsideWypp()
         if fi is not None:
             locRes = location.Loc.fromFrameInfo(fi)
