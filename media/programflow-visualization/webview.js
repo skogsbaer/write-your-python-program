@@ -34,7 +34,7 @@ window.addEventListener("message", (event) => {
 });
 
 /**
- * Updates the Visualization in the Webview, with the given BackendTraceElem.
+ * Updates the Visualization in the Webview, with the given FrontendTraceElem.
  *
  * @param traceElem A FrontendTraceElem
  */
