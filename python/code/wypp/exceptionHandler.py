@@ -43,8 +43,9 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
     frameList = (stacktrace.tbToFrameList(tb) if tb is not None else [])
     if frameList and removeFirstTb:
         frameList = frameList[1:]
-    isBug = not isWyppError and not isinstance(val, SyntaxError) and \
-        len(frameList) > 0 and stacktrace.isWyppFrame(frameList[-1])
+    isSyntaxError = isinstance(val, SyntaxError)
+    lastFrameIsWypp = len(frameList) > 0 and stacktrace.isWyppFrame(frameList[-1])
+    isBug = not isWyppError and not isSyntaxError and lastFrameIsWypp
     stackSummary = stacktrace.limitTraceback(frameList, extra, not isBug and not isDebug())
     header = False
     for x in stackSummary.format():
@@ -62,6 +63,7 @@ def handleCurrentException(exit=True, removeFirstTb=False, file=sys.stderr):
         for x in traceback.format_exception_only(etype, val):
             file.write(x)
     if isBug:
+        debug(f'isWyppError={isWyppError}, isSyntaxError={isSyntaxError}, lastFrameIsWypp={lastFrameIsWypp}')
         file.write(f'BUG: the error above is most likely a bug in WYPP!')
     if exit:
         utils.die(1)

@@ -335,6 +335,58 @@ async function fixPylanceConfig(
     }
 }
 
+async function fixDebuggerConfig(
+    context: vscode.ExtensionContext,
+    folder?: vscode.WorkspaceFolder
+) {
+    // Create a .vscode/launch.json for beginner debugging if one does not exist.
+    // Use the provided workspace folder if available, otherwise fall back to the first workspace folder.
+    const workspacePath = folder?.uri?.fsPath ?? (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]?.uri.fsPath);
+    if (!workspacePath) {
+        // error messages already shown in fixPylanceConfig
+        return;
+    }
+
+    const vscodeDir = path.join(workspacePath, '.vscode');
+    const launchFile = path.join(vscodeDir, 'launch.json');
+
+    if (fs.existsSync(launchFile)) {
+        // Do not overwrite existing launch.json
+        return;
+    }
+
+    try {
+        if (!fs.existsSync(vscodeDir)) {
+            fs.mkdirSync(vscodeDir, { recursive: true });
+        }
+
+        const sep = path.delimiter; // ':' on POSIX, ';' on Windows
+        const d1 = context.asAbsolutePath('python/code');
+        const d2 = context.asAbsolutePath('python/code/wypp');
+        const envValue = `${d1}${sep}${d2}${sep}\${env:PYTHONPATH}`;
+        const envObj: any = {};
+        envObj['PYTHONPATH'] = envValue;
+
+        const launchJson = {
+            version: '0.2.0',
+            configurations: [
+                {
+                    name: 'WYPP Debugger',
+                    type: 'debugpy',
+                    request: 'launch',
+                    program: '${file}',
+                    console: 'integratedTerminal',
+                    env: envObj
+                }
+            ]
+        };
+
+        fs.writeFileSync(launchFile, JSON.stringify(launchJson, null, 2), { encoding: 'utf8' });
+    } catch (e) {
+        vscode.window.showWarningMessage('Write Your Python Program: failed to create launch.json: ' + String(e));
+    }
+}
+
 class Location implements vscode.TerminalLink {
 	constructor(
         public startIndex: number,
@@ -476,6 +528,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 return;
             }
             await fixPylanceConfig(context);
+            await fixDebuggerConfig(context);
             await vscode.window.activeTextEditor?.document.save();
             const pyCmd = getPythonCmd(pyExt);
             let verboseOpt = "";
