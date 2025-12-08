@@ -1,6 +1,7 @@
 from pathlib import Path
 from fileTestsLib import *
 import sys
+import os
 
 def pythonMinVersion(major: int, minor: int) -> bool:
     return sys.version_info >= (major, minor)
@@ -33,7 +34,15 @@ def main():
 
     globalCtx.results.finish()
 
+def extraChecks():
+    # The localTyping file does not exist, running should thus fail
+    localTyping = 'file-test-data/basics/typing.py'
+    if os.path.exists(localTyping):
+        raise ValueError(f'File {localTyping} should not exist')
+    check(localTyping, exitCode=1)
+
 try:
     main()
+    extraChecks()
 except KeyboardInterrupt:
     pass

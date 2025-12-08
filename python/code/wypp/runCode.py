@@ -34,7 +34,7 @@ class Lib:
 @dataclass
 class RunSetup:
     def __init__(self, pathDir: str, args: list[str]):
-        self.pathDir = pathDir
+        self.pathDir = os.path.abspath(pathDir)
         self.args = args
         self.sysPathInserted = False
         self.oldArgs = sys.argv
@@ -64,12 +64,30 @@ def prepareLib(onlyCheckRunnable, enableTypeChecking):
                        quiet=onlyCheckRunnable)
     return libDefs
 
+def debugModule(name):
+    if name in sys.modules:
+        m = sys.modules["copy"]
+        print(f"Module {name} already loaded from:", getattr(m, "__file__", None))
+    print("CWD:", os.getcwd())
+    print("sys.path[0]:", sys.path[0])
+    print("First few sys.path entries:")
+    for p in sys.path[:5]:
+        print("  ", p)
+
+    spec = importlib.util.find_spec(name)
+    print("Resolved spec:", spec)
+    if spec:
+        print("Origin:", spec.origin)
+        print("Loader:", type(spec.loader).__name__)
+
 def runCode(fileToRun, globals, doTypecheck=True, extraDirs=None) -> dict:
     if not extraDirs:
         extraDirs = []
     modName = os.path.basename(os.path.splitext(fileToRun)[0])
     with instrument.setupFinder(os.path.dirname(fileToRun), modName, extraDirs, doTypecheck):
         sys.dont_write_bytecode = True
+        if DEBUG:
+            debugModule(modName)
         res = runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=False)
         return res
 

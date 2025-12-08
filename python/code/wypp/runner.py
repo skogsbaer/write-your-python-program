@@ -66,9 +66,14 @@ def main(globals, argList=None):
             sys.exit(1)
 
     fileToRun: str = args.file
+    if not os.path.exists(fileToRun):
+        printStderr(f'File {fileToRun} does not exist')
+        sys.exit(1)
     if args.changeDir:
-        os.chdir(os.path.dirname(fileToRun))
+        d = os.path.dirname(fileToRun)
+        os.chdir(d)
         fileToRun = os.path.basename(fileToRun)
+        debug(f'Changed directory to {d}, fileToRun={fileToRun}')
 
     isInteractive = args.interactive
     version = versionMod.readVersion()
@@ -81,13 +86,15 @@ def main(globals, argList=None):
 
     libDefs = runCode.prepareLib(onlyCheckRunnable=args.checkRunnable, enableTypeChecking=args.checkTypes)
 
-    with (runCode.RunSetup(os.path.dirname(fileToRun), [fileToRun] + restArgs),
+    runDir = os.path.dirname(fileToRun)
+    with (runCode.RunSetup(runDir, [fileToRun] + restArgs),
           paths.projectDir(os.path.abspath(os.getcwd()))):
         globals['__name__'] = '__wypp__'
         sys.modules['__wypp__'] = sys.modules['__main__']
         loadingFailed = False
         try:
             verbose(f'running code in {fileToRun}')
+            debug(f'sys.path: {sys.path}')
             globals['__file__'] = fileToRun
             globals = runCode.runStudentCode(fileToRun, globals, args.checkRunnable,
                                              doTypecheck=args.checkTypes, extraDirs=args.extraDirs)

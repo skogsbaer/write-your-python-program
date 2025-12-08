@@ -12,6 +12,12 @@ import json
 import re
 import fnmatch
 
+DEBUG = False
+
+def debug(s):
+    if DEBUG:
+        print(f'[TESTDEBUG] {s}')
+
 GLOBAL_CHECK_OUTPUTS = True
 
 GLOBAL_RECORD_ALL = False # Should be False, write actual output to all expected output files
@@ -34,6 +40,7 @@ def parseArgs() -> TestOpts:
     )
 
     # Define the command-line arguments
+    parser.add_argument("--debug", action="store_true", help="Output debug messages")
     parser.add_argument("--start-at", type=str, help="Start with test in FILE")
     parser.add_argument("--only", type=str, help="Run only the test in FILE")
     parser.add_argument("--continue", action="store_true",
@@ -48,7 +55,9 @@ def parseArgs() -> TestOpts:
                         nargs='*')
     # Parse the arguments
     args = parser.parse_args()
-
+    if args.debug:
+        global DEBUG
+        DEBUG = True
     scriptDir = os.path.dirname(__file__)
     return TestOpts(
         cmd=f'{scriptDir}/code/wypp/runYourProgram.py',
@@ -244,6 +253,7 @@ def _runTest(testFile: str,
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'code')] + pythonPath)
     env['WYPP_UNDER_TEST'] = 'True'
+    debug(' '.join(cmd))
     with open(actualStdoutFile, 'w') as stdoutFile, \
             open(actualStderrFile, 'w') as stderrFile:
         # Run the command
@@ -332,9 +342,10 @@ class WyppTestConfig:
     typecheck: Literal[True, False, "both"]
     args: list[str]
     pythonPath: Optional[str]
+    exitCode: Optional[int]
     @staticmethod
     def default() -> WyppTestConfig:
-        return WyppTestConfig(typecheck=True, args=[], pythonPath=None)
+        return WyppTestConfig(typecheck=True, args=[], pythonPath=None, exitCode=None)
 
 def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
     """
@@ -342,7 +353,9 @@ def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
     `max_lines` lines of the file at `path` and return it as a dict.
     Returns {} if not present.
     """
-    validKeys = ['typecheck', 'args', 'pythonPath']
+    validKeys = ['typecheck', 'args', 'pythonPath', 'exitCode']
+    if not os.path.exists(path):
+        return WyppTestConfig.default()
     with open(path, "r", encoding="utf-8") as f:
         for lineno in range(1, max_lines + 1):
             line = f.readline()
@@ -358,7 +371,10 @@ def readWyppTestConfig(path: str, *, max_lines: int = 5) -> WyppTestConfig:
                 typecheck = j.get('typecheck', True)
                 args = j.get('args', [])
                 pythonPath = j.get('pythonPath')
-                return WyppTestConfig(typecheck=typecheck, args=args, pythonPath=pythonPath)
+                exitCode = j.get('exitCode')
+                cfg = WyppTestConfig(typecheck=typecheck, args=args, pythonPath=pythonPath, exitCode=exitCode)
+                debug(f'Config for {path}: {cfg}')
+                return cfg
     return WyppTestConfig.default()
 
 def checkNoConfig(testFile: str,
@@ -370,8 +386,6 @@ def checkNoConfig(testFile: str,
           checkOutputs: bool = True,
           ctx: TestContext = globalCtx,
           what: str = ''):
-    if guessExitCode(testFile) == 0:
-        exitCode = 0
     status = _check(testFile, exitCode, typecheck, args, pythonPath, minVersion, checkOutputs, ctx, what)
     ctx.results.storeTestResult(testFile, status)
     if status == 'failed':
@@ -396,6 +410,10 @@ def check(testFile: str,
     pythonPath = []
     if cfg.pythonPath:
         pythonPath = cfg.pythonPath.split(':')
+    if cfg.exitCode is not None:
+        exitCode = cfg.exitCode
+    elif guessExitCode(testFile) == 0:
+        exitCode = 0
     if cfg.typecheck == 'both':
         checkNoConfig(testFile, exitCode, typecheck=True, args=args,
                       pythonPath=pythonPath, minVersion=minVersion, checkOutputs=checkOutputs,

@@ -140,12 +140,15 @@ class InstrumentingFinder(importlib.abc.MetaPathFinder):
             target: types.ModuleType | None = None,
         ) -> ModuleSpec | None:
 
+        debug(f'Consulting InstrumentingFinder.find_spec for fullname={fullname}')
         # 1) The fullname is the name of the main module. This might be a dotted name such as x.y.z.py
         #    so we have special logic here
         fp = os.path.join(self.modDir, f"{fullname}.py")
         if self.mainModName == fullname and os.path.isfile(fp):
             loader = InstrumentingLoader(fullname, fp)
-            return spec_from_file_location(fullname, fp, loader=loader)
+            spec = spec_from_file_location(fullname, fp, loader=loader)
+            debug(f'spec for {fullname}: {spec}')
+            return spec
         # 2) The fullname is a prefix of the main module. We want to load main modules with
         #    dotted names such as x.y.z.py, hence we synthesize a namespace pkg
         #    e.g. if 'x.y.z.py' exists and we're asked for 'x', return a package spec.
@@ -153,6 +156,7 @@ class InstrumentingFinder(importlib.abc.MetaPathFinder):
             spec = importlib.machinery.ModuleSpec(fullname, loader=None, is_package=True)
             # Namespace package marker (PEP 451)
             spec.submodule_search_locations = []
+            debug(f'spec for {fullname}: {spec}')
             return spec
         # 3) Fallback: use the original PathFinder
         spec = self._origFinder.find_spec(fullname, path, target)
@@ -191,10 +195,19 @@ def setupFinder(modDir: str, modName: str, extraDirs: list[str], typechecking: b
         # Create and install our custom finder
         instrumenting_finder = InstrumentingFinder(finder, modDir, modName, extraDirs)
         sys.meta_path.insert(0, instrumenting_finder)
+        debug(f'Installed instrument finder {instrumenting_finder}')
+
+        alreadyLoaded = sys.modules.get(modName)
+        if alreadyLoaded:
+            sys.modules.pop(modName, None)
+            importlib.invalidate_caches()
 
         try:
             yield
         finally:
+            if alreadyLoaded:
+                sys.modules[modName] = alreadyLoaded
+
             # Remove our custom finder when exiting the context
             if instrumenting_finder in sys.meta_path:
                 sys.meta_path.remove(instrumenting_finder)
