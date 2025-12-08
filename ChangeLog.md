@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.1.2 (2025-12-08)
+  * Fix for running a file that has the same name as a module from the stdlib
+  * Fix debugger invocation #194
 * 2.1.1 (2025-11-26)
   * Fix a couple of glitches with highlighting in the visualization
 * 2.1.0 (2025-11-07)
