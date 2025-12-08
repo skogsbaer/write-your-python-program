@@ -126,6 +126,8 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
 
 def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo],
                 result: Any, info: location.CallableInfo, cfg: CheckCfg) -> None:
+    if info.isAsync:
+        return
     t = sig.return_annotation
     if isEmptyAnnotation(t):
         t = None

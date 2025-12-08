@@ -201,6 +201,10 @@ class CallableInfo(abc.ABC):
     @abc.abstractmethod
     def getParamSourceLocation(self, paramName: str) -> Optional[Loc]:
         pass
+    @property
+    @abc.abstractmethod
+    def isAsync(self) -> bool:
+        pass
 
 class StdCallableInfo(CallableInfo):
     """
@@ -276,6 +280,10 @@ class StdCallableInfo(CallableInfo):
                        res.end_lineno,
                        res.end_col_offset)
 
+    @property
+    def isAsync(self) -> bool:
+        node = self._findDef()
+        return isinstance(node, ast.AsyncFunctionDef)
 
 def classFilename(cls) -> str | None:
     """Best-effort path to the file that defined `cls`."""
@@ -315,6 +323,9 @@ class RecordConstructorInfo(CallableInfo):
             return Loc(file, node.lineno, node.col_offset, node.end_lineno, node.end_col_offset)
         else:
             return None
+    @property
+    def isAsync(self) -> bool:
+        return False
 
 def locationOfArgument(fi: inspect.FrameInfo, idxOrName: int | str) -> Optional[Loc]:
     """
