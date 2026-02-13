@@ -3,6 +3,7 @@ import os
 import importlib
 import runpy
 from dataclasses import dataclass
+from typing import Optional
 
 # local imports
 from constants import *
@@ -33,24 +34,29 @@ class Lib:
 
 @dataclass
 class RunSetup:
-    def __init__(self, pathDir: str, args: list[str]):
+    def __init__(self, pathDir: str, args: Optional[list[str]] = None, installProfile: bool = True):
         self.pathDir = os.path.abspath(pathDir)
         self.args = args
         self.sysPathInserted = False
         self.oldArgs = sys.argv
+        self.installProfile = installProfile
     def __enter__(self):
         if self.pathDir not in sys.path:
             sys.path.insert(0, self.pathDir)
             self.sysPathInserted = True
-        sys.argv = self.args
-        self.originalProfile = sys.getprofile()
-        stacktrace.installProfileHook()
+        if self.args is not None:
+            sys.argv = self.args
+        if self.installProfile:
+            self.originalProfile = sys.getprofile()
+            stacktrace.installProfileHook()
     def __exit__(self, exc_type, value, traceback):
-        sys.setprofile(self.originalProfile)
+        if self.installProfile:
+            sys.setprofile(self.originalProfile)
         if self.sysPathInserted:
             sys.path.remove(self.pathDir)
             self.sysPathInserted = False
-        sys.argv = self.oldArgs
+        if self.args is not None:
+            sys.argv = self.oldArgs
 
 def prepareLib(onlyCheckRunnable, enableTypeChecking):
     libDefs = None
@@ -108,6 +114,7 @@ def runTestsInFile(testFile, globals, libDefs, doTypecheck=True, extraDirs=[]):
     printStderr()
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
+    runCode(testFile, globals, doTypecheck=doTypecheck, extraDirs=extraDirs)
     try:
         runCode(testFile, globals, doTypecheck=doTypecheck, extraDirs=extraDirs)
     except:
@@ -123,7 +130,9 @@ def performChecks(check, testFile, globals, libDefs, doTypecheck=True, extraDirs
     if check:
         testResultsInstr = {'total': 0, 'failing': 0}
         if testFile:
-            testResultsInstr = runTestsInFile(testFile, globals, libDefs, doTypecheck=doTypecheck,
-                                              extraDirs=extraDirs)
+            testDir = os.path.dirname(testFile)
+            with RunSetup(testDir):
+                testResultsInstr = runTestsInFile(testFile, globals, libDefs, doTypecheck=doTypecheck,
+                                                  extraDirs=extraDirs)
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
         utils.die(0 if failingSum < 1 else 1)
