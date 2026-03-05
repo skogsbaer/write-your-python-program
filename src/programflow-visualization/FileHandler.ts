@@ -2,6 +2,7 @@ import stringify from 'stringify-json';
 import * as vscode from 'vscode';
 import util = require('util');
 import path = require('path');
+import type { BackendTrace } from "./types";
 
 export async function getContentOf(fileUri: vscode.Uri): Promise<string> {
     return new util.TextDecoder('utf-8').decode(await vscode.workspace.fs.readFile(fileUri));
