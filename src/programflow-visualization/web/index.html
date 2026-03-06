@@ -19,27 +19,33 @@
 <body>
   <div class="column scrollable" id="viz">
     <div class="row">
-      <div class="column title">
-        Frames
+      <div class="column floating-left">
+        <div class="row title">Frames</div>
         <div class="divider"></div>
       </div>
-      <div class="row title">
-        Objects
+      <div class="column floating-right">
+        <div class="row title">Objects</div>
         <div class="divider"></div>
       </div>
     </div>
 
     <div class="row">
-      <div class="column floating-left" id="frames"></div>
-      <div class="column floating-right" id="objects"></div>
+      <div class="column floating-left floating-left-content" id="frames"></div>
+      <div class="column floating-right floating-right-content" id="objects"></div>
     </div>
   </div>
 
   <div class="row" id="bottom-area">
     <div class="column floating-left">
       <div class="slidecontainer">
-        <input type="range" min="0" max="0" value="0"
-               class="slider" id="traceSlider"/>
+        <input
+          type="range"
+          min="0"
+          max="0"
+          value="0"
+          class="slider"
+          id="traceSlider"
+        />
       </div>
 
       <div class="row margin-vertical">

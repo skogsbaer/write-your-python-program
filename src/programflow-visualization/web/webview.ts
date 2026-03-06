@@ -1,7 +1,8 @@
 import { HTMLGenerator } from "./html-generator";
 import LinkerLine from "linkerline";
-import type { BackendTraceElem } from "../types";
+import type { BackendTraceElem, FrontendTraceElem } from "../types";
 
+// only used to add seperate Browser navigation if not in vscode
 const isVscode = typeof (window as any).acquireVsCodeApi === "function";
 
 type ResetMsg = {
@@ -80,31 +81,17 @@ function renderCurrent() {
 
 function updateVisualization(traceElem: any /* FrontendTraceElem */) {
   clearArrows();
-  const data = `
-    <div class="row">
-      <div class="column floating-left">
-        <div class="row title">Frames</div>
-        <div class="divider"></div>
-      </div>
-      <div class="column floating-right">
-        <div class="row title">Objects</div>
-        <div class="divider"></div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="column floating-left floating-left-content" id="frames">
-        ${traceElem.stackHTML}
-      </div>
-      <div class="column floating-right floating-right-content" id="objects">
-        ${traceElem.heapHTML}
-      </div>
-    </div>
-  `;
 
-  const viz = document.getElementById("viz")!;
-  viz.innerHTML = data;
+  const frames = document.getElementById("frames");
+  const objects = document.getElementById("objects");
+  const stdoutLog = document.getElementById("stdout-log");
 
-  const stdoutLog = document.getElementById("stdout-log")!;
+  if (!frames || !objects || !stdoutLog) {
+    throw new Error("Missing required visualization containers");
+  }
+
+  frames.innerHTML = traceElem.stackHTML;
+  objects.innerHTML = traceElem.heapHTML;
   stdoutLog.innerHTML = traceElem.outputState;
   stdoutLog.scrollTo(0, stdoutLog.scrollHeight);
 }
@@ -172,7 +159,7 @@ function updateRefArrows(traceElem: any /* FrontendTraceElem */) {
   });
 }
 
-function getCurrentTags(traceElem: any /* FrontendTraceElem */) {
+function getCurrentTags(traceElem: FrontendTraceElem) {
   const stackTags = traceElem.stackHTML.match(/(?<=id=")(.+)Pointer[0-9]+/g);
   const heapTags = traceElem.heapHTML.match(/(?<=startPointer)[0-9]+/g);
   const uniqueId = traceElem.heapHTML.match(/\d+(?=startPointer)/g);
