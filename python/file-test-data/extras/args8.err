@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/args8.py", line 6, in <module>
+    f(1, y=2)
+
+WyppTypeError: ungültiger Typ für Schlüsselwort-Argument: `tuple[int]`
+
+## Datei file-test-data/extras/args8.py
+## Typ deklariert in Zeile 3:
+
+def f(x: int, **[0;31m[1mkw: tuple[int][0;0m):

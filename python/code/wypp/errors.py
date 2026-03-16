@@ -79,6 +79,30 @@ class WyppTypeError(TypeError, WyppError):
         raise WyppTypeError('\n'.join(lines))
 
     @staticmethod
+    def invalidRestArgType(ty: Any, loc: Optional[location.Loc]) -> WyppTypeError:
+        lines = []
+        tyStr = renderTy(ty)
+        lines.append(i18n.invalidRestArgTy(tyStr))
+        lines.append('')
+        if loc is not None:
+            lines.append(f'## {i18n.tr("File")} {loc.filename}')
+            lines.append(f'## {i18n.tr("Type declared in line")} {loc.startLine}:\n')
+            lines.append(renderLoc(loc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
+    def invalidKwArgType(ty: Any, loc: Optional[location.Loc]) -> WyppTypeError:
+        lines = []
+        tyStr = renderTy(ty)
+        lines.append(i18n.invalidKwArgTy(tyStr))
+        lines.append('')
+        if loc is not None:
+            lines.append(f'## {i18n.tr("File")} {loc.filename}')
+            lines.append(f'## {i18n.tr("Type declared in line")} {loc.startLine}:\n')
+            lines.append(renderLoc(loc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
     def unknownKeywordArgument(callableName: location.CallableName, callLoc: Optional[location.Loc], name: str) -> WyppTypeError:
         lines = []
         lines.append(i18n.tr('unknown keyword argument'))

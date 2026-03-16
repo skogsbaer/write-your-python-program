@@ -102,6 +102,10 @@ DE = {
 
     'invalid type `{ty}`':
         'ungültiger Typ `{ty}`',
+    'invalid type for rest argument: `{ty}`':
+        'ungültiger Typ für Restargument: `{ty}`',
+    'invalid type for keyword argument: `{ty}`':
+        'ungültiger Typ für Schlüsselwort-Argument: `{ty}`',
     'Cannot set attribute to value of type `{ty}`.':
         'Das Attribut kann nicht auf einen Wert vom Typ `{ty}` gesetzt werden.',
     'Problematic assignment in line': 'Fehlerhafte Zuweisung in Zeile',
@@ -341,6 +345,12 @@ def noTypeAnnotationForAttribute(attrName: str, recordName: str) -> str:
 
 def invalidTy(ty: Any) -> str:
     return tr('invalid type `{ty}`', ty=ty)
+
+def invalidRestArgTy(ty: Any) -> str:
+    return tr('invalid type for rest argument: `{ty}`', ty=ty)
+
+def invalidKwArgTy(ty: Any) -> str:
+    return tr('invalid type for keyword argument: `{ty}`', ty=ty)
 
 def didYouMean(ty: str) -> str:
     return tr('Did you mean `{ty}`?', ty=ty)

@@ -1,6 +1,6 @@
 from wypp import *
 
-def f(x: int, *rest: tuple[int], **kw: dict[str, int]):
+def f(x: int, *rest: tuple[int, ...], **kw: dict[str, int]):
     print(f'x={x}, kw={kw}')
 
 f(1)

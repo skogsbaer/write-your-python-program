@@ -8,6 +8,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 OPTS="--quiet"
 # OPTS="--verbose"
 
-PYTHONPATH="$SCRIPT_DIR"/code:"$PYTHONPATH" $PY "$SCRIPT_DIR"/code/wypp/runYourProgram.py \
+# For profiling, uncomment the line below
+# PROF="-m cProfile -o profile.out"
+
+PYTHONPATH="$SCRIPT_DIR"/code:"$PYTHONPATH" $PY $PROF "$SCRIPT_DIR"/code/wypp/runYourProgram.py \
     --no-clear $OPTS "$@"
 exit $?
