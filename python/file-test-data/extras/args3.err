@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/args3.py", line 8, in <module>
+    f(1, y=2, z='3')
+
+WyppTypeError: '3'
+
+Der Aufruf der Funktion `f` erwartet einen Wert vom Typ `int` als Argument `z`.
+Aber der übergebene Wert hat den Typ `str`.
+
+## Datei file-test-data/extras/args3.py
+## Fehlerhafter Aufruf in Zeile 8:
+
+f(1, y=2, z='3')

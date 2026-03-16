@@ -83,6 +83,33 @@ def checkArgument(p: inspect.Parameter, name: str, idx: Optional[int], a: Any,
                   locArg: Optional[location.Loc], info: location.CallableInfo, cfg: CheckCfg):
     t = p.annotation
     if not isEmptyAnnotation(t):
+        if p.kind == inspect.Parameter.VAR_POSITIONAL:
+            argT = None
+            # For *args annotated as tuple[X, ...], extract the element type X
+            origin = getattr(t, '__origin__', None)
+            if origin is tuple:
+                args = getattr(t, '__args__', None)
+                if args:
+                    argT = args[0]
+            elif t is tuple:
+                # bare `tuple` without type parameters, nothing to check
+                return
+            else:
+                raise ValueError(f'Invalid type for rest argument: {t}')
+            t = argT
+        elif p.kind == inspect.Parameter.VAR_KEYWORD:
+            valT = None
+            # For **kwargs annotated as dict[str, X], extract the value type X
+            origin = getattr(t, '__origin__', None)
+            if origin is dict:
+                type_args = getattr(t, '__args__', None)
+                if type_args and len(type_args) >= 2:
+                    valT = type_args[1]
+            elif t is dict:
+                return
+            else:
+                raise ValueError(f'Invalid type for keyword argument: {t}')
+            t = valT
         locDecl = info.getParamSourceLocation(name)
         if not handleMatchesTyResult(matchesTy(a, t, cfg.ns), locDecl):
             cn = location.CallableName.mk(info)
@@ -109,20 +136,42 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
                                                     len(paramNames) - offset,
                                                     mandatory - offset,
                                                     len(args) - offset)
+    # Classify parameters by kind
+    varPositionalParam: Optional[inspect.Parameter] = None
+    varKeywordParam: Optional[inspect.Parameter] = None
+    positionalNames: list[str] = []
+    for pName in paramNames:
+        p = sig.parameters[pName]
+        if p.kind == inspect.Parameter.VAR_POSITIONAL:
+            varPositionalParam = p
+        elif p.kind == inspect.Parameter.VAR_KEYWORD:
+            varKeywordParam = p
+        elif p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD):
+            positionalNames.append(pName)
     if len(args) + len(kwargs) < mandatory:
         raiseArgMismatch()
+    # Check positional args
     for i in range(len(args)):
-        if i >= len(paramNames):
-            raiseArgMismatch()
-        name = paramNames[i]
-        p = sig.parameters[name]
         locArg = None if fi is None else location.locationOfArgument(fi, i)
-        checkArgument(p, name, i - offset, args[i], locArg, info, cfg)
+        if i < len(positionalNames):
+            name = positionalNames[i]
+            p = sig.parameters[name]
+            checkArgument(p, name, i - offset, args[i], locArg, info, cfg)
+        elif varPositionalParam is not None:
+            checkArgument(varPositionalParam, varPositionalParam.name, i - offset, args[i], locArg, info, cfg)
+        else:
+            raiseArgMismatch()
+    # Check keyword args
     for name in kwargs:
-        if name not in sig.parameters:
-            raise errors.WyppTypeError.unknownKeywordArgument(cn, callLoc, name)
         locArg = None if fi is None else location.locationOfArgument(fi, name)
-        checkArgument(sig.parameters[name], name, None, kwargs[name], locArg, info, cfg)
+        if name in sig.parameters and sig.parameters[name].kind not in (
+            inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD
+        ):
+            checkArgument(sig.parameters[name], name, None, kwargs[name], locArg, info, cfg)
+        elif varKeywordParam is not None:
+            checkArgument(varKeywordParam, name, None, kwargs[name], locArg, info, cfg)
+        else:
+            raise errors.WyppTypeError.unknownKeywordArgument(cn, callLoc, name)
 
 def checkReturn(sig: inspect.Signature, returnFrame: Optional[inspect.FrameInfo],
                 result: Any, info: location.CallableInfo, cfg: CheckCfg) -> None:
