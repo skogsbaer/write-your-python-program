@@ -14,4 +14,4 @@ f(1, 10, '11', y=2, z=3)
 
 ## Typ deklariert in Zeile 3:
 
-def f(x: int, *[0;31m[1mrest: tuple[int][0;0m, **kw: dict[str, int]):
+def f(x: int, *[0;31m[1mrest: tuple[int, ...][0;0m, **kw: dict[str, int]):

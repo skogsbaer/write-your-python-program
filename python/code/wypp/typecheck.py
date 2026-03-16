@@ -1,6 +1,7 @@
 from __future__ import annotations
 from collections.abc import Callable
 from typing import ParamSpec, TypeVar, Any, Optional, Literal
+import types
 import inspect
 from dataclasses import dataclass
 import utils
@@ -68,12 +69,8 @@ def checkSignature(sig: inspect.Signature, info: location.CallableInfo, cfg: Che
                 raise errors.WyppTypeError.defaultError(location.CallableName.mk(info), name,
                                                         locDecl(), ty, p.default)
 
-_argCountCache = {}
 
 def mandatoryArgCount(sig: inspect.Signature) -> int:
-    x = _argCountCache.get(sig)
-    if x is not None:
-        return x
     required_kinds = {
         inspect.Parameter.POSITIONAL_ONLY,
         inspect.Parameter.POSITIONAL_OR_KEYWORD,
@@ -83,7 +80,6 @@ def mandatoryArgCount(sig: inspect.Signature) -> int:
     for p in sig.parameters.values():
         if p.kind in required_kinds and p.default is inspect._empty:
             res = res + 1
-    _argCountCache[sig] = res
     return res
 
 def checkArgument(p: inspect.Parameter, name: str, idx: Optional[int], a: Any,
@@ -91,21 +87,30 @@ def checkArgument(p: inspect.Parameter, name: str, idx: Optional[int], a: Any,
                   info: location.CallableInfo, cfg: CheckCfg):
     t = p.annotation
     if not isEmptyAnnotation(t):
+        locDecl = lambda: info.getParamSourceLocation(name)
         if p.kind == inspect.Parameter.VAR_POSITIONAL:
+            if type(t) == str:
+                t = eval(t)
             argT = None
             # For *args annotated as tuple[X, ...], extract the element type X
             origin = getattr(t, '__origin__', None)
             if origin is tuple:
                 args = getattr(t, '__args__', None)
-                if args:
+                if args and len(args) == 2 and args[1] is Ellipsis:
+                    # tuple[X, ...] — homogeneous variadic
                     argT = args[0]
+                elif args:
+                    # tuple[X, Y, ...] — fixed-length tuple, no single element type to extract
+                    raise errors.WyppTypeError.invalidRestArgType(t, locDecl())
             elif t is tuple:
                 # bare `tuple` without type parameters, nothing to check
                 return
             else:
-                raise ValueError(f'Invalid type for rest argument: {t}')
+                raise errors.WyppTypeError.invalidRestArgType(t, locDecl())
             t = argT
         elif p.kind == inspect.Parameter.VAR_KEYWORD:
+            if type(t) == str:
+                t = eval(t)
             valT = None
             # For **kwargs annotated as dict[str, X], extract the value type X
             origin = getattr(t, '__origin__', None)
@@ -116,9 +121,8 @@ def checkArgument(p: inspect.Parameter, name: str, idx: Optional[int], a: Any,
             elif t is dict:
                 return
             else:
-                raise ValueError(f'Invalid type for keyword argument: {t}')
+                raise errors.WyppTypeError.invalidKwArgType(t, info.getParamSourceLocation(p.name))
             t = valT
-        locDecl = lambda: info.getParamSourceLocation(name)
         if not handleMatchesTyResult(matchesTy(a, t, cfg.ns), locDecl):
             cn = location.CallableName.mk(info)
             raise errors.WyppTypeError.argumentError(cn,
@@ -188,7 +192,7 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
         else:
             raise errors.WyppTypeError.unknownKeywordArgument(cn, getCallLoc(), name)
 
-def checkReturn(sig: inspect.Signature, getReturnFrame: Callable[[], Optional[inspect.FrameInfo]],
+def checkReturn(sig: inspect.Signature, returnFrameType: Optional[types.FrameType],
                 result: Any, info: location.CallableInfo, cfg: CheckCfg) -> None:
     if info.isAsync:
         return
@@ -204,7 +208,7 @@ def checkReturn(sig: inspect.Signature, getReturnFrame: Callable[[], Optional[in
             locRes = location.Loc.fromFrameInfo(fi)
         returnLoc = None
         extraFrames = []
-        returnFrame = getReturnFrame()
+        returnFrame = stacktrace.frameTypeToFrameInfo(returnFrameType)
         if returnFrame:
             returnLoc = location.Loc.fromFrameInfo(returnFrame)
             extraFrames = [returnFrame]
@@ -249,9 +253,9 @@ def wrapTypecheck(cfg: dict | CheckCfg, outerInfo: Optional[location.CallableInf
             utils._call_with_frames_removed(checkArguments, sig, args, kwargs, info, checkCfg)
             returnTracker = stacktrace.getReturnTracker()
             result = utils._call_with_next_frame_removed(f, *args, **kwargs)
-            getRetFrame = lambda: returnTracker.getReturnFrame(0)
+            ft = returnTracker.getReturnFrameType(0)
             utils._call_with_frames_removed(
-                checkReturn, sig, getRetFrame, result, info, checkCfg
+                checkReturn, sig, ft, result, info, checkCfg
             )
             return result
         return wrapped

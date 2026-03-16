@@ -915,7 +915,7 @@ def check_type_internal(
         looking up forward references
     """
     ty = type(value)
-    if ty == annotation or (value is None and ty is type(None)):
+    if ty == annotation or (value is None and annotation is type(None)):
         # some early exits for better performance
         return
     annotation = resolve_alias_chains(annotation)
