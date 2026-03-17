@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.2.0 (2026-03-17)
+  * Performance improvements
+  * Fix for multi-threaded environment
 * 2.1.2 (2025-12-08)
   * Fix for running a file that has the same name as a module from the stdlib
   * Fix debugger invocation #194
