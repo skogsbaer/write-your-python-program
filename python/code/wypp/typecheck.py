@@ -253,7 +253,7 @@ def wrapTypecheck(cfg: dict | CheckCfg, outerInfo: Optional[location.CallableInf
             utils._call_with_frames_removed(checkArguments, sig, args, kwargs, info, checkCfg)
             returnTracker = stacktrace.getReturnTracker()
             result = utils._call_with_next_frame_removed(f, *args, **kwargs)
-            ft = returnTracker.getReturnFrameType(0)
+            ft = returnTracker.getReturnFrameType(0) if returnTracker else None
             utils._call_with_frames_removed(
                 checkReturn, sig, ft, result, info, checkCfg
             )
