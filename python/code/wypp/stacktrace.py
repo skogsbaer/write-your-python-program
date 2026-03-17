@@ -2,10 +2,12 @@ import types
 import traceback
 import utils
 import inspect
+import threading
 from typing import Optional, Any
 import os
 import sys
 from collections import deque
+from myLogging import *
 
 def tbToFrameList(tb: types.TracebackType) -> list[types.FrameType]:
     cur = tb
@@ -130,5 +132,12 @@ def getReturnTracker():
     obj = sys.getprofile()
     if isinstance(obj, ReturnTracker):
         return obj
+    elif obj is None:
+        if threading.current_thread() is threading.main_thread():
+            raise ValueError(f'No ReturnTracker set, must use installProfileHook before')
+        else:
+            debug('ReturnTracker not available in threads')
+            return None
     else:
-        raise ValueError(f'No ReturnTracker set, must use installProfileHook before')
+        debug(f'Profiling set to some custom profiler: {obj}')
+        return None

@@ -324,3 +324,7 @@ import math as moduleMath
 math = moduleMath
 
 wrapTypecheck = typecheck.wrapTypecheck
+
+WyppTypeError = errors.WyppTypeError
+WyppAttributeError = errors.WyppAttributeError
+WyppError = errors.WyppError

@@ -1,3 +1,5 @@
+import re
+
 RESET         = "\u001b[0;0m"
 BOLD          = "\u001b[1m"
 REVERSE       = "\u001b[2m"
@@ -30,3 +32,7 @@ def red(s):
 
 def blue(s):
     return color(s, BLUE + BOLD)
+
+_ANSI_ESCAPE_RE = re.compile(r'\u001b\[[0-9;]*m')
+def stripAnsi(s: str) -> str:
+    return _ANSI_ESCAPE_RE.sub('', s)

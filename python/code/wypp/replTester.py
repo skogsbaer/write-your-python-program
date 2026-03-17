@@ -1,5 +1,7 @@
 import sys
 import doctest
+from contextlib import contextmanager
+import ansi
 from myLogging import *
 
 # We use our own DocTestParser to replace exception names in stacktraces
@@ -8,7 +10,9 @@ from myLogging import *
 def rewriteLines(lines: list[str]):
     """
     Each line has exactly one of the following four kinds:
-    - COMMENT: if it starts with '#' (leading whitespace stripped)
+    - COMMENT: if it starts with '#' but not with '##' (leading whitespace stripped)
+      Rationale: lines starting with '##' are error messages from wypp, lines starting only with
+      '#' are real comments in the file defining the doctest.
     - PROMPT: if it starts with '>>>' (leading whitespace stripped)
     - EMPTY: if it contains only whitespace
     - OUTPUT: otherwise
@@ -22,7 +26,7 @@ def rewriteLines(lines: list[str]):
         stripped = line.lstrip()
         if not stripped:
             return 'EMPTY'
-        elif stripped.startswith('#'):
+        elif stripped.startswith('#') and not stripped.startswith('##'):
             return 'COMMENT'
         elif stripped.startswith('>>>'):
             return 'PROMPT'
@@ -56,7 +60,6 @@ def rewriteLines(lines: list[str]):
             if prev_kind in ['PROMPT', 'OUTPUT'] and next_kind == 'OUTPUT':
                 lines[i] = '<BLANKLINE>'
 
-
 class MyDocTestParser(doctest.DocTestParser):
     def get_examples(self, string, name='<string>'):
         """
@@ -76,10 +79,25 @@ class MyDocTestParser(doctest.DocTestParser):
         x = super().get_examples(string, name)
         return x
 
+class MyOutputChecker(doctest.OutputChecker):
+    def check_output(self, want, got, optionflags):
+        got = ansi.stripAnsi(got)
+        return super().check_output(want, got, optionflags)
+
+@contextmanager
+def patchOutputChecker():
+    _Original = doctest.OutputChecker
+    doctest.OutputChecker = MyOutputChecker
+    try:
+        yield
+    finally:
+        doctest.OutputChecker = _Original
+
 def testRepl(repl: str, defs: dict) -> tuple[int, int]:
     doctestOptions = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-    (failures, tests) = doctest.testfile(repl, globs=defs, module_relative=False,
-                                         optionflags=doctestOptions, parser=MyDocTestParser())
+    with patchOutputChecker():
+        (failures, tests) = doctest.testfile(repl, globs=defs, module_relative=False,
+                                             optionflags=doctestOptions, parser=MyDocTestParser())
     if failures == 0:
         if tests == 0:
             print(f'No tests in {repl}')
