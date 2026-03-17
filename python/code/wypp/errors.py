@@ -57,7 +57,6 @@ class WyppTypeError(TypeError, WyppError):
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
         WyppError.__init__(self, extraFrames)
         self.msg = msg
-        self.add_note(msg)
 
     def __str__(self):
         return f'WyppTypeError: {self.msg}'
@@ -290,7 +289,6 @@ class WyppAttributeError(AttributeError, WyppError):
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
         WyppError.__init__(self, extraFrames)
         self.msg = msg
-        self.add_note(msg)
 
     @staticmethod
     def unknownAttr(clsName: str, attrName: str) -> WyppAttributeError:
@@ -301,12 +299,9 @@ class TodoError(Exception, WyppError):
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
         WyppError.__init__(self, extraFrames)
         self.msg = msg
-        self.add_note(msg)
-
 
 class ImpossibleError(Exception, WyppError):
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
         WyppError.__init__(self, extraFrames)
         self.msg = msg
-        self.add_note(msg)
 
