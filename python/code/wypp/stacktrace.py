@@ -2,10 +2,12 @@ import types
 import traceback
 import utils
 import inspect
+import threading
 from typing import Optional, Any
 import os
 import sys
 from collections import deque
+from myLogging import *
 
 def tbToFrameList(tb: types.TracebackType) -> list[types.FrameType]:
     cur = tb
@@ -89,6 +91,11 @@ class ReturnTracker:
                 pass
             case 'c_exception':
                 pass
+    def getReturnFrameType(self, idx: int) -> Optional[types.FrameType]:
+        try:
+            return self.__returnFrames[idx]
+        except IndexError:
+            return None
     def getReturnFrame(self, idx: int) -> Optional[inspect.FrameInfo]:
         try:
             f = self.__returnFrames[idx]
@@ -101,6 +108,15 @@ class ReturnTracker:
             return fi
         else:
             return None
+
+def frameTypeToFrameInfo(f: Optional[types.FrameType]) -> Optional[inspect.FrameInfo]:
+    if f:
+        tb = inspect.getframeinfo(f, context=1)
+        fi = inspect.FrameInfo(f, tb.filename, tb.lineno, tb.function, tb.code_context, tb.index)
+        del f
+        return fi
+    else:
+        return None
 
 # when using _call_with_next_frame_removed, we have to take the second-to-last
 # return. Hence, we keep the two most recent returns byn setting entriesToKeep = 2.
@@ -116,5 +132,12 @@ def getReturnTracker():
     obj = sys.getprofile()
     if isinstance(obj, ReturnTracker):
         return obj
+    elif obj is None:
+        if threading.current_thread() is threading.main_thread():
+            raise ValueError(f'No ReturnTracker set, must use installProfileHook before')
+        else:
+            debug('ReturnTracker not available in threads')
+            return None
     else:
-        raise ValueError(f'No ReturnTracker set, must use installProfileHook before')
+        debug(f'Profiling set to some custom profiler: {obj}')
+        return None

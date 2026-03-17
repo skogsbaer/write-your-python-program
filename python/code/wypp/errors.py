@@ -57,7 +57,6 @@ class WyppTypeError(TypeError, WyppError):
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
         WyppError.__init__(self, extraFrames)
         self.msg = msg
-        self.add_note(msg)
 
     def __str__(self):
         return f'WyppTypeError: {self.msg}'
@@ -72,6 +71,30 @@ class WyppTypeError(TypeError, WyppError):
         if rew:
             lines.append(i18n.didYouMean(rew))
             lines.append('')
+        if loc is not None:
+            lines.append(f'## {i18n.tr("File")} {loc.filename}')
+            lines.append(f'## {i18n.tr("Type declared in line")} {loc.startLine}:\n')
+            lines.append(renderLoc(loc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
+    def invalidRestArgType(ty: Any, loc: Optional[location.Loc]) -> WyppTypeError:
+        lines = []
+        tyStr = renderTy(ty)
+        lines.append(i18n.invalidRestArgTy(tyStr))
+        lines.append('')
+        if loc is not None:
+            lines.append(f'## {i18n.tr("File")} {loc.filename}')
+            lines.append(f'## {i18n.tr("Type declared in line")} {loc.startLine}:\n')
+            lines.append(renderLoc(loc))
+        raise WyppTypeError('\n'.join(lines))
+
+    @staticmethod
+    def invalidKwArgType(ty: Any, loc: Optional[location.Loc]) -> WyppTypeError:
+        lines = []
+        tyStr = renderTy(ty)
+        lines.append(i18n.invalidKwArgTy(tyStr))
+        lines.append('')
         if loc is not None:
             lines.append(f'## {i18n.tr("File")} {loc.filename}')
             lines.append(f'## {i18n.tr("Type declared in line")} {loc.startLine}:\n')
@@ -266,7 +289,6 @@ class WyppAttributeError(AttributeError, WyppError):
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
         WyppError.__init__(self, extraFrames)
         self.msg = msg
-        self.add_note(msg)
 
     @staticmethod
     def unknownAttr(clsName: str, attrName: str) -> WyppAttributeError:
@@ -277,12 +299,9 @@ class TodoError(Exception, WyppError):
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
         WyppError.__init__(self, extraFrames)
         self.msg = msg
-        self.add_note(msg)
-
 
 class ImpossibleError(Exception, WyppError):
     def __init__(self, msg: str, extraFrames: list[inspect.FrameInfo] = []):
         WyppError.__init__(self, extraFrames)
         self.msg = msg
-        self.add_note(msg)
 

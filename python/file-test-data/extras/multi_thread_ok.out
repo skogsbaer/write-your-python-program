@@ -1,0 +1,15 @@
+START
+started
+WyppTypeError: '1'
+
+Rückgabewert vom Typ `int` erwartet bei Aufruf der Funktion `foo`.
+Aber der Aufruf gibt einen Wert vom Typ `str` zurück.
+
+## Datei file-test-data/extras/multi_thread_ok.py
+## Rückgabetyp deklariert in Zeile 4:
+
+def foo(i: int) -> [0;31m[1mint[0;0m:
+
+## Aufruf in Zeile 9 verursacht das fehlerhafte return:
+
+        [0;31m[1mfoo(1)[0;0m

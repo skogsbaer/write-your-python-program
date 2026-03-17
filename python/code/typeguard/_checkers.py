@@ -914,6 +914,10 @@ def check_type_internal(
     :param memo: a memo object containing configuration and information necessary for
         looking up forward references
     """
+    ty = type(value)
+    if ty == annotation or (value is None and annotation is type(None)):
+        # some early exits for better performance
+        return
     annotation = resolve_alias_chains(annotation)
 
     if isinstance(annotation, ForwardRef):

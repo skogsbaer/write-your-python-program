@@ -140,10 +140,11 @@ class InstrumentingFinder(importlib.abc.MetaPathFinder):
             target: types.ModuleType | None = None,
         ) -> ModuleSpec | None:
 
-        debug(f'Consulting InstrumentingFinder.find_spec for fullname={fullname}')
+        debug(f'Consulting InstrumentingFinder.find_spec for fullname={fullname}, path={path}, target={target}')
         # 1) The fullname is the name of the main module. This might be a dotted name such as x.y.z.py
         #    so we have special logic here
         fp = os.path.join(self.modDir, f"{fullname}.py")
+        debug(f'fullPath: {fp}')
         if self.mainModName == fullname and os.path.isfile(fp):
             loader = InstrumentingLoader(fullname, fp)
             spec = spec_from_file_location(fullname, fp, loader=loader)

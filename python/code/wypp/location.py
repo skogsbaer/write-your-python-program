@@ -217,6 +217,7 @@ class StdCallableInfo(CallableInfo):
         self.__lineno = f.__code__.co_firstlineno
         self.__name = f.__name__
         self.__ast = parsecache.getAST(self.file)
+        self.__async = None
 
     def __repr__(self):
         return f'StdCallableInfo({self.name}, {self.kind})'
@@ -282,8 +283,10 @@ class StdCallableInfo(CallableInfo):
 
     @property
     def isAsync(self) -> bool:
-        node = self._findDef()
-        return isinstance(node, ast.AsyncFunctionDef)
+        if self.__async is None:
+            node = self._findDef()
+            self.__async = isinstance(node, ast.AsyncFunctionDef)
+        return self.__async
 
 def classFilename(cls) -> str | None:
     """Best-effort path to the file that defined `cls`."""

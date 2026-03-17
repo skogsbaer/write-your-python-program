@@ -74,3 +74,6 @@ printTestResults = w.printTestResults
 resetTestCount = w.resetTestCount
 deepEq = w.deepEq
 wrapTypecheck = w.wrapTypecheck
+WyppTypeError = w.WyppTypeError
+WyppAttributeError = w.WyppAttributeError
+WyppError = w.WyppError

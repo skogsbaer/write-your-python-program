@@ -9,7 +9,7 @@ Der Aufruf des Konstruktors des Records `Garage` erwartet einen Wert vom Typ `li
 ## Datei file-test-data/extras/testForwardRef5.py
 ## Fehlerhafter Aufruf in Zeile 22:
 
-garage = Garage(cars=[0;31m[1m[Car(color='red'), "Not A Car"][0;0m)
+garage = [0;31m[1mGarage(cars=[Car(color='red'), "Not A Car"])[0;0m
 
 ## Typ deklariert in Zeile 11:
 

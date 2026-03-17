@@ -65,7 +65,14 @@ def main(globals, argList=None):
             printStderr(f'Unsupported language {args.lang}. Supported: ' + ', '.join(i18n.allLanguages))
             sys.exit(1)
 
-    fileToRun: str = args.file
+    isInteractive = args.interactive
+    version = versionMod.readVersion()
+    fileToRun: str|None = args.file
+    if fileToRun is None:
+        if args.repls:
+            import replTester
+            replTester.testRepls(args.repls, globals)
+        return
     if not os.path.exists(fileToRun):
         printStderr(f'File {fileToRun} does not exist')
         sys.exit(1)
@@ -75,11 +82,6 @@ def main(globals, argList=None):
         fileToRun = os.path.basename(fileToRun)
         debug(f'Changed directory to {d}, fileToRun={fileToRun}')
 
-    isInteractive = args.interactive
-    version = versionMod.readVersion()
-
-    if fileToRun is None:
-        return
 
     if not args.checkRunnable and (not args.quiet or args.verbose):
         printWelcomeString(fileToRun, version, doTypecheck=args.checkTypes)

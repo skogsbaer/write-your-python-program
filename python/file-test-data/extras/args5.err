@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/args5.py", line 7, in <module>
+    f(1, 10, '11', y=2, z=3)
+
+WyppTypeError: '11'
+
+Der Aufruf der Funktion `f` erwartet einen Wert vom Typ `int` als drittes Argument.
+Aber der übergebene Wert hat den Typ `str`.
+
+## Datei file-test-data/extras/args5.py
+## Fehlerhafter Aufruf in Zeile 7:
+
+f(1, 10, '11', y=2, z=3)
+
+## Typ deklariert in Zeile 3:
+
+def f(x: int, *[0;31m[1mrest: tuple[int, ...][0;0m, **kw: dict[str, int]):
