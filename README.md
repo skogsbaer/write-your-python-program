@@ -225,7 +225,7 @@ You can develop the design of the visualization using an example trace in your b
 
 * `npm install`
 * `npm run build`
-* `npm run watch:web`
+* `npm run watch:web` this starts a process which will build the contents of `src/programflow-visualization/web` into `out/programflow-visualization/web` on any changes
 * In console: `cd out/programflow-visualization/web` + `python3 -m http.server 5173`
-* Then open http://localhost:5173/index.web.html
-* Now you can edit files in `src/programflow-visualization/web`, watch:web will rebuild automatically and you can refresh your browser tab to see the changes
+* Then open http://localhost:5173/index.web.html in your browser
+* Now you can edit files in `src/programflow-visualization/web`, watch:web will rebuild automatically and you can refresh your browser tab to see the changes instantly
