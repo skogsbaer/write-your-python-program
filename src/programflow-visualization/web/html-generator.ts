@@ -1,3 +1,12 @@
+import type {
+  BackendTraceElem,
+  FrontendTraceElem,
+  HeapValue,
+  NamedValue,
+  StackElem,
+  Value
+} from "../types";
+
 function escapeHTML(s: any) {
     if (s !== undefined && s !== null) {
         return s.toString().replace(/[^0-9A-Za-z ]/g, (c: string) => "&#" + c.charCodeAt(0) + ";");
