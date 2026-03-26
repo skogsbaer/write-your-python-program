@@ -69,10 +69,11 @@ __all__ = [
 # Exported names not available for star imports (in alphabetic order)
 Lock = w.Lock
 LockFactory = w.LockFactory
+deepEq = w.deepEq
 initModule = w.initModule
 printTestResults = w.printTestResults
 resetTestCount = w.resetTestCount
-deepEq = w.deepEq
+runUnittests = w.runUnittests
 wrapTypecheck = w.wrapTypecheck
 WyppTypeError = w.WyppTypeError
 WyppAttributeError = w.WyppAttributeError

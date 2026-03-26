@@ -317,6 +317,16 @@ def impossible(msg=None):
         'Das Unmögliche ist passiert!'
     raise errors.ImpossibleError(msg)
 
+def runUnittests(scope: dict[str, Any]):
+    import unittest
+    suite = unittest.TestSuite()
+    loader = unittest.TestLoader()
+    for item in scope.values():
+        if isinstance(item, type) and issubclass(item, unittest.TestCase):
+            if item is not unittest.TestCase:
+                suite.addTest(loader.loadTestsFromTestCase(item))
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
 # Additional functions and aliases
 
 import math as moduleMath
