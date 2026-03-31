@@ -54,3 +54,8 @@ graph TB
 3. **User Navigation**: User clicks buttons or moves slider → local navigation in webview updates `traceIndex` → renders visualization → emits `highlight` message.
 4. **Editor Synchronization**: Panel receives `highlight` message → opens file and highlights line in editor.
 5. **Standalone Mode**: webview works standalone (desktop or browser) via static trace injection in development, no postMessage needed.
+
+
+## WebDev
+
+You can develop the design of the visualization using an example trace in your browser. For concrete instructions check out base-repo README.
