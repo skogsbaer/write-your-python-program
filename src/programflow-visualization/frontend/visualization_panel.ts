@@ -17,7 +17,6 @@ export class VisualizationPanel {
   private readonly _context: vscode.ExtensionContext;
   private readonly _outChannel: vscode.OutputChannel;
 
-  private readonly _filePath: string;
   private readonly _fileHash: string;
 
   private readonly _tracePort: MessagePort | null;
@@ -39,7 +38,6 @@ export class VisualizationPanel {
   ) {
     this._context = context;
     this._outChannel = outChannel;
-    this._filePath = filePath;
     this._fileHash = fileHash;
     this._tracePort = tracePort;
 
@@ -88,18 +86,9 @@ export class VisualizationPanel {
 
     this._panel.webview.onDidReceiveMessage(
       async (msg) => {
-        switch (msg?.command) {
-          case "highlight":
-            if (typeof msg.filePath === "string" && typeof msg.line === "number") {
-              await this.updateLineHighlight(false, msg.filePath, msg.line);
-            }
-            break;
-          case "select":
-            if (typeof msg.filePath === "string" && typeof msg.line === "number") {
-              await this.updateLineHighlight(false, msg.filePath, msg.line);
-            }
-            break;
-        }
+        if (msg?.command !== "highlight") {return;}
+        if (typeof msg.filePath !== "string" || typeof msg.line !== "number") {return;}
+        await this.updateLineHighlight(false, msg.filePath, msg.line);
       },
       undefined,
       context.subscriptions
@@ -189,7 +178,6 @@ export class VisualizationPanel {
       command: "append",
       elem,
       complete: this._backendTrace.complete,
-      len: this._backendTrace.trace.length,
     });
   }
 

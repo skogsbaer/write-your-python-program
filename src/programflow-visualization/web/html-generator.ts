@@ -185,11 +185,11 @@ export class HTMLGenerator {
 
     private frameItem(index: number, stackElem: StackElem): string {
         return `
-            <div class="column frame-item" id="frameItem?">
-                <div class="row subtitle" id="frameItemTitle">
+            <div class="column frame-item">
+                <div class="row subtitle">
                     ${stackElem.frameName === '<module>' ? 'Global' : escapeHTML(stackElem.frameName)}
                 </div>
-                <div class="column ${index === 0 ? 'current-frame' : 'frame'}" id="frameItemSubItems">
+                <div class="column ${index === 0 ? 'current-frame' : 'frame'}">
                     ${stackElem.locals.map(namedValue => this.frameSubItem(stackElem.frameName, namedValue)).join('')}
                 </div>
             </div>

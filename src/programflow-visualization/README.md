@@ -13,7 +13,7 @@ The self-contained UI component that the user interacts with:
 
 ### **Panel (frontend/)**
 The VS Code extension-side host that owns the webview:
-- **visualization_panel.ts**: Creates and manages the webview panel lifecycle. Receives `reset` and `append` messages from the trace backend, posts them to the webview. Handles `highlight` and `select` messages from the webview to update editor line highlighting.
+- **visualization_panel.ts**: Creates and manages the webview panel lifecycle. Receives `reset` and `append` messages from the trace backend, posts them to the webview. Handles `highlight` messages from the webview to update editor line highlighting.
 
 ## Message Flow
 
@@ -40,7 +40,7 @@ graph TB
     panel -->|postMessage reset/append| webview
     
     webview -->|custom events| adapter["vscode-host-adapter.ts"]
-    adapter -->|postMessage highlight/select| panel
+    adapter -->|postMessage highlight| panel
     panel -->|updateLineHighlight| editor
     
     ui -->|local navigation| gen

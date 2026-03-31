@@ -1,6 +1,8 @@
 // Bridge messages between the VS Code host API and webview custom events
 declare const acquireVsCodeApi: undefined | (() => { postMessage: (msg: any) => void });
 
+type HighlightMsg = { command: "highlight"; filePath: string; line: number };
+
 const vscode = typeof acquireVsCodeApi === "function"
   ? acquireVsCodeApi()
   : { postMessage: (_: any) => {} };
@@ -19,12 +21,8 @@ window.addEventListener("message", (event: MessageEvent) => {
   }
 });
 
-window.addEventListener("programflow:select", (e: Event) => {
-  const ce = e as CustomEvent<any>;
-  vscode.postMessage({ command: "select", ...ce.detail });
-});
-
 window.addEventListener("programflow:highlight", (e: Event) => {
   const ce = e as CustomEvent<{ filePath: string; line: number }>;
-  vscode.postMessage({ command: "highlight", ...ce.detail });
+  const msg: HighlightMsg = { command: "highlight", ...ce.detail };
+  vscode.postMessage(msg);
 });

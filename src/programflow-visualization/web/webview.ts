@@ -3,22 +3,16 @@ import { HTMLGenerator } from "./html-generator";
 import LinkerLine from "linkerline";
 import type { BackendTraceElem, FrontendTraceElem } from "../types";
 
-// only used to add seperate Browser navigation if not in vscode
-const isVscode = typeof (window as any).acquireVsCodeApi === "function";
-
 type ResetMsg = {
   command: "reset";
   trace: BackendTraceElem[];
   complete: boolean;
-  index?: number;
 };
 
 type AppendMsg = {
   command: "append";
   elem: BackendTraceElem;
   complete: boolean;
-  index?: number;
-  len?: number;
 };
 
 // Optional example trace format (designer mode)
@@ -83,7 +77,7 @@ function renderCurrent() {
 }
 
 function postCurrentHighlight() {
-  if (!isVscode || trace.length === 0) {
+  if (trace.length === 0) {
     return;
   }
   window.dispatchEvent(new CustomEvent("programflow:highlight", {
@@ -245,7 +239,6 @@ window.addEventListener("programflow:reset", (e: Event) => {
   const msg = (e as CustomEvent<ResetMsg>).detail;
   trace = msg.trace ?? [];
   traceComplete = !!msg.complete;
-  traceIndex = Number(msg.index ?? traceIndex);
   renderCurrent();
 });
 
@@ -253,7 +246,6 @@ window.addEventListener("programflow:append", (e: Event) => {
   const msg = (e as CustomEvent<AppendMsg>).detail;
   trace.push(msg.elem);
   traceComplete = !!msg.complete;
-  traceIndex = Number(msg.index ?? traceIndex);
   renderCurrent();
 });
 
@@ -288,8 +280,6 @@ function setupUi() {
   // Optional: example trace mode
   const anyWin = window as any;
   const staticTrace: StaticTrace | undefined = anyWin.__PROGRAMFLOW_TRACE__;
-
-  console.log("static trace mode:", !!staticTrace?.trace, staticTrace?.trace?.length);
   
   if (staticTrace?.trace) {
     trace = staticTrace.trace;
