@@ -1,16 +1,56 @@
-# Communication
-In `setupUi()` in [webview.ts](web/webview.ts#L276) EventListeners for clicks are attatched to Buttons, which dispatch new CustomEvent `programflow:onClick` including info on specific Button.
+# Architecture Overview
 
-## Web
+## Components
 
-* [webview.ts](web/webview.ts#L241) adds an EventListener for that specific CustomEvent, if the application is running in a web environment
-* In this EventListener `traceIndex` is adjusted depending on which Button was pressed
-* `renderCurrent()` re-renders the application using the new `traceIndex`
+### **Webview (web/)**
+The self-contained UI component that the user interacts with:
+- **webview.ts**: Manages trace navigation, rendering, and local state. Navigation (prev/next/first/last) is fully local; after updating the visualization, it emits a `highlight` message for line highlighting in the editor.
+- **html-generator.ts**: Converts backend trace elements into HTML fragments for display.
+- **vscode-host-adapter.ts**: Bridges between the webview's custom events and the VS Code webview API. Non-VS Code environments work unchanged (mock postMessage).
+- **index.html**: DOM structure, control buttons, and output panes.
+- **webview.css**: Layout and styling.
+- **example-trace-content.js**: Optional sample trace for design/development mode.
 
-## VSCode
-* [vscode-host-adapter.ts](web/vscode-host-adapter.ts) adds EventListeners which forward the CustomEvents to the extension via `vscode.postMessage(...)`
-* In [visualization_panel.ts](frontend/visualization_panel.ts#L88) the function `onClick` is then called asynchronously
-* Here, the `traceIndex` is updated, the view is re-rendered via asynchronous `reset`-event and the VSCode highlighting is updated according to `new traceIndex`
-* The `reset`-event, is caught by the EventListener in [vscode-host-adapter.ts](web/vscode-host-adapter.ts#L7), which handles incoming MessageEvents from the VSCode extension and dispatches CustomEvents for [webview.ts](web/webview.ts)
-* In [webview.ts](web/webview.ts#L203) the actual re-rendering happens
-* TLDR; [vscode-host-adapter.ts](web/vscode-host-adapter.ts) works as an event-bridge for messages between the extension and the view and keeps VSCode-specific code out of the webview component
+### **Panel (frontend/)**
+The VS Code extension-side host that owns the webview:
+- **visualization_panel.ts**: Creates and manages the webview panel lifecycle. Receives `reset` and `append` messages from the trace backend, posts them to the webview. Handles `highlight` and `select` messages from the webview to update editor line highlighting.
+
+## Message Flow
+
+```mermaid
+graph TB
+    subgraph backend["Backend (Python)"]
+        trace["Trace Generator"]
+    end
+    
+    subgraph extension["Extension Host (VS Code)"]
+        panel["VisualizationPanel"]
+    end
+    
+    subgraph webview["Webview (Sandboxed)"]
+        ui["webview.ts<br/>(UI + Navigation)"]
+        gen["html-generator.ts<br/>(Rendering)"]
+    end
+    
+    subgraph editor["Editor"]
+        highlight["Line Highlighting"]
+    end
+    
+    trace -->|trace array via IPC| panel
+    panel -->|postMessage reset/append| webview
+    
+    webview -->|custom events| adapter["vscode-host-adapter.ts"]
+    adapter -->|postMessage highlight/select| panel
+    panel -->|updateLineHighlight| editor
+    
+    ui -->|local navigation| gen
+    gen -->|innerHTML| ui
+```
+
+## Data Flow
+
+1. **Initial Load / Panel Refocus**: Panel sends full trace array to webview via `reset` message.
+2. **Streaming Trace**: Backend sends trace elements; panel forwards via `append` message.
+3. **User Navigation**: User clicks buttons or moves slider → local navigation in webview updates `traceIndex` → renders visualization → emits `highlight` message.
+4. **Editor Synchronization**: Panel receives `highlight` message → opens file and highlights line in editor.
+5. **Standalone Mode**: webview works standalone (desktop or browser) via static trace injection in development, no postMessage needed.

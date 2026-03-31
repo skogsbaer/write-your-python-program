@@ -1,3 +1,4 @@
+// Render and control the program-flow visualization UI inside the webview
 import { HTMLGenerator } from "./html-generator";
 import LinkerLine from "linkerline";
 import type { BackendTraceElem, FrontendTraceElem } from "../types";
@@ -9,15 +10,15 @@ type ResetMsg = {
   command: "reset";
   trace: BackendTraceElem[];
   complete: boolean;
-  index: number;
+  index?: number;
 };
 
 type AppendMsg = {
   command: "append";
   elem: BackendTraceElem;
   complete: boolean;
-  index: number;
-  len: number;
+  index?: number;
+  len?: number;
 };
 
 // Optional example trace format (designer mode)
@@ -27,6 +28,8 @@ let refLines: any[] = [];
 let trace: BackendTraceElem[] = [];
 let traceComplete = false;
 let traceIndex = 0;
+
+type NavType = "first" | "prev" | "next" | "last";
 
 const gen = new HTMLGenerator();
 
@@ -79,7 +82,50 @@ function renderCurrent() {
   updateRefArrows(frontendElem);
 }
 
-function updateVisualization(traceElem: any /* FrontendTraceElem */) {
+function postCurrentHighlight() {
+  if (!isVscode || trace.length === 0) {
+    return;
+  }
+  window.dispatchEvent(new CustomEvent("programflow:highlight", {
+    detail: {
+      filePath: trace[traceIndex].filePath,
+      line: trace[traceIndex].line,
+    },
+  }));
+}
+
+function navigate(type: NavType) {
+  const max = Math.max(0, trace.length - 1);
+
+  switch (type) {
+    case "first":
+      traceIndex = 0;
+      break;
+
+    case "prev":
+      traceIndex = Math.max(0, traceIndex - 1);
+      break;
+
+    case "next":
+      traceIndex = Math.min(max, traceIndex + 1);
+      break;
+
+    case "last":
+      traceIndex = max;
+      break;
+  }
+
+  renderCurrent();
+  postCurrentHighlight();
+}
+
+function slideTo(rawValue: string) {
+  traceIndex = Number(rawValue) || 0;
+  renderCurrent();
+  postCurrentHighlight();
+}
+
+function updateVisualization(traceElem: FrontendTraceElem) {
   clearArrows();
 
   const frames = document.getElementById("frames");
@@ -96,7 +142,7 @@ function updateVisualization(traceElem: any /* FrontendTraceElem */) {
   stdoutLog.scrollTo(0, stdoutLog.scrollHeight);
 }
 
-function updateIndent(traceElem: any /* FrontendTraceElem */) {
+function updateIndent(traceElem: FrontendTraceElem) {
   const heapTags = traceElem.heapHTML.match(/(?<=startPointer)[0-9]+/g);
   if (heapTags) {
     heapTags.forEach((tag: string) => {
@@ -116,7 +162,7 @@ function clearArrows() {
   refLines = [];
 }
 
-function updateRefArrows(traceElem: any /* FrontendTraceElem */) {
+function updateRefArrows(traceElem: FrontendTraceElem) {
   const tags = getCurrentTags(traceElem);
   if (!tags) { return; }
 
@@ -199,7 +245,7 @@ window.addEventListener("programflow:reset", (e: Event) => {
   const msg = (e as CustomEvent<ResetMsg>).detail;
   trace = msg.trace ?? [];
   traceComplete = !!msg.complete;
-  traceIndex = Number(msg.index ?? 0);
+  traceIndex = Number(msg.index ?? traceIndex);
   renderCurrent();
 });
 
@@ -211,66 +257,6 @@ window.addEventListener("programflow:append", (e: Event) => {
   renderCurrent();
 });
 
-window.addEventListener("programflow:updateButtons", (e: Event) => {
-  const msg = (e as CustomEvent<any>).detail;
-  setDisabled("#nextButton", !msg.next);
-  setDisabled("#prevButton", !msg.prev);
-  setDisabled("#firstButton", !msg.first);
-  setDisabled("#lastButton", !msg.last);
-});
-
-window.addEventListener("programflow:updateContent", (e: Event) => {
-  const msg = (e as CustomEvent<any>).detail;
-
-  const max = Math.max(0, (msg.traceLen ?? 0) - 1);
-  const slider = $("#traceSlider") as HTMLInputElement;
-  slider.max = String(max);
-  slider.value = String(msg.traceIndex ?? 0);
-
-  $("#traceMax").innerHTML = "/" + (msg.traceComplete ? String(max) : "?");
-  $("#indexCounter").innerHTML = String(msg.traceIndex ?? 0);
-
-  updateVisualization(msg.traceElem);
-  updateIndent(msg.traceElem);
-  updateRefArrows(msg.traceElem);
-});
-
-// Browser-only navigation handling
-if (!isVscode) {
-
-  window.addEventListener("programflow:onClick", (e: Event) => {
-    const ce = e as CustomEvent<{ type: "first" | "prev" | "next" | "last" }>;
-    const max = Math.max(0, trace.length - 1);
-
-    switch (ce.detail.type) {
-      case "first":
-        traceIndex = 0;
-        break;
-
-      case "prev":
-        traceIndex = Math.max(0, traceIndex - 1);
-        break;
-
-      case "next":
-        traceIndex = Math.min(max, traceIndex + 1);
-        break;
-
-      case "last":
-        traceIndex = max;
-        break;
-    }
-
-    renderCurrent();
-  });
-
-  window.addEventListener("programflow:onSlide", (e: Event) => {
-    const ce = e as CustomEvent<{ value: string }>;
-    traceIndex = Number(ce.detail.value) || 0;
-    renderCurrent();
-  });
-
-}
-
 
 function setupUi() {
   // Disable until first reset arrives
@@ -279,24 +265,24 @@ function setupUi() {
   setDisabled("#prevButton", true);
   setDisabled("#firstButton", true);
 
-  // Button clicks -> dispatch events (adapter forwards to VS Code)
+  // Button clicks -> local navigation
   $("#firstButton").addEventListener("click", () => {
-    window.dispatchEvent(new CustomEvent("programflow:onClick", { detail: { type: "first" } }));
+    navigate("first");
   });
   $("#prevButton").addEventListener("click", () => {
-    window.dispatchEvent(new CustomEvent("programflow:onClick", { detail: { type: "prev" } }));
+    navigate("prev");
   });
   $("#nextButton").addEventListener("click", () => {
-    window.dispatchEvent(new CustomEvent("programflow:onClick", { detail: { type: "next" } }));
+    navigate("next");
   });
   $("#lastButton").addEventListener("click", () => {
-    window.dispatchEvent(new CustomEvent("programflow:onClick", { detail: { type: "last" } }));
+    navigate("last");
   });
 
-  // Slider input -> dispatch event
+  // Slider input -> local navigation
   ($("#traceSlider") as HTMLInputElement).addEventListener("input", (e: Event) => {
     const value = (e.target as HTMLInputElement).value;
-    window.dispatchEvent(new CustomEvent("programflow:onSlide", { detail: { value } }));
+    slideTo(value);
   });
 
   // Optional: example trace mode

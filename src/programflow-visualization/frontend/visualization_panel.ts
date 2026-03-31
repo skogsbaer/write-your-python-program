@@ -1,3 +1,4 @@
+// Host the visualization webview panel and synchronize editor highlighting with trace events
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
@@ -23,7 +24,8 @@ export class VisualizationPanel {
   private _tracePortSelfClose = false;
 
   private _backendTrace: PartialBackendTrace = { trace: [], complete: false };
-  private _traceIndex = 0;
+  private _highlightFilePath: string | undefined;
+  private _highlightLine: number | undefined;
 
   private static readonly webComponentDir = "out/programflow-visualization/web";
 
@@ -42,7 +44,6 @@ export class VisualizationPanel {
     this._tracePort = tracePort;
 
     this._backendTrace = { trace: initialTrace, complete: initialTrace.length > 0 };
-    this._traceIndex = 0;
 
     this._panel = vscode.window.createWebviewPanel(
       "programflow-visualization",
@@ -88,11 +89,10 @@ export class VisualizationPanel {
     this._panel.webview.onDidReceiveMessage(
       async (msg) => {
         switch (msg?.command) {
-          case "onClick":
-            await this.onClick(String(msg.type));
-            break;
-          case "onSlide":
-            await this.onSlide(Number(msg.sliderValue));
+          case "highlight":
+            if (typeof msg.filePath === "string" && typeof msg.line === "number") {
+              await this.updateLineHighlight(false, msg.filePath, msg.line);
+            }
             break;
           case "select":
             if (typeof msg.filePath === "string" && typeof msg.line === "number") {
@@ -179,7 +179,6 @@ export class VisualizationPanel {
       command: "reset",
       trace: this._backendTrace.trace,
       complete: this._backendTrace.complete,
-      index: this._traceIndex,
     });
   }
 
@@ -190,52 +189,33 @@ export class VisualizationPanel {
       command: "append",
       elem,
       complete: this._backendTrace.complete,
-      index: this._traceIndex,
       len: this._backendTrace.trace.length,
     });
-  }
-
-  // Compatibility navigation handlers
-  private async onClick(type: string) {
-    this.updateTraceIndex(type);
-    await this.postReset();
-    this.updateLineHighlight();
-  }
-
-  private async onSlide(sliderValue: number) {
-    this._traceIndex = Number(sliderValue);
-    await this.postReset();
-    this.updateLineHighlight();
-  }
-
-  private updateTraceIndex(actionType: string) {
-    const max = Math.max(0, this._backendTrace.trace.length - 1);
-    switch (actionType) {
-      case "next":
-        this._traceIndex = Math.min(max, this._traceIndex + 1);
-        break;
-      case "prev":
-        this._traceIndex = Math.max(0, this._traceIndex - 1);
-        break;
-      case "first":
-        this._traceIndex = 0;
-        break;
-      case "last":
-        this._traceIndex = max;
-        break;
-    }
   }
 
   // Editor highlighting
   private async updateLineHighlight(remove: boolean = false, overrideFile?: string, overrideLine?: number) {
     try {
-      if (this._backendTrace.trace.length === 0) {
-        return;
+      let traceFile: string;
+      let traceLine: number;
+
+      if (typeof overrideFile === "string" && typeof overrideLine === "number") {
+        traceFile = overrideFile;
+        traceLine = overrideLine;
+      } else if (typeof this._highlightFilePath === "string" && typeof this._highlightLine === "number") {
+        traceFile = this._highlightFilePath;
+        traceLine = this._highlightLine;
+      } else {
+        if (this._backendTrace.trace.length === 0) {
+          return;
+        }
+        const current = this._backendTrace.trace[0];
+        traceFile = current.filePath;
+        traceLine = current.line;
       }
 
-      const current = this._backendTrace.trace[this._traceIndex];
-      const traceFile = overrideFile ?? current.filePath;
-      const traceLine = overrideLine ?? current.line;
+      this._highlightFilePath = traceFile;
+      this._highlightLine = traceLine;
 
       const openPath = vscode.Uri.file(traceFile);
 

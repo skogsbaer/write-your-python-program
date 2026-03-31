@@ -1,3 +1,4 @@
+// Convert backend trace elements into HTML fragments for the visualization panes
 import type {
   BackendTraceElem,
   FrontendTraceElem,
@@ -126,7 +127,6 @@ export class HTMLGenerator {
                         ${heapValue.value.map((v, i) => this.setValue(v)).join('')}
                     </div>
                 `;
-                break;
                 break;
             /* tuple, list, int[], int[][], ...*/
             default:

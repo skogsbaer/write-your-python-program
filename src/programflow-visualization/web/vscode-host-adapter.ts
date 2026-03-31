@@ -1,3 +1,4 @@
+// Bridge messages between the VS Code host API and webview custom events
 declare const acquireVsCodeApi: undefined | (() => { postMessage: (msg: any) => void });
 
 const vscode = typeof acquireVsCodeApi === "function"
@@ -15,13 +16,6 @@ window.addEventListener("message", (event: MessageEvent) => {
     case "append":
       window.dispatchEvent(new CustomEvent("programflow:append", { detail: msg }));
       break;
-
-    case "updateButtons":
-      window.dispatchEvent(new CustomEvent("programflow:updateButtons", { detail: msg }));
-      break;
-    case "updateContent":
-      window.dispatchEvent(new CustomEvent("programflow:updateContent", { detail: msg }));
-      break;
   }
 });
 
@@ -30,12 +24,7 @@ window.addEventListener("programflow:select", (e: Event) => {
   vscode.postMessage({ command: "select", ...ce.detail });
 });
 
-window.addEventListener("programflow:onClick", (e: Event) => {
-  const ce = e as CustomEvent<{ type: string }>;
-  vscode.postMessage({ command: "onClick", type: ce.detail.type });
-});
-
-window.addEventListener("programflow:onSlide", (e: Event) => {
-  const ce = e as CustomEvent<{ value: string }>;
-  vscode.postMessage({ command: "onSlide", sliderValue: ce.detail.value });
+window.addEventListener("programflow:highlight", (e: Event) => {
+  const ce = e as CustomEvent<{ filePath: string; line: number }>;
+  vscode.postMessage({ command: "highlight", ...ce.detail });
 });
