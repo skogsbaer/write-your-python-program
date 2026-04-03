@@ -34,7 +34,7 @@ body {
 }
 
 .scrollable {
-  overflow: scroll;
+  overflow: auto;
 }
 
 #viz {
