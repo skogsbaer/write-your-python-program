@@ -4,6 +4,7 @@ import importlib
 import runpy
 from dataclasses import dataclass
 from typing import Optional
+from contextlib import contextmanager
 
 # local imports
 from constants import *
@@ -86,6 +87,35 @@ def debugModule(name):
         print("Origin:", spec.origin)
         print("Loader:", type(spec.loader).__name__)
 
+import sys
+import os
+import contextlib
+
+@contextlib.contextmanager
+def freshModules():
+    original_modules = sys.modules.copy()
+    stdlib_path = os.path.dirname(os.__file__)
+    whitelist = ('sys', 'os', 'contextlib', 'runpy', 'wypp', '__main__', '__wypp__')
+    def is_core(name, module):
+        if name in sys.stdlib_module_names or name in sys.builtin_module_names:
+            return True
+        module_file = getattr(module, '__file__', None)
+        if module_file and module_file.startswith(stdlib_path):
+            return True
+        if name in whitelist:
+            return True
+        return False
+
+    try:
+        for mod_name in list(sys.modules.keys()):
+            if not is_core(mod_name, sys.modules[mod_name]):
+                del sys.modules[mod_name]
+        yield
+    finally:
+        # 4. Restore everything
+        sys.modules.clear()
+        sys.modules.update(original_modules)
+
 def runCode(fileToRun, globals, doTypecheck=True, extraDirs=None) -> dict:
     if not extraDirs:
         extraDirs = []
@@ -94,7 +124,8 @@ def runCode(fileToRun, globals, doTypecheck=True, extraDirs=None) -> dict:
         sys.dont_write_bytecode = True
         if DEBUG:
             debugModule(modName)
-        res = runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=False)
+        with freshModules():
+            res = runpy.run_module(modName, init_globals=globals, run_name='__wypp__', alter_sys=False)
         return res
 
 def runStudentCode(fileToRun, globals, onlyCheckRunnable, doTypecheck=True, extraDirs=None) -> dict:
