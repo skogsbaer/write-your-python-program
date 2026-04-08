@@ -1,4 +1,6 @@
 import re
+import sys
+import os
 
 RESET         = "\u001b[0;0m"
 BOLD          = "\u001b[1m"
@@ -21,8 +23,20 @@ LIGHT_PURPLE  = "\u001b[1;35m"
 YELLOW        = "\u001b[1;33m"
 WHITE         = "\u001b[1;37m"
 
+def useColors():
+    if "NO_COLOR" in os.environ:
+        return False
+    if not sys.stdout.isatty():
+        return False
+    if os.environ.get("TERM") == "dumb":
+        return False
+    return True
+
 def color(s, color):
-    return color + s + RESET
+    if useColors():
+        return color + s + RESET
+    else:
+        return s
 
 def green(s):
     return color(s, GREEN + BOLD)
