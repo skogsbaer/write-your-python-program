@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.2.2 (2026-04-03)
+  * Fixed package hiding bug
 * 2.2.1 (2026-03-26)
   * Functionality for running standard unit tests
 * 2.2.0 (2026-03-17)
