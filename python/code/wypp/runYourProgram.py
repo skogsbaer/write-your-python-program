@@ -13,5 +13,10 @@ if not pythonVersion.startswith('3.'):
         sys.exit(1)
 
 if __name__ == '__main__':
+    import os
+    sourceDir = os.path.normpath(os.path.dirname(__file__))
+    codeDir = os.path.abspath(os.path.dirname(sourceDir))
+    if codeDir not in sys.path:
+        sys.path.insert(0, codeDir)
     import wypp.runner as r
     r.main(globals())

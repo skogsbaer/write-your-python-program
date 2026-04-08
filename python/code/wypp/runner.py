@@ -1,9 +1,6 @@
 import os
 import sys
 
-from . import constants
-sys.path.insert(0, constants.CODE_DIR)
-
 requiredVersion = (3, 12, 0)
 def pythonVersionOk(v):
     (reqMajor, reqMinor, reqMicro) = requiredVersion
