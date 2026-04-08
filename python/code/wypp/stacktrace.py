@@ -1,13 +1,14 @@
-import types
-import traceback
-import utils
+from collections import deque
 import inspect
-import threading
-from typing import Optional, Any
 import os
 import sys
-from collections import deque
-from myLogging import *
+import threading
+import traceback
+import types
+from typing import Optional, Any
+
+from .myLogging import *
+from . import utils
 
 def tbToFrameList(tb: types.TracebackType) -> list[types.FrameType]:
     cur = tb

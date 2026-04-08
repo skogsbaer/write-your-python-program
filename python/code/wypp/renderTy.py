@@ -1,7 +1,8 @@
 import collections.abc
 import types
 from typing import *
-import myTypeguard
+
+from . import myTypeguard
 #def renderTy(t: Any) -> str:
 #    if isinstance(t, str):
 #        return t

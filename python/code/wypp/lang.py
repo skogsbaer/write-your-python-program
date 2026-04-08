@@ -1,6 +1,6 @@
-import os
-import locale
 from _collections_abc import MutableMapping
+import locale
+import os
 
 def _langFromEnv(env: MutableMapping) -> str | None:
     # 1) GNU LANGUAGE: colon-separated fallbacks (e.g., "de:en_US:en")

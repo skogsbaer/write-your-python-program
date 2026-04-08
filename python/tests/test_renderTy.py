@@ -1,6 +1,6 @@
 import unittest
 from typing import *
-from renderTy import renderTy
+from wypp.renderTy import renderTy
 
 class MyClass:
     pass

@@ -1,19 +1,20 @@
-from typing import *
-import os
 import ast
+from collections.abc import Buffer
+from contextlib import contextmanager
 import importlib
 import importlib.abc
-from importlib.machinery import ModuleSpec, SourceFileLoader
 import importlib.machinery
+from importlib.machinery import ModuleSpec, SourceFileLoader
 from importlib.util import decode_source, spec_from_file_location
-from collections.abc import Buffer
-import types
+import os
 from os import PathLike
-import utils
-from myLogging import *
-from contextlib import contextmanager
-import errors
-import location
+import types
+from typing import *
+
+from . import errors
+from . import location
+from .myLogging import *
+from . import utils
 
 def parseExp(s: str) -> ast.expr:
     match ast.parse(s):

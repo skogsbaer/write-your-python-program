@@ -1,20 +1,21 @@
 from __future__ import annotations
-from typing import *
+import abc
+import ast
 from dataclasses import dataclass
+import dis
 import inspect
 import linecache
-import dis
-import ast
-import ansi
-import utils
-import myLogging
-import sys
-import abc
-import parsecache
-from parsecache import FunMatcher
-import paths
-import tokenize
 import os
+import sys
+import tokenize
+from typing import *
+
+from . import ansi
+from . import myLogging
+from . import parsecache
+from .parsecache import FunMatcher
+from . import paths
+from . import utils
 
 @dataclass
 class EncodedBytes:

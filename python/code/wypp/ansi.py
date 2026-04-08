@@ -1,6 +1,6 @@
+import os
 import re
 import sys
-import os
 
 RESET         = "\u001b[0;0m"
 BOLD          = "\u001b[1m"

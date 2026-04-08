@@ -1,9 +1,8 @@
-import sys
-import constants
-sys.path.insert(0, constants.CODE_DIR)
-
-import sys
 import os
+import sys
+
+from . import constants
+sys.path.insert(0, constants.CODE_DIR)
 
 requiredVersion = (3, 12, 0)
 def pythonVersionOk(v):
@@ -23,17 +22,17 @@ Python in version {reqVStr} or newer is required. You are still using version {v
 """)
     sys.exit(1)
 
-# local imports
-from constants import *
-import i18n
-import paths
-from myLogging import *
-import version as versionMod
-import interactive
-import runCode
-import exceptionHandler
-import cmdlineArgs
-import ansi
+from . import ansi
+from . import cmdlineArgs
+from .constants import *
+from . import exceptionHandler
+from . import i18n
+from . import interactive
+from .myLogging import *
+from . import paths
+from . import replTester
+from . import runCode
+from . import version as versionMod
 
 def printWelcomeString(file, version, doTypecheck):
     cwd = os.getcwd() + "/"
@@ -70,7 +69,6 @@ def main(globals, argList=None):
     fileToRun: str|None = args.file
     if fileToRun is None:
         if args.repls:
-            import replTester
             replTester.testRepls(args.repls, globals)
         return
     if not os.path.exists(fileToRun):
@@ -109,7 +107,6 @@ def main(globals, argList=None):
                               extraDirs=args.extraDirs, loadingFailed=loadingFailed)
 
         if args.repls:
-            import replTester
             replTester.testRepls(args.repls, globals)
 
         if isInteractive:

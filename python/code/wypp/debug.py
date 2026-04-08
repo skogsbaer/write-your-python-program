@@ -1,5 +1,6 @@
 import sys
-import runner
+
+from . import runner
 
 # Use this file if you want to the some test file under the debugger
 if __name__ == '__main__':

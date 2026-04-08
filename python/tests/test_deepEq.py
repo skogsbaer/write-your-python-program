@@ -1,8 +1,8 @@
 import unittest
 import sample
-from writeYourProgram import *
-from writeYourProgram import deepEq
-import writeYourProgram as wypp
+from wypp.writeYourProgram import *
+from wypp.writeYourProgram import deepEq
+import wypp.writeYourProgram as wypp
 
 wypp.setDieOnCheckFailures(True)
 
