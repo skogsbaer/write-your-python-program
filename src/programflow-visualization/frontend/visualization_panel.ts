@@ -1,73 +1,70 @@
-import * as vscode from 'vscode';
-import { nextLineExecuteHighlightType } from '../constants';
-import path = require('path');
-import { HTMLGenerator } from './HTMLGenerator';
-import { MessagePort } from 'worker_threads';
-import { cacheTrace } from '../trace_cache';
+// Host the visualization webview panel and synchronize editor highlighting with trace events
+import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
+import { MessagePort } from "worker_threads";
 
-const FRONTEND_RESOURCE_PATH = 'media/programflow-visualization';
+import { nextLineExecuteHighlightType } from "../constants";
+import { cacheTrace, getTrace, traceAlreadyExists } from "../trace_cache";
+
+import type { BackendTrace, BackendTraceElem, PartialBackendTrace,  } from "../types";
+
+let singletonPanel: VisualizationPanel | undefined;
 
 export class VisualizationPanel {
   private _panel: vscode.WebviewPanel | undefined;
-  private readonly _style: vscode.Uri;
-  private readonly _script: vscode.Uri;
-  private readonly _linkerlineBundle: vscode.Uri;
+
+  private readonly _context: vscode.ExtensionContext;
+  private readonly _outChannel: vscode.OutputChannel;
+
   private readonly _fileHash: string;
+
   private readonly _tracePort: MessagePort | null;
-  private _backendTrace: PartialBackendTrace;
-  private _trace: FrontendTrace;
-  private _traceIndex: number;
-  private _tracePortSelfClose: boolean;
-  private _outChannel: vscode.OutputChannel;
+  private _tracePortSelfClose = false;
+
+  private _backendTrace: PartialBackendTrace = { trace: [], complete: false };
+  private _highlightFilePath: string | undefined;
+  private _highlightLine: number | undefined;
+
+  private static readonly webComponentDir = "out/programflow-visualization/web";
 
   private constructor(
     context: vscode.ExtensionContext,
     outChannel: vscode.OutputChannel,
     filePath: string,
     fileHash: string,
-    trace: BackendTrace,
+    initialTrace: BackendTrace,
     tracePort: MessagePort | null
   ) {
+    this._context = context;
     this._outChannel = outChannel;
     this._fileHash = fileHash;
     this._tracePort = tracePort;
-    this._backendTrace = { trace: trace, complete: trace.length > 0 };
-    this._trace = [];
-    const htmlGenerator = new HTMLGenerator();
-    trace.forEach(traceElement => {
-      this._trace.push(htmlGenerator.generateHTML(traceElement));
-    });
-    this._traceIndex = 0;
-    const panel = vscode.window.createWebviewPanel(
-      'programflow-visualization',
+
+    this._backendTrace = { trace: initialTrace, complete: initialTrace.length > 0 };
+
+    this._panel = vscode.window.createWebviewPanel(
+      "programflow-visualization",
       `Visualization: ${path.basename(filePath)}`,
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(context.extensionPath, FRONTEND_RESOURCE_PATH)),
-          vscode.Uri.file(path.join(context.extensionPath, 'out')),
+          vscode.Uri.file(path.join(context.extensionPath, VisualizationPanel.webComponentDir)),
         ],
       }
     );
 
-    // Get path to resource on disk
-    const stylesFile = vscode.Uri.file(path.join(context.extensionPath, FRONTEND_RESOURCE_PATH, 'webview.css'));
-    const scriptFile = vscode.Uri.file(path.join(context.extensionPath, FRONTEND_RESOURCE_PATH, 'webview.js'));
-    const linkerlineFile = vscode.Uri.file(path.join(context.extensionPath, 'out/linkerline.bundle.js'));
-    // And get the special URI to use with the webview
-    this._style = panel.webview.asWebviewUri(stylesFile);
-    this._script = panel.webview.asWebviewUri(scriptFile);
-    this._linkerlineBundle = panel.webview.asWebviewUri(linkerlineFile);
-    this._panel = panel;
+    // Load index.html from web/ and rewrite resource URIs.
+    this._panel.webview.html = this.getWebviewHtml(this._panel.webview);
 
     this._panel.onDidChangeViewState(async (e) => {
       if (e.webviewPanel.active) {
-        await this.postMessagesToWebview('updateContent');
+        await this.postReset();
+        this.updateLineHighlight();
       }
     });
 
-    this._tracePortSelfClose = false;
     this._panel.onDidDispose(
       async () => {
         this._tracePortSelfClose = true;
@@ -75,252 +72,181 @@ export class VisualizationPanel {
         this.updateLineHighlight(true);
         this._panel = undefined;
       },
-      null,
+      undefined,
       context.subscriptions
     );
 
-    vscode.window.onDidChangeActiveTextEditor(_ => {
-      if (this._panel?.active) {
-        this.updateLineHighlight();
-      }
-    }, undefined, context.subscriptions);
-
-
-    // Message Receivers
-    this._panel.webview.onDidReceiveMessage(
-      (msg) => {
-        switch (msg.command) {
-          case 'onClick':
-            return this.onClick(msg.type);
-          case 'onSlide':
-            return this.onSlide(msg.sliderValue);
-        }
+    vscode.window.onDidChangeActiveTextEditor(
+      () => {
+        if (this._panel?.active) {this.updateLineHighlight();}
       },
       undefined,
       context.subscriptions
     );
 
-    this.updateLineHighlight();
-    this.initWebviewContent();
+    this._panel.webview.onDidReceiveMessage(
+      async (msg) => {
+        if (msg?.command !== "highlight") {return;}
+        if (typeof msg.filePath !== "string" || typeof msg.line !== "number") {return;}
+        await this.updateLineHighlight(false, msg.filePath, msg.line);
+      },
+      undefined,
+      context.subscriptions
+    );
 
-    this._tracePort?.on('message', async (backendTraceElem) => {
-      const firstElement = this._trace.length === 0;
+    void this.postReset();
+    this.updateLineHighlight();
+
+    // Live trace streaming
+    this._tracePort?.on("message", async (backendTraceElem: BackendTraceElem) => {
+      const firstElement = this._backendTrace.trace.length === 0;
+
       this._backendTrace.trace.push(backendTraceElem);
-      this._trace.push((new HTMLGenerator()).generateHTML(backendTraceElem));
-      await this.postMessagesToWebview('updateButtons', 'updateContent');
+
+      await this.postAppend(backendTraceElem);
+
       if (firstElement) {
         await this.updateLineHighlight();
       }
     });
-    this._tracePort?.on('close', async () => {
+
+    this._tracePort?.on("close", async () => {
       if (!this._tracePortSelfClose) {
         this._backendTrace.complete = true;
         await cacheTrace(context, this._fileHash, this._backendTrace.trace);
-        await this.postMessagesToWebview('updateContent');
+        await this.postReset();
       }
     });
+  }
+
+  // Replaces frontend.ts: load cache + enforce singleton panel
+  public static async start(
+    context: vscode.ExtensionContext,
+    outChannel: vscode.OutputChannel,
+    filePath: string,
+    fileHash: string,
+    tracePort: MessagePort | null
+  ): Promise<void> {
+    let trace: BackendTrace = [];
+    if (await traceAlreadyExists(context, fileHash)) {
+      trace = await getTrace(context, fileHash);
+    }
+
+    singletonPanel?.dispose();
+    singletonPanel = new VisualizationPanel(context, outChannel, filePath, fileHash, trace, tracePort);
   }
 
   public dispose() {
     this._panel?.dispose();
   }
 
-  public static async getVisualizationPanel(
-    context: vscode.ExtensionContext,
-    outChannel: vscode.OutputChannel,
-    filePath: string,
-    fileHash: string,
-    trace: BackendTrace,
-    tracePort: MessagePort | null
-  ): Promise<VisualizationPanel | undefined> {
-    return new VisualizationPanel(context, outChannel, filePath, fileHash, trace, tracePort);
+  // HTML loader: reads web/index.html and replaces placeholders
+  private getWebviewHtml(webview: vscode.Webview): string {
+    const webDir = path.join(this._context.extensionPath, VisualizationPanel.webComponentDir);
+    const indexPath = path.join(webDir, "index.html");
+    let html = fs.readFileSync(indexPath, "utf8");
+
+    const cssUri = webview.asWebviewUri(vscode.Uri.file(path.join(webDir, "webview.css")));
+    const jsUri = webview.asWebviewUri(vscode.Uri.file(path.join(webDir, "webview.js")));
+    const adapterUri = webview.asWebviewUri(vscode.Uri.file(path.join(webDir, "vscode-host-adapter.js")));
+    const nonce = getNonce();
+
+    html = replaceAll(html, "{{WEBVIEW_CSS}}", String(cssUri));
+    html = replaceAll(html, "{{VSCODE_HOST_ADAPTER_JS}}", String(adapterUri));
+    html = replaceAll(html, "{{WEBVIEW_JS}}", String(jsUri));
+    html = replaceAll(html, "{{NONCE}}", nonce);
+    html = replaceAll(html, "{{CSP_SOURCE}}", webview.cspSource);
+
+    return html;
   }
 
-  // TODO: Look if Typescript is possible OR do better documentation in all files
-  public initWebviewContent() {
-    this._panel!.webview.html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link rel="stylesheet" href="${this._style}">
-          <script src="${this._linkerlineBundle}"></script>
-          <script src="${this._script}"></script>
-          <title>Code Visualization</title>
-      </head>
-      <body onload="onLoad()">
-        <div class="column scrollable" id="viz">
-          <div class="row">
-            <div class="column title">
-              Frames
-              <div class="divider"></div>
-            </div>
-            <div class="row title">
-              Objects
-              <div class="divider"></div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="column floating-left" id="frames">
-            </div>
-            <div class="column floating-right" id="objects">
-            </div>
-          </div>
-        </div>
-        <div class="row" id="bottom-area">
-          <div class="column floating-left">
-            <div class="slidecontainer">
-              <input type="range" min="0" max="0" value="0" class="slider" id="traceSlider" oninput="onSlide(this.value)">
-            </div>
-            <div class="row margin-vertical">
-              <p>Step&nbsp;</p>
-              <p id="indexCounter">0</p>
-              <p id="traceMax">/?</p>
-            </div>
-            <div class="row margin-vertical">
-              <button class="margin-horizontal" id="firstButton" type="button" onclick="onClick('first')">&#9198</button>
-              <button class="margin-horizontal" id="prevButton" type="button" onclick="onClick('prev')">&#9664</button>
-              <button class="margin-horizontal" id="nextButton" type="button" onclick="onClick('next')">&#9654</button>
-              <button class="margin-horizontal" id="lastButton" type="button" onclick="onClick('last')">&#9197</button>
-            </div>
-          </div>
-          <div class="column floating-right">
-            <pre class="scrollable" id="stdout-log"></pre>
-          </dev>
-        </div>
-      </body>
-      </html>
-      `;
+  // Posting data into the web component
+  private async postReset() {
+    if (!this._panel) {return;}
+
+    await this._panel.webview.postMessage({
+      command: "reset",
+      trace: this._backendTrace.trace,
+      complete: this._backendTrace.complete,
+    });
   }
 
-  private async updateLineHighlight(remove: boolean = false) {
+  private async postAppend(elem: BackendTraceElem) {
+    if (!this._panel) {return;}
+
+    await this._panel.webview.postMessage({
+      command: "append",
+      elem,
+      complete: this._backendTrace.complete,
+    });
+  }
+
+  // Editor highlighting
+  private async updateLineHighlight(remove: boolean = false, overrideFile?: string, overrideLine?: number) {
     try {
-      if (this._trace.length === 0) {
-        this._outChannel.appendLine("updateLineHighlight: no trace available, aborting");
-        return;
-      }
-      const traceFile = this._trace[this._traceIndex].filename;
-      this._outChannel.appendLine(
-        `updateLineHighlight: traceFile=${traceFile}, traceIndex=${this._traceIndex}, remove=${remove}`);
+      let traceFile: string;
+      let traceLine: number;
 
-      // Use vscode.Uri.file() for proper file path to URI conversion
-      const openPath = vscode.Uri.file(traceFile);
-
-      // Find editor by full normalized path, not just basename
-      let editor: vscode.TextEditor | undefined = vscode.window.visibleTextEditors.find(
-        editor => editor.document.uri.fsPath === openPath.fsPath
-      );
-
-      if (!editor && remove) {
-        return;
-      } else if (!editor){
-        this._outChannel.appendLine(`updateLineHighlight: editor not found, opening document: ${openPath.fsPath}`);
-        await vscode.commands.executeCommand('workbench.action.focusFirstEditorGroup');
-        const document = await vscode.workspace.openTextDocument(openPath);
-        editor = await vscode.window.showTextDocument(document, { preserveFocus: false });
-        // Give the editor time to fully initialize
-        await new Promise(resolve => setTimeout(resolve, 100));
-        if (!editor) {
-          this._outChannel.appendLine(`updateLineHighlight: failed to get editor after opening document`);
+      if (typeof overrideFile === "string" && typeof overrideLine === "number") {
+        traceFile = overrideFile;
+        traceLine = overrideLine;
+      } else if (typeof this._highlightFilePath === "string" && typeof this._highlightLine === "number") {
+        traceFile = this._highlightFilePath;
+        traceLine = this._highlightLine;
+      } else {
+        if (this._backendTrace.trace.length === 0) {
           return;
         }
+        const current = this._backendTrace.trace[0];
+        traceFile = current.filePath;
+        traceLine = current.line;
       }
 
-      const traceLine = this._trace[this._traceIndex].lineNumber;
-      const lineNo = traceLine - 1; // zero-based indexing in vscode
+      this._highlightFilePath = traceFile;
+      this._highlightLine = traceLine;
+
+      const openPath = vscode.Uri.file(traceFile);
+
+      let editor: vscode.TextEditor | undefined = vscode.window.visibleTextEditors.find(
+        (ed) => ed.document.uri.fsPath === openPath.fsPath
+      );
+
+      if (!editor && !remove) {
+        await vscode.commands.executeCommand("workbench.action.focusFirstEditorGroup");
+        const doc = await vscode.workspace.openTextDocument(openPath);
+        editor = await vscode.window.showTextDocument(doc, { preserveFocus: false });
+        await new Promise((r) => setTimeout(r, 50));
+      }
+
+      if (!editor) {return;}
+
       if (remove) {
-        this._outChannel.appendLine(
-          "updateLineHighlight: removing highlighting in " + editor.document.fileName);
         editor.setDecorations(nextLineExecuteHighlightType, []);
-      } else if (lineNo < 0 || lineNo >= editor.document.lineCount) {
-        this._outChannel.appendLine(
-          "updateLineHighlight: traceLine " + traceLine + " out of range (doc has " +
-          editor.document.lineCount + " lines) in " + editor.document.fileName);
+        return;
+      }
+
+      const lineNo = traceLine - 1;
+      if (lineNo < 0 || lineNo >= editor.document.lineCount) {
         editor.setDecorations(nextLineExecuteHighlightType, []);
-      } else {
-        this._outChannel.appendLine(
-          "updateLineHighlight: highlighting line " + traceLine + " in " + editor.document.fileName);
-        this.setEditorDecorations(editor, nextLineExecuteHighlightType, lineNo);
+        return;
       }
-    } catch (error) {
-      this._outChannel.appendLine(`updateLineHighlight: ERROR - ${error}`);
-      if (error instanceof Error) {
-        this._outChannel.appendLine(`Stack: ${error.stack}`);
-      }
+
+      const range = new vscode.Range(new vscode.Position(lineNo, 0), new vscode.Position(lineNo, 999));
+      editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+      editor.setDecorations(nextLineExecuteHighlightType, [{ range }]);
+    } catch (e: any) {
+      this._outChannel.appendLine(`updateLineHighlight failed: ${e?.message ?? String(e)}`);
     }
   }
+}
 
-  private setEditorDecorations(editor: vscode.TextEditor, highlightType: vscode.TextEditorDecorationType, line: number) {
-    editor.setDecorations(
-      highlightType,
-      this.createDecorationOptions(
-        new vscode.Range(new vscode.Position(line, 0), new vscode.Position(line, 999))
-      )
-    );
-  }
+function getNonce(): string {
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let text = "";
+  for (let i = 0; i < 32; i++) {text += possible.charAt(Math.floor(Math.random() * possible.length));}
+  return text;
+}
 
-  private async onClick(type: string) {
-    this.updateTraceIndex(type);
-    await this.postMessagesToWebview('updateButtons', 'updateContent');
-    this.updateLineHighlight();
-  }
-
-  private async onSlide(sliderValue: number) {
-    this._traceIndex = Number(sliderValue);
-    await this.postMessagesToWebview('updateButtons', 'updateContent');
-    this.updateLineHighlight();
-  }
-
-  private updateTraceIndex(actionType: string) {
-    switch (actionType) {
-      case 'next': ++this._traceIndex;
-        break;
-      case 'prev': --this._traceIndex;
-        break;
-      case 'first': this._traceIndex = 0;
-        break;
-      case 'last': this._traceIndex = this._trace.length - 1;
-        break;
-      default:
-        break;
-    }
-  }
-
-  private async postMessagesToWebview(...args: string[]) {
-    for (const message of args) {
-      switch (message) {
-        case 'updateButtons':
-          const nextActive = this._traceIndex < this._trace.length - 1;
-          const prevActive = this._traceIndex > 0;
-          const firstActive = this._traceIndex > 0;
-          const lastActive = this._traceIndex !== this._trace.length - 1;
-          await this._panel!.webview.postMessage({
-            command: 'updateButtons',
-            next: nextActive,
-            prev: prevActive,
-            first: firstActive,
-            last: lastActive,
-          });
-          break;
-        case 'updateContent':
-          await this._panel!.webview.postMessage({
-            command: 'updateContent',
-            traceComplete: this._backendTrace.complete,
-            traceElem: this._trace[this._traceIndex],
-            traceIndex: this._traceIndex,
-            traceLen: this._trace.length,
-          });
-          break;
-      }
-    };
-  }
-
-  private createDecorationOptions(range: vscode.Range): vscode.DecorationOptions[] {
-    return [
-      {
-        range: range,
-      },
-    ];
-  }
+function replaceAll(str: string, search: string, replacement: string): string {
+  return str.split(search).join(replacement);
 }
