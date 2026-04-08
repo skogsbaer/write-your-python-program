@@ -24,6 +24,8 @@ YELLOW        = "\u001b[1;33m"
 WHITE         = "\u001b[1;37m"
 
 def useColors():
+    if os.environ.get("WYPP_FORCE_COLORS") == "True":
+        return True
     if "NO_COLOR" in os.environ:
         return False
     if not sys.stdout.isatty():
