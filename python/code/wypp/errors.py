@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import *
 import abc
 import inspect
-import location
-import i18n
-from renderTy import renderTy
+from typing import *
+
+from . import i18n
+from . import location
+from .renderTy import renderTy
 
 class WyppError(abc.ABC):
     def __init__(self, extraFrames: list[inspect.FrameInfo] = []):

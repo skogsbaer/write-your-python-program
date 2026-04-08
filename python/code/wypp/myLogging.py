@@ -1,5 +1,6 @@
-import utils
 import sys
+
+from . import utils
 
 VERBOSE = False # set via commandline
 DEBUG = utils.getEnv("WYPP_DEBUG", bool, False)

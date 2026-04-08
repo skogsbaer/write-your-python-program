@@ -1,13 +1,12 @@
 
-import sys
-import os
 import code
 from dataclasses import dataclass
+import os
+import sys
 
-# local imports
-from constants import *
-from myLogging import *
-from exceptionHandler import handleCurrentException
+from .constants import *
+from .exceptionHandler import handleCurrentException
+from .myLogging import *
 
 HISTORY_SIZE = 1000
 

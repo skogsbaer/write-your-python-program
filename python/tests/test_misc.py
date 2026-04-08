@@ -1,5 +1,5 @@
 import unittest
-from writeYourProgram import *
+from wypp.writeYourProgram import *
 from typing import *
 
 setDieOnCheckFailures(True)

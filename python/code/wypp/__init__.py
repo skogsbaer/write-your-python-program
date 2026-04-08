@@ -1,14 +1,10 @@
-try:
-    from . import writeYourProgram as w
-except (ImportError, ModuleNotFoundError):
-    import writeYourProgram as w
-
+from dataclasses import dataclass
 import typing
-
 # Exported names that are available for star imports (mostly in alphabetic order)
 from typing import Any, Callable, Generator, Iterable, Iterator, Literal, Mapping, Optional, \
     Protocol, Sequence, Union
-from dataclasses import dataclass
+
+from . import writeYourProgram as w
 
 check = w.check
 checkFail = w.checkFail

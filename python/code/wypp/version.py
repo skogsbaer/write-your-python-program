@@ -1,12 +1,11 @@
-import os
-import json
-import subprocess
 from dataclasses import dataclass
+import json
+import os
+import subprocess
 
-# local imports
-from constants import *
-from myLogging import *
-import utils
+from .constants import *
+from .myLogging import *
+from . import utils
 
 def readGitVersion():
     thisDir = os.path.basename(SOURCE_DIR)
