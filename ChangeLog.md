@@ -1,5 +1,7 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.3.0 (2026-04-03)
+  * Use relative imports in the whole code base
 * 2.2.2 (2026-04-03)
   * Fixed package hiding bug
 * 2.2.1 (2026-03-26)
