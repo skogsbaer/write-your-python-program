@@ -1,3 +1,6 @@
+// This script builds the artifacts for the web-view of the visualization.
+// It translates typescript to javascript and replaces placeholders in html files.
+
 import * as esbuild from "esbuild";
 import fs from "fs";
 import path from "path";

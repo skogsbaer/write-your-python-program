@@ -22,27 +22,28 @@ graph TB
     subgraph backend["Backend (Python)"]
         trace["Trace Generator"]
     end
-    
+
     subgraph extension["Extension Host (VS Code)"]
         panel["VisualizationPanel"]
     end
-    
+
     subgraph webview["Webview (Sandboxed)"]
         ui["webview.ts<br/>(UI + Navigation)"]
         gen["html-generator.ts<br/>(Rendering)"]
     end
-    
+
     subgraph editor["Editor"]
         highlight["Line Highlighting"]
     end
-    
+
     trace -->|trace array via IPC| panel
-    panel -->|postMessage reset/append| webview
-    
-    webview -->|custom events| adapter["vscode-host-adapter.ts"]
+    panel -->|postMessage reset/append| adapter
+
+    webview -->|custom event: programflow:highlight| adapter["vscode-host-adapter.ts"]
+    adapter -->|custom event: programflow:reset, programflow:append| webview
     adapter -->|postMessage highlight| panel
     panel -->|updateLineHighlight| editor
-    
+
     ui -->|local navigation| gen
     gen -->|innerHTML| ui
 ```

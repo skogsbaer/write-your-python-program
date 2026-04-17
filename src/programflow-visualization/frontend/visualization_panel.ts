@@ -86,9 +86,13 @@ export class VisualizationPanel {
 
     this._panel.webview.onDidReceiveMessage(
       async (msg) => {
-        if (msg?.command !== "highlight") {return;}
-        if (typeof msg.filePath !== "string" || typeof msg.line !== "number") {return;}
-        await this.updateLineHighlight(false, msg.filePath, msg.line);
+        if (
+          msg?.command === "highlight" &&
+          typeof msg.filePath === "string" &&
+          typeof msg.line === "number"
+        ) {
+          await this.updateLineHighlight(false, msg.filePath, msg.line);
+        }
       },
       undefined,
       context.subscriptions
@@ -187,10 +191,10 @@ export class VisualizationPanel {
       let traceFile: string;
       let traceLine: number;
 
-      if (typeof overrideFile === "string" && typeof overrideLine === "number") {
+      if (overrideFile !== undefined && overrideLine !== undefined) {
         traceFile = overrideFile;
         traceLine = overrideLine;
-      } else if (typeof this._highlightFilePath === "string" && typeof this._highlightLine === "number") {
+      } else if (this._highlightFilePath !== undefined && this._highlightLine !== undefined) {
         traceFile = this._highlightFilePath;
         traceLine = this._highlightLine;
       } else {

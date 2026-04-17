@@ -240,6 +240,7 @@ window.addEventListener("programflow:reset", (e: Event) => {
   trace = msg.trace ?? [];
   traceComplete = !!msg.complete;
   renderCurrent();
+  postCurrentHighlight();
 });
 
 window.addEventListener("programflow:append", (e: Event) => {
@@ -280,7 +281,7 @@ function setupUi() {
   // Optional: example trace mode
   const anyWin = window as any;
   const staticTrace: StaticTrace | undefined = anyWin.__PROGRAMFLOW_TRACE__;
-  
+
   if (staticTrace?.trace) {
     trace = staticTrace.trace;
     traceComplete = !!staticTrace.complete;
