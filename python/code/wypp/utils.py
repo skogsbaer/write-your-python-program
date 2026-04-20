@@ -1,7 +1,7 @@
-from typing import *
+from contextlib import contextmanager
 import os
 import sys
-from contextlib import contextmanager
+from typing import *
 
 P = ParamSpec("P")
 T = TypeVar("T")

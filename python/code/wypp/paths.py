@@ -1,6 +1,6 @@
+from contextlib import contextmanager
 import os
 from typing import *
-from contextlib import contextmanager
 
 _projectDir: Optional[str] = None
 

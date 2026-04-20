@@ -1,16 +1,18 @@
-import typing
-from typing import Any
 import dataclasses
 import inspect
-import errors
-import typecheck
-import records
-import stacktrace
-import renderTy
-import location
-import paths
-import utils
-import i18n
+import math as moduleMath
+import typing
+from typing import Any
+
+from . import errors
+from . import i18n
+from . import location
+from . import paths
+from . import records
+from . import renderTy
+from . import stacktrace
+from . import typecheck
+from . import utils
 
 _DEBUG = False
 def _debug(s):
@@ -328,8 +330,6 @@ def runUnittests(scope: dict[str, Any]):
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 # Additional functions and aliases
-
-import math as moduleMath
 
 math = moduleMath
 

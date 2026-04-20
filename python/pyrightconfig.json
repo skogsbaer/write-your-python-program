@@ -4,7 +4,7 @@
     "reportMissingTypeStubs": false,
     "exclude": ["file-test-data", "integration-test-data"],
     "ignore": ["code/typing_extensions.py", "code/typeguard"],
-    "extraPaths": ["code/wypp"],
+    "extraPaths": ["code/wypp", "./code"],
     "typeCheckingMode": "basic"
 }
 

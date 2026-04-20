@@ -1,9 +1,9 @@
 import unittest
-from writeYourProgram import *
+from wypp.writeYourProgram import *
 import sys
 import traceback
 import dataclasses
-import stacktrace
+import wypp.stacktrace as stacktrace
 from typing import Literal
 
 initModule()

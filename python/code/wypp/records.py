@@ -1,13 +1,14 @@
-import typing
 import dataclasses
-import utils
 import sys
-import myTypeguard
-import errors
-import typecheck
-import location
-import stacktrace
-from utils import _call_with_frames_removed
+import typing
+
+from . import errors
+from . import location
+from . import myTypeguard
+from . import stacktrace
+from . import typecheck
+from . import utils
+from .utils import _call_with_frames_removed
 
 EQ_ATTRS_ATTR = '__eqAttrs__'
 

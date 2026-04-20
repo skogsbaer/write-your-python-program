@@ -1,6 +1,6 @@
 import unittest
-from writeYourProgram import *
-from drawingLib import *
+from wypp.writeYourProgram import *
+from wypp.drawingLib import *
 
 setDieOnCheckFailures(True)
 

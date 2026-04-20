@@ -253,6 +253,7 @@ def _runTest(testFile: str,
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'code')] + pythonPath)
     env['WYPP_UNDER_TEST'] = 'True'
+    env['WYPP_FORCE_COLORS'] = 'True'
     debug(' '.join(cmd))
     with open(actualStdoutFile, 'w') as stdoutFile, \
             open(actualStderrFile, 'w') as stderrFile:

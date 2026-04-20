@@ -1,7 +1,8 @@
-import time
 import threading
-import writeYourProgram as _w
+import time
 from typing import Literal, Sequence
+
+from . import writeYourProgram as _w
 
 # Do not import tkinter at the top-level. Someone with no installation of tkinter should
 # be able to user WYPP without drawing support.

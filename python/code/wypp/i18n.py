@@ -1,9 +1,10 @@
-from dataclasses import dataclass
-import location
-from typing import *
 from contextlib import contextmanager
-import lang
-import utils
+from dataclasses import dataclass
+from typing import *
+
+from . import lang
+from . import location
+from . import utils
 
 type Lang = Literal['en', 'de']
 

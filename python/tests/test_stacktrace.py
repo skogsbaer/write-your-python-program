@@ -1,7 +1,6 @@
 import unittest
 import sys
-import types
-import stacktrace
+import wypp.stacktrace as stacktrace
 from stacktraceTestData import *
 import os
 

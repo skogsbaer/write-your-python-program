@@ -1,6 +1,6 @@
 import unittest
 import os
-import location
+import wypp.location as location
 from locationTestData import *
 
 class TestLocation(unittest.TestCase):

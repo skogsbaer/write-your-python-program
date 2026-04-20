@@ -1,8 +1,9 @@
-import sys
-import doctest
 from contextlib import contextmanager
-import ansi
-from myLogging import *
+import doctest
+import sys
+
+from . import ansi
+from .myLogging import *
 
 # We use our own DocTestParser to replace exception names in stacktraces
 

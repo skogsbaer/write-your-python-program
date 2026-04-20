@@ -1,7 +1,8 @@
 import argparse
 import sys
-import utils
-from myLogging import *
+
+from .myLogging import *
+from . import utils
 
 def parseCmdlineArgs(argList):
     parser = argparse.ArgumentParser(description='Run Your Program!',

@@ -1,11 +1,11 @@
 # Wrapper module for typeguard. Do not import typeguard directly but always via myTypeguard
 from __future__ import annotations
-from typing import *
 from dataclasses import dataclass
-from myLogging import *
-
 # We externally adjust the PYTHONPATH so that the typeguard module can be resolved
-import typeguard # type: ignore
+import typeguard  # type: ignore
+from typing import *
+
+from .myLogging import *
 
 @dataclass(frozen=True)
 class Namespaces:

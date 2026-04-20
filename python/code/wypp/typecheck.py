@@ -1,15 +1,16 @@
 from __future__ import annotations
 from collections.abc import Callable
-from typing import ParamSpec, TypeVar, Any, Optional, Literal
-import types
-import inspect
 from dataclasses import dataclass
-import utils
-from myTypeguard import matchesTy, MatchesTyResult, MatchesTyFailure, Namespaces
-import stacktrace
-import location
-import errors
-from myLogging import *
+import inspect
+import types
+from typing import ParamSpec, TypeVar, Any, Optional, Literal
+
+from . import errors
+from . import location
+from .myLogging import *
+from .myTypeguard import matchesTy, MatchesTyResult, MatchesTyFailure, Namespaces
+from . import stacktrace
+from . import utils
 
 def printVars(what: str, *l):
     s = what + ": " + ', '.join([str(x) for x in l])

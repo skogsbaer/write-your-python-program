@@ -1,17 +1,17 @@
-import sys
-import os
-import importlib
-import runpy
+from contextlib import contextmanager
 from dataclasses import dataclass
+import importlib
+import os
+import runpy
+import sys
 from typing import Optional
 
-# local imports
-from constants import *
-import stacktrace
-import instrument
-from myLogging import *
-from exceptionHandler import handleCurrentException
-import utils
+from .constants import *
+from .exceptionHandler import handleCurrentException
+from . import instrument
+from .myLogging import *
+from . import stacktrace
+from . import utils
 
 class Lib:
     def __init__(self, mod, properlyImported):

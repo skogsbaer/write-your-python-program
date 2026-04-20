@@ -1,6 +1,6 @@
 import unittest
-import i18n
-import location
+import wypp.i18n as i18n
+import wypp.location as location
 import inspect
 import utils
 

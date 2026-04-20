@@ -1,15 +1,14 @@
+from dataclasses import dataclass
+import re
 import sys
 import traceback
-import re
-from dataclasses import dataclass
 
-# local imports
-from constants import *
-import stacktrace
-import paths
-from myLogging import *
-import errors
-import utils
+from .constants import *
+from . import errors
+from .myLogging import *
+from . import paths
+from . import stacktrace
+from . import utils
 
 _tbPattern = re.compile(r'(\s*File\s+")([^"]+)(".*)')
 def _rewriteFilenameInTracebackLine(s: str) -> str:
