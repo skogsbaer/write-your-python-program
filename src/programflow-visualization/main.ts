@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { startBackend } from './backend/backend';
 import * as FileHandler from './FileHandler';
 import { Md5 } from 'ts-md5';
-import { startFrontend } from './frontend/frontend';
+import { VisualizationPanel } from './frontend/visualization_panel';
 import { traceAlreadyExists } from './trace_cache';
 
 export function getProgFlowVizCallback(context: vscode.ExtensionContext, outChannel: vscode.OutputChannel): () => Promise<void> {
@@ -29,11 +29,8 @@ export function getProgFlowVizCallback(context: vscode.ExtensionContext, outChan
                 tracePort = startBackend(context, file, outChannel);
             }
 
-            const result = await startFrontend(context, outChannel, file.fsPath, fileHash, tracePort);
-            if (result) {
-                await vscode.window.showErrorMessage("Error ProgramFlow-Visualization: " + result.errorMessage);
-                return;
-            }
+            await VisualizationPanel.start(context, outChannel, file.fsPath, fileHash, tracePort);
+
         } catch (e: any) {
             if (e instanceof Error) {
                 outChannel.appendLine(e.stack?.toString() ?? "Error: <stack undefined>");

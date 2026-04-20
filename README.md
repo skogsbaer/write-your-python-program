@@ -218,3 +218,14 @@ You can debug the extension from Visual Studio Code:
 * Open the main folder of the plugin with vscode.
 * Open the file `extension.ts`.
 * Choose "Run" from the menu, then "Start Debugging".
+
+## WebDev
+
+You can develop the design of the visualization using an example trace in your browser:
+
+* `npm install`
+* `npm run build`
+* `npm run watch:web` this starts a process which will build the contents of `src/programflow-visualization/web` into `out/programflow-visualization/web` on any changes
+* In console: `cd out/programflow-visualization/web` + `python3 -m http.server 5173`
+* Then open http://localhost:5173/index.web.html in your browser
+* Now you can edit files in `src/programflow-visualization/web`, watch:web will rebuild automatically and you can refresh your browser tab to see the changes instantly
