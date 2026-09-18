@@ -116,6 +116,13 @@ body {
   --wypp-accent-dict: var(--vscode-charts-orange, #d18616);
   --wypp-accent-set: var(--vscode-charts-yellow, #cca700);
 
+  /* The blue wash over the Frames column. Deliberately a literal rgba rather than a
+     --vscode-* token: it is layered *over* the theme's own node background, so it has
+     to be translucent, and no theme token carries an alpha channel. Keeping the alpha
+     low leaves the theme's own foreground colour readable in light and dark alike. */
+  --wypp-frame-bg: rgba(77, 140, 217, 0.14);
+  --wypp-frame-header-bg: rgba(77, 140, 217, 0.28);
+
   /* High-contrast themes define --vscode-contrastBorder and expect it to be honoured;
      everywhere else it is empty and the fallback applies. */
   --wypp-outline: var(--vscode-contrastBorder, var(--wypp-node-border));
@@ -204,6 +211,11 @@ body {
   font-size: 11px;
   color: var(--wypp-muted);
   border-bottom: 1px solid var(--wypp-node-border);
+}
+
+/* Matches the tint on the frame nodes below, so the whole left column reads as one. */
+.elk-band-frames {
+  background-color: var(--wypp-frame-bg);
 }
 
 .elk-node {
@@ -308,8 +320,20 @@ body {
   color: var(--wypp-muted);
 }
 
-/* Frames keep the shared node background so the text stays legible in every
-   theme; only the left accent tells them apart. */
+/* Frames are washed blue so the two columns tell themselves apart even at zoom levels
+   where the header text is no longer legible. The wash goes in background-image, which
+   layers over the background-color .elk-node already set, so the node keeps an opaque
+   base and stays legible whatever the theme. */
+.elk-frame,
+.elk-current-frame {
+  background-image: linear-gradient(var(--wypp-frame-bg), var(--wypp-frame-bg));
+}
+
+.elk-frame .elk-node-header,
+.elk-current-frame .elk-node-header {
+  background-color: var(--wypp-frame-header-bg);
+}
+
 .elk-frame {
   border-left-color: var(--wypp-accent-frame);
 }

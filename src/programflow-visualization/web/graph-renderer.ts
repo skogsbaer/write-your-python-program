@@ -67,9 +67,14 @@ function arrowMarker(): SVGMarkerElement {
   return marker;
 }
 
-function band(label: string, left: number, width: number): HTMLElement {
+function band(
+  label: string,
+  modifier: string,
+  left: number,
+  width: number
+): HTMLElement {
   const element = document.createElement("div");
-  element.className = "elk-band";
+  element.className = `elk-band ${modifier}`;
   element.textContent = label;
   element.style.left = `${left}px`;
   element.style.top = `${MARGIN}px`;
@@ -225,10 +230,12 @@ export function renderGraph(
   // Column captions, derived from where the nodes actually ended up: there are no
   // container nodes to hang them off (plan 4).
   if (framesRight > Number.NEGATIVE_INFINITY) {
-    container.append(band("Frames", MARGIN, framesRight));
+    container.append(band("Frames", "elk-band-frames", MARGIN, framesRight));
   }
   if (objectsLeft < Number.POSITIVE_INFINITY) {
-    container.append(band("Objects", objectsLeft + MARGIN, width - objectsLeft));
+    container.append(
+      band("Objects", "elk-band-objects", objectsLeft + MARGIN, width - objectsLeft)
+    );
   }
 
   // Whatever the cursor is sitting on now is hovered, even though it never moved.

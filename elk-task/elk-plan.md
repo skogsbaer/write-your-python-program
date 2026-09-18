@@ -685,7 +685,11 @@ running extension host (F5 → open a `.py` file → *Show Program Flow*):
    per-kind accents, the zebra stripe, the edge colour and the high-contrast border are all
    unproven against real tokens (criterion 7). This includes the floating view toolbar,
    which sits on `--wypp-node-bg` over the canvas and must stay legible where it overlaps a
-   node, and whose icons are stroked in `currentColor`.
+   node, and whose icons are stroked in `currentColor`. Pay particular attention to the
+   blue wash on the Frames column (`--wypp-frame-bg`): it is the one hardcoded colour left,
+   because it layers over the theme's node background and so has to carry an alpha channel,
+   and a translucent blue that reads well on a dark background can turn muddy on a light or
+   high-contrast one.
 4. **Theme-switch invalidation.** Changing the theme must repaint with new colours and not
    serve a stale cached layout — that path runs through the `<body>` class
    `MutationObserver` in `webview.ts`, which only fires inside VS Code.
