@@ -4,12 +4,39 @@
 // the coordinates ELK computed. Edges go into one SVG overlay behind the nodes.
 import type { ElkExtendedEdge, ElkNode } from "elkjs/lib/elk-api";
 import type { NodeModel } from "../graph-model";
-import { headerElement, renderNode } from "./node-view";
+import { headerElement, NODE_CLASS, renderNode } from "./node-view";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const MARGIN = 24;
 /** Room above the nodes for the "Frames" / "Objects" captions. */
 const BAND_HEIGHT = 28;
+
+/**
+ * Last seen pointer position, in client coordinates. Collapsing a node re-lays out the
+ * graph under a stationary cursor, and a stationary cursor fires no mouseenter on the
+ * freshly built elements, so each render has to re-derive the hover itself.
+ */
+let pointer: { x: number; y: number } | undefined;
+let pointerTracked = false;
+
+function trackPointer(): void {
+  if (pointerTracked) {
+    return;
+  }
+  pointerTracked = true;
+  window.addEventListener(
+    "pointermove",
+    (event: PointerEvent) => {
+      pointer = { x: event.clientX, y: event.clientY };
+    },
+    { passive: true, capture: true }
+  );
+  // A pointer that has left the window is not over anything. pointerleave does not
+  // bubble, so this has to sit on the element it is targeted at, not on window.
+  document.documentElement.addEventListener("pointerleave", () => {
+    pointer = undefined;
+  });
+}
 
 export type RenderOptions = {
   /** Called when a collapsible node header is activated. */
@@ -57,8 +84,12 @@ export function renderGraph(
   models: Map<string, NodeModel>,
   options: RenderOptions = {}
 ): void {
+  trackPointer();
   container.textContent = "";
   container.classList.add("elk-canvas");
+  // Wiping the children destroys the hovered node without ever firing its mouseleave,
+  // so the dim-everything-else class would otherwise survive with nothing highlighted.
+  container.classList.remove("elk-dimming");
 
   const children = laidOut.children ?? [];
   const portToNode = new Map<string, string>();
@@ -123,6 +154,31 @@ export function renderGraph(
   }
   container.append(svg);
 
+  // Hovering a node highlights everything it is connected to (plan 6.4). One shared
+  // "which node is active" state, so that a re-render can restore it without a gesture.
+  let active: HTMLElement | undefined;
+
+  const paintActive = (element: HTMLElement, on: boolean) => {
+    element.classList.toggle("elk-node-active", on);
+    for (const path of edgesByNode.get(element.dataset.nodeId ?? "") ?? []) {
+      path.classList.toggle("elk-edge-active", on);
+    }
+  };
+
+  const setActive = (element: HTMLElement | undefined) => {
+    if (active === element) {
+      return;
+    }
+    if (active) {
+      paintActive(active, false);
+    }
+    active = element;
+    if (active) {
+      paintActive(active, true);
+    }
+    container.classList.toggle("elk-dimming", active !== undefined);
+  };
+
   // Nodes.
   let framesRight = Number.NEGATIVE_INFINITY;
   let objectsLeft = Number.POSITIVE_INFINITY;
@@ -133,6 +189,7 @@ export function renderGraph(
       continue;
     }
     const element = renderNode(model);
+    element.dataset.nodeId = child.id;
     element.style.left = `${(child.x ?? 0) + MARGIN}px`;
     element.style.top = `${(child.y ?? 0) + offsetY}px`;
     element.style.width = `${child.width ?? 0}px`;
@@ -156,18 +213,10 @@ export function renderGraph(
 
     // Hovering a node highlights everything it is connected to (plan 6.4).
     element.addEventListener("mouseenter", () => {
-      container.classList.add("elk-dimming");
-      element.classList.add("elk-node-active");
-      for (const path of edgesByNode.get(child.id) ?? []) {
-        path.classList.add("elk-edge-active");
-      }
+      setActive(element);
     });
     element.addEventListener("mouseleave", () => {
-      container.classList.remove("elk-dimming");
-      element.classList.remove("elk-node-active");
-      for (const path of edgesByNode.get(child.id) ?? []) {
-        path.classList.remove("elk-edge-active");
-      }
+      setActive(undefined);
     });
 
     container.append(element);
@@ -180,5 +229,13 @@ export function renderGraph(
   }
   if (objectsLeft < Number.POSITIVE_INFINITY) {
     container.append(band("Objects", objectsLeft + MARGIN, width - objectsLeft));
+  }
+
+  // Whatever the cursor is sitting on now is hovered, even though it never moved.
+  // elementFromPoint flushes layout, so the positions set above are already in effect.
+  if (pointer) {
+    const hit = document.elementFromPoint(pointer.x, pointer.y);
+    const node = hit?.closest<HTMLElement>(`.${NODE_CLASS}`) ?? undefined;
+    setActive(node && container.contains(node) ? node : undefined);
   }
 }

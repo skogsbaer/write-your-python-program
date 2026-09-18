@@ -43,6 +43,15 @@ body {
   padding-bottom: 10px;
 }
 
+/* The two columns are 35%/65% of a flex row, so a narrow panel squeezes the step
+   controls until they overflow their column and land under the stdout pane, which
+   would otherwise swallow the clicks. Lift them into a higher stacking level so they
+   stay pressable even while overlapping. */
+#bottom-area .floating-left {
+  position: relative;
+  z-index: 1;
+}
+
 #stdout-log {
   height: 100%;
   border: 1.5px;
