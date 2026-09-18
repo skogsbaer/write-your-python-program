@@ -385,6 +385,14 @@ height and ELK output will be wider. No library needed:
 - Only real caveat: text can look slightly soft at fractional zoom levels. Snapping to
   sensible zoom steps avoids it.
 
+**Where the view controls live.** Zoom-to-fit, zoom in, zoom out and Expand all sit in a
+floating toolbar pinned to the top right of `#elk-viewport` — a sibling of `#elk-canvas`,
+so the canvas transform never scales them. It carries `data-elk-ui`, and `pan-zoom.ts`
+ignores wheel and pointerdown events originating inside it; without that guard a press on
+a button would also start a pan, and the capture-phase click handler would swallow the
+click. The buttons zoom one step along the same ladder as the wheel, anchored on the
+centre of the viewport instead of the cursor.
+
 ### 6.6 Three things that will bite during implementation
 
 - **`elk.layout()` is async, navigation is not.** Clicking "next" five times fast starts
@@ -447,8 +455,9 @@ Each step keeps the extension working.
    38 edges, no console errors, scrubbing does not re-lay out, releasing does.
 5. ~~**Collapsing**~~ **Done**. Headers carry `role="button"`, `tabindex="0"` and a caret;
    click and Enter/Space both toggle. `collapsed` lives in `webview.ts` and survives
-   stepping. An **Expand all** button appears next to the step controls whenever anything
-   is collapsed — without it a collapsed node that lands off-screen is unrecoverable.
+   stepping. An **Expand all** button appears in the floating view toolbar (§6.5) whenever
+   anything is collapsed — without it a collapsed node that lands off-screen is
+   unrecoverable.
 
    Verified against `example-anonymous.py`, which exists precisely because *every* object in
    `example.py` also has a global name and therefore never disappears: collapsing `group`
@@ -610,6 +619,15 @@ student list hides edges but removes no nodes. Hence the other three.
 - **`example-error.py`** — ends in an `IndexError`, so the `traceback` path and a partial
   trace still render.
 
+There is a fifth, `example-showcase.py`, which is **not** a definition-of-done case: it is
+the one to open when demonstrating the visualization. Its last step puts all six node
+kinds on screen at once (frame, instance, list, tuple, set, dict — 19 nodes, 26 edges), it
+reaches three frames deep while `describe` runs, it has an eight-row node for the striping
+and three dict rows with reference keys, and its two collapse targets are picked so the
+contrast is visible: collapsing `shelf` removes exactly two nodes, collapsing `favourites`
+removes one and leaves `dune` standing because `byTitle` still names it. The comments in
+the file say what to look at.
+
 ### 9.2 Functional criteria
 
 1. Steps through all of the above forward and backward, via buttons, slider drag, first and
@@ -665,7 +683,9 @@ running extension host (F5 → open a `.py` file → *Show Program Flow*):
 3. **Themes.** Switch between a light, a dark and a high-contrast theme. The harness has no
    `--vscode-*` values at all, so only the literal fallbacks were ever rendered: the
    per-kind accents, the zebra stripe, the edge colour and the high-contrast border are all
-   unproven against real tokens (criterion 7).
+   unproven against real tokens (criterion 7). This includes the floating view toolbar,
+   which sits on `--wypp-node-bg` over the canvas and must stay legible where it overlaps a
+   node, and whose icons are stroked in `currentColor`.
 4. **Theme-switch invalidation.** Changing the theme must repaint with new colours and not
    serve a stale cached layout — that path runs through the `<body>` class
    `MutationObserver` in `webview.ts`, which only fires inside VS Code.

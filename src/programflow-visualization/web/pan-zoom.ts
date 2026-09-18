@@ -20,7 +20,16 @@ export type PanZoom = {
    * re-frames the graph, which matters because a trace grows from one node to dozens.
    */
   autoFit(width: number, height: number): void;
+  /** One step up the zoom ladder, anchored on the middle of the viewport. */
+  zoomIn(): void;
+  /** One step down the zoom ladder, anchored on the middle of the viewport. */
+  zoomOut(): void;
 };
+
+/** Events on the floating toolbar are UI, not canvas gestures. */
+function isUi(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest("[data-elk-ui]") !== null;
+}
 
 function nearestStep(scale: number): number {
   return ZOOM_STEPS.reduce((best, step) =>
@@ -48,23 +57,40 @@ export function attachPanZoom(viewport: HTMLElement, canvas: HTMLElement): PanZo
     canvas.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
   };
 
+  /**
+   * One step along the ladder, keeping the graph point at (anchorX, anchorY) -- both
+   * relative to the viewport -- exactly where it is.
+   */
+  const zoomStep = (direction: 1 | -1, anchorX: number, anchorY: number) => {
+    const next = stepFrom(scale, direction);
+    if (next === scale) {
+      return;
+    }
+    touched = true;
+    translateX = anchorX - ((anchorX - translateX) / scale) * next;
+    translateY = anchorY - ((anchorY - translateY) / scale) * next;
+    scale = next;
+    apply();
+  };
+
+  const zoomFromCentre = (direction: 1 | -1) => {
+    const box = viewport.getBoundingClientRect();
+    zoomStep(direction, box.width / 2, box.height / 2);
+  };
+
   viewport.addEventListener(
     "wheel",
     (event: WheelEvent) => {
-      event.preventDefault();
-      const next = stepFrom(scale, event.deltaY < 0 ? 1 : -1);
-      if (next === scale) {
+      if (isUi(event.target)) {
         return;
       }
-      touched = true;
-      // Keep the point under the cursor where it is.
+      event.preventDefault();
       const box = viewport.getBoundingClientRect();
-      const cursorX = event.clientX - box.left;
-      const cursorY = event.clientY - box.top;
-      translateX = cursorX - ((cursorX - translateX) / scale) * next;
-      translateY = cursorY - ((cursorY - translateY) / scale) * next;
-      scale = next;
-      apply();
+      zoomStep(
+        event.deltaY < 0 ? 1 : -1,
+        event.clientX - box.left,
+        event.clientY - box.top
+      );
     },
     { passive: false }
   );
@@ -107,7 +133,7 @@ export function attachPanZoom(viewport: HTMLElement, canvas: HTMLElement): PanZo
   };
 
   viewport.addEventListener("pointerdown", (event: PointerEvent) => {
-    if (event.button !== 0) {
+    if (event.button !== 0 || isUi(event.target)) {
       return;
     }
     pointerId = event.pointerId;
@@ -169,6 +195,12 @@ export function attachPanZoom(viewport: HTMLElement, canvas: HTMLElement): PanZo
       if (!touched) {
         fit(width, height);
       }
+    },
+    zoomIn() {
+      zoomFromCentre(1);
+    },
+    zoomOut() {
+      zoomFromCentre(-1);
     },
   };
 }

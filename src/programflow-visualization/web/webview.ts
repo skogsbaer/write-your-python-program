@@ -222,6 +222,12 @@ function setupUi() {
   $("#fitButton").addEventListener("click", () => {
     panZoom?.fit(lastBounds.width, lastBounds.height);
   });
+  $("#zoomInButton").addEventListener("click", () => {
+    panZoom?.zoomIn();
+  });
+  $("#zoomOutButton").addEventListener("click", () => {
+    panZoom?.zoomOut();
+  });
 
   // Slider input -> local navigation
   const slider = $("#traceSlider") as HTMLInputElement;

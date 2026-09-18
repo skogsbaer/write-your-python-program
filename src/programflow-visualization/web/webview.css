@@ -1,6 +1,9 @@
 body {
   height: 100vh;
   width: 100vw;
+  /* The UA default of 8px would push 100vw past the window edge, which now matters
+     because the view controls are pinned to the right. VS Code zeroes it anyway. */
+  margin: 0;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -125,6 +128,48 @@ body {
 
 #elk-viewport.elk-panning {
   cursor: grabbing;
+}
+
+/* Floating view controls, pinned to the top right of the viewport. A sibling of
+   #elk-canvas rather than a child, so the canvas transform never scales them. */
+.elk-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--wypp-outline);
+  border-radius: 4px;
+  background-color: var(--wypp-node-bg);
+  /* The viewport shows a grab cursor; the toolbar is not draggable. */
+  cursor: default;
+}
+
+.elk-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 8px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Square and unpadded, so the icon gets the whole content box. Scoped to .elk-controls
+   because the rule above is more specific than a bare .elk-icon-button would be. */
+.elk-controls .elk-icon-button {
+  width: 24px;
+  padding: 0;
+}
+
+/* The icons are inline SVG stroked in currentColor, so they follow the button text.
+   flex: none stops the flex container from shrinking them below their intrinsic size. */
+.elk-controls .elk-icon-button svg {
+  display: block;
+  flex: none;
 }
 
 .elk-canvas {
