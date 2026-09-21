@@ -564,6 +564,40 @@ Each step keeps the extension working.
    With the HTML strings went the last `innerHTML` assignment in the webview: everything
    is `textContent` and `createElement` now, so a value that happens to look like markup
    can no longer be parsed as markup.
+10. **Frame order: pinned, newest on top.** Left to itself ELK ordered the frame layer by
+    barycentre, which was not stable — sibling frames swapped between steps
+    (`report > describe` on some, `describe > report` on others) — and sank `Global` to the
+    bottom because it points at objects spread down the whole heap column. Frames now carry
+    an `elk.position` hint and `crossingMinimization.semiInteractive` is switched on so
+    that ELK reads it.
+
+    Measured over the 49 steps of `example-showcase.py`, counting proper segment
+    intersections between edges (shared endpoints excluded):
+
+    | frame order | crossings | steps in stack order |
+    | --- | --- | --- | 
+    | barycentre (before) | 595 | 0/20 |
+    | oldest on top (`Global` first) | 950 | 20/20 |
+    | **newest on top (`Global` last)** | **686** | **20/20** |
+
+    Both directions are equally readable — the stack grows one way either way — so the
+    cheaper one wins. Oldest-on-top costs so much more because it fights the barycentre
+    heuristic head-on; newest-on-top is the direction that heuristic already favoured, so
+    pinning it mostly just makes it stable.
+
+    The remaining cost is collateral, not frame ordering: `semiInteractive` is a graph-wide
+    option, and nodes with no hint of their own get an interpolated position, so the heap
+    column loses the unconstrained heuristic too. `buildGraph` therefore only adds the
+    option when `stack.length > 1`; single-frame steps have nothing to order and stay at
+    their old 198 crossings, which is where the 755 → 686 comes from.
+
+    Two alternatives were measured and rejected: `considerModelOrder.strategy:
+    NODES_AND_EDGES` does nothing for a `FIRST_SEPARATE` layer (0/20 in stack order), and
+    giving heap nodes their own `elk.position` from a breadth-first walk of the frames, to
+    stop the interpolation, was worse than the interpolation (1102). Layout time is
+    unaffected in all arms. If the collateral ever needs to go, the untried route is a
+    hierarchical child node for the frame column, which could carry its own fixed order
+    without handing the whole graph to `semiInteractive`.
 
 ## 8. Decisions at a glance
 

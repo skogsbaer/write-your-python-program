@@ -55,6 +55,8 @@ export type VizGraph = {
  *   as soon as an edge is reversed into a frame (plan 4).
  * - considerModelOrder is deliberately absent: it buys no stability and costs 2.5x
  *   (plan 6.5). Stability comes from emitting nodes in a deterministic order.
+ * - semiInteractive is *not* here: it is switched on per step by buildGraph, and only
+ *   when there is more than one frame to order. See FRAME_ORDER_OPTIONS (plan 7.10).
  */
 export const LAYOUT_OPTIONS: Record<string, string> = {
   "elk.algorithm": "layered",
@@ -62,6 +64,20 @@ export const LAYOUT_OPTIONS: Record<string, string> = {
   "elk.edgeRouting": "ORTHOGONAL",
   "elk.spacing.nodeNode": "25",
   "elk.layered.spacing.nodeNodeBetweenLayers": "60",
+};
+
+/**
+ * Makes crossing minimisation honour the elk.position hints on the frame nodes.
+ * Without it the frame layer is ordered by barycentre, which lets sibling frames swap
+ * places from one step to the next.
+ *
+ * It is not free: the option is graph-wide, and nodes that carry no hint of their own
+ * get an interpolated one, so the heap column loses the unconstrained barycentre
+ * heuristic too. On this trace that collateral is worth ~35% more crossings, which is
+ * why it is only switched on for the steps that actually need it (plan 7.10).
+ */
+const FRAME_ORDER_OPTIONS: Record<string, string> = {
+  "elk.layered.crossingMinimization.semiInteractive": "true",
 };
 
 export const frameNodeId = (index: number): string => `frame:${index}`;
@@ -245,8 +261,16 @@ export function buildGraph(
     children.push(
       // FIRST_SEPARATE, not FIRST: frames get a layer of their own, which is what the
       // Frames/Objects bands assume, and it measurably halves layout time (plan 7.7).
+      //
+      // elk.position is only a ranking hint, read by semiInteractive crossing
+      // minimisation; the actual y still comes from node placement. Newest frame on
+      // top, oldest at the bottom: the stack grows in one direction either way, and
+      // this is the direction the barycentre heuristic already favoured, so pinning it
+      // costs a fraction of the crossings that pinning the reverse did (plan 7.10).
+      // Only the frames carry a hint; the heap column is left to the heuristic.
       elkNodeFor(model, {
         "elk.layered.layering.layerConstraint": "FIRST_SEPARATE",
+        "elk.position": `(0,${lastFrameIndex - index})`,
       })
     );
     model.rows.forEach((row, rowIndex) => {
@@ -292,7 +316,15 @@ export function buildGraph(
   }
 
   return {
-    graph: { id: "root", layoutOptions: LAYOUT_OPTIONS, children, edges },
+    graph: {
+      id: "root",
+      layoutOptions:
+        elem.stack.length > 1
+          ? { ...LAYOUT_OPTIONS, ...FRAME_ORDER_OPTIONS }
+          : LAYOUT_OPTIONS,
+      children,
+      edges,
+    },
     nodes: models,
   };
 }
