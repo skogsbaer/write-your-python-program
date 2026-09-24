@@ -5,17 +5,6 @@ export type Try = Success | Failure;
 export type Success = { result: any };
 export type Failure = { errorMessage: string };
 
-// State Types for the Frontend
-export type FrontendTrace = Array<FrontendTraceElem>;
-
-export type FrontendTraceElem = {
-  lineNumber: number, // 1-based
-  stackHTML: string,
-  heapHTML: string,
-  filename: string,
-  outputState: string,
-};
-
 // ############################################################################################
 // State Types for the Backend
 export type PartialBackendTrace = {

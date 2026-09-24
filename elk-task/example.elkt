@@ -1,0 +1,259 @@
+// complicated.py — Step 35 (about to execute line 36: `return result`)
+// Reconstructed from the real trace of write-your-python-program's
+// pytrace-generator (trace entry index 34).
+//
+// Paste into the ELK demonstrator: https://rtsys.informatik.uni-kiel.de/elklive/elkgraph.html
+
+org.eclipse.elk.algorithm: layered
+org.eclipse.elk.direction: RIGHT
+org.eclipse.elk.hierarchyHandling: INCLUDE_CHILDREN
+org.eclipse.elk.spacing.nodeNode: 20
+org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers: 45
+
+node frames {
+  org.eclipse.elk.padding: "[top=36,left=16,bottom=16,right=16]"
+  org.eclipse.elk.nodeSize.constraints: "[MINIMUM_SIZE]"
+  org.eclipse.elk.nodeSize.minimum: "(320, 220)"
+  label "frames"
+
+  node moduleFrame {
+    org.eclipse.elk.padding: "[top=34,left=14,bottom=14,right=14]"
+    org.eclipse.elk.nodeSize.constraints: "[MINIMUM_SIZE]"
+    org.eclipse.elk.nodeSize.minimum: "(260, 160)"
+    label "<module>"
+
+    node Student         { layout [ size: 170, 28 ] org.eclipse.elk.alignment: LEFT label "Student = <class 'Student'>" }
+    node Subject         { layout [ size: 170, 28 ] org.eclipse.elk.alignment: LEFT label "Subject = <class 'Subject'>" }
+    node createGradeList { layout [ size: 170, 28 ] org.eclipse.elk.alignment: LEFT label "createGradeList = <function>" }
+
+    node tim         { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "tim" }
+    node karl        { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "karl" }
+    node tom         { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "tom" }
+    node karl2       { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "karl2" }
+    node mariam      { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "mariam" }
+    node hector      { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "hector" }
+    node quentin     { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "quentin" }
+    node fabio       { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "fabio" }
+    node jonas       { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "jonas" }
+    node lara        { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "lara" }
+    node gerd        { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "gerd" }
+    node joerg       { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "joerg" }
+    node aud         { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "aud" }
+    node prog1       { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "prog1" }
+    node subjectList { layout [ size: 100, 28 ] org.eclipse.elk.alignment: LEFT label "subjectList" }
+  }
+
+  node createGradeListFrame {
+    org.eclipse.elk.padding: "[top=34,left=14,bottom=14,right=14]"
+    org.eclipse.elk.nodeSize.constraints: "[MINIMUM_SIZE]"
+    org.eclipse.elk.nodeSize.minimum: "(260, 160)"
+    label "createGradeList (line 36)"
+
+    node subject { layout [ size: 100, 28 ] label "subject" }
+    node result  { layout [ size: 100, 28 ] label "result" }
+    node student { layout [ size: 100, 28 ] label "student" }
+  }
+}
+
+node objects {
+  org.eclipse.elk.padding: "[top=36,left=16,bottom=16,right=16]"
+  org.eclipse.elk.nodeSize.constraints: "[MINIMUM_SIZE]"
+  org.eclipse.elk.nodeSize.minimum: "(320, 220)"
+  label "objects"
+
+  node timObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"        { layout [ size: 55, 16 ] }
+    label "name = 'Tim'"   { layout [ size: 90, 16 ] }
+    label "grade = 1.0"    { layout [ size: 82, 16 ] }
+  }
+  node karlObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"        { layout [ size: 55, 16 ] }
+    label "name = 'karl'"  { layout [ size: 96, 16 ] }
+    label "grade = 2.0"    { layout [ size: 82, 16 ] }
+  }
+  node tomObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"        { layout [ size: 55, 16 ] }
+    label "name = 'Tom'"   { layout [ size: 90, 16 ] }
+    label "grade = 1.3"    { layout [ size: 82, 16 ] }
+  }
+  node karl2Obj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"        { layout [ size: 55, 16 ] }
+    label "name = 'karl'"  { layout [ size: 96, 16 ] }
+    label "grade = 2.6"    { layout [ size: 82, 16 ] }
+  }
+  node mariamObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"         { layout [ size: 55, 16 ] }
+    label "name = 'Mariam'"  { layout [ size: 110, 16 ] }
+    label "grade = 1.0"      { layout [ size: 82, 16 ] }
+  }
+  node hectorObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"          { layout [ size: 55, 16 ] }
+    label "name = 'Hector'"  { layout [ size: 110, 16 ] }
+    label "grade = 3.0"      { layout [ size: 82, 16 ] }
+  }
+  node quentinObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"           { layout [ size: 55, 16 ] }
+    label "name = 'Quentin'"  { layout [ size: 118, 16 ] }
+    label "grade = 1.7"       { layout [ size: 82, 16 ] }
+  }
+  node fabioObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"         { layout [ size: 55, 16 ] }
+    label "name = 'Fabio'"  { layout [ size: 102, 16 ] }
+    label "grade = 4.0"     { layout [ size: 82, 16 ] }
+  }
+  node jonasObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"         { layout [ size: 55, 16 ] }
+    label "name = 'Jonas'"  { layout [ size: 102, 16 ] }
+    label "grade = 5.0"     { layout [ size: 82, 16 ] }
+  }
+  node laraObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"        { layout [ size: 55, 16 ] }
+    label "name = 'Lara'"  { layout [ size: 96, 16 ] }
+    label "grade = 3.3"    { layout [ size: 82, 16 ] }
+  }
+  node gerdObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"        { layout [ size: 55, 16 ] }
+    label "name = 'Gerd'"  { layout [ size: 96, 16 ] }
+    label "grade = 2.6"    { layout [ size: 82, 16 ] }
+  }
+  node joergObj {
+    layout [ size: 160, 62 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Student"         { layout [ size: 55, 16 ] }
+    label "name = 'Joerg'"  { layout [ size: 104, 16 ] }
+    label "grade = 2.6"     { layout [ size: 82, 16 ] }
+  }
+
+  node audObj {
+    layout [ size: 150, 46 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Subject"       { layout [ size: 55, 16 ] }
+    label "name = 'AuD'"  { layout [ size: 90, 16 ] }
+  }
+  node prog1Obj {
+    layout [ size: 150, 46 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "Subject"         { layout [ size: 55, 16 ] }
+    label "name = 'Prog1'"  { layout [ size: 102, 16 ] }
+  }
+
+  node audStudentsList {
+    layout [ size: 130, 46 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "list"          { layout [ size: 30, 16 ] }
+    label "12 elements"   { layout [ size: 82, 16 ] }
+  }
+  node prog1StudentsList {
+    layout [ size: 130, 46 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "list"         { layout [ size: 30, 16 ] }
+    label "6 elements"   { layout [ size: 76, 16 ] }
+  }
+  node subjectListList {
+    layout [ size: 130, 46 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "list"         { layout [ size: 30, 16 ] }
+    label "2 elements"   { layout [ size: 76, 16 ] }
+  }
+  node resultList {
+    layout [ size: 170, 140 ]
+    org.eclipse.elk.nodeLabels.placement: "[H_LEFT, V_TOP, INSIDE]"
+    org.eclipse.elk.nodeLabels.padding: "[top=6,left=10,bottom=6,right=10]"
+    label "list"                 { layout [ size: 30, 16 ] }
+    label "[0] <class 'float'>"  { layout [ size: 138, 16 ] }
+    label "[1] 3.3"              { layout [ size: 54, 16 ] }
+    label "[2] 1.7"              { layout [ size: 54, 16 ] }
+    label "[3] 5.0"              { layout [ size: 54, 16 ] }
+    label "[4] 4.0"              { layout [ size: 54, 16 ] }
+    label "[5] 3.0"              { layout [ size: 54, 16 ] }
+    label "[6] 2.6"              { layout [ size: 54, 16 ] }
+  }
+
+  edge audObj   -> audStudentsList   { label "students" }
+  edge prog1Obj -> prog1StudentsList { label "students" }
+
+  edge subjectListList -> audObj   { label "0" }
+  edge subjectListList -> prog1Obj { label "1" }
+
+  edge audStudentsList -> timObj     { label "0" }
+  edge audStudentsList -> karlObj    { label "1" }
+  edge audStudentsList -> tomObj     { label "2" }
+  edge audStudentsList -> karl2Obj   { label "3" }
+  edge audStudentsList -> mariamObj  { label "4" }
+  edge audStudentsList -> hectorObj  { label "5" }
+  edge audStudentsList -> quentinObj { label "6" }
+  edge audStudentsList -> fabioObj   { label "7" }
+  edge audStudentsList -> jonasObj   { label "8" }
+  edge audStudentsList -> laraObj    { label "9" }
+  edge audStudentsList -> gerdObj    { label "10" }
+  edge audStudentsList -> joergObj   { label "11" }
+
+  edge prog1StudentsList -> laraObj    { label "0" }
+  edge prog1StudentsList -> quentinObj { label "1" }
+  edge prog1StudentsList -> jonasObj   { label "2" }
+  edge prog1StudentsList -> fabioObj   { label "3" }
+  edge prog1StudentsList -> hectorObj  { label "4" }
+  edge prog1StudentsList -> gerdObj    { label "5" }
+}
+
+// Cross-hierarchy edges: declared at the root, the lowest common ancestor
+// of "frames" and "objects", using qualified references.
+
+edge frames.moduleFrame.tim         -> objects.timObj
+edge frames.moduleFrame.karl        -> objects.karlObj
+edge frames.moduleFrame.tom         -> objects.tomObj
+edge frames.moduleFrame.karl2       -> objects.karl2Obj
+edge frames.moduleFrame.mariam      -> objects.mariamObj
+edge frames.moduleFrame.hector      -> objects.hectorObj
+edge frames.moduleFrame.quentin     -> objects.quentinObj
+edge frames.moduleFrame.fabio       -> objects.fabioObj
+edge frames.moduleFrame.jonas       -> objects.jonasObj
+edge frames.moduleFrame.lara        -> objects.laraObj
+edge frames.moduleFrame.gerd        -> objects.gerdObj
+edge frames.moduleFrame.joerg       -> objects.joergObj
+edge frames.moduleFrame.aud         -> objects.audObj
+edge frames.moduleFrame.prog1       -> objects.prog1Obj
+edge frames.moduleFrame.subjectList -> objects.subjectListList
+
+edge frames.createGradeListFrame.subject -> objects.prog1Obj
+edge frames.createGradeListFrame.result  -> objects.resultList
+edge frames.createGradeListFrame.student -> objects.gerdObj

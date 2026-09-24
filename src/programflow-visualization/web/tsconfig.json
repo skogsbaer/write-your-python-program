@@ -2,8 +2,11 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "lib": ["es2017", "dom"],
-    "types": []
+    // es2019 for Array.prototype.flatMap, used by ../reachability.ts.
+    "lib": ["es2019", "dom"],
+    "types": [],
+    // elkjs ships a .d.ts that does not survive strict checking.
+    "skipLibCheck": true
   },
   "include": ["**/*.ts"],
   "exclude": ["../../../node_modules", "../../../.vscode-test"]

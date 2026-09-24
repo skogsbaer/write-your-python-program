@@ -9,7 +9,32 @@
         "@typescript-eslint"
     ],
     "rules": {
-        "@typescript-eslint/naming-convention": "warn",
+        "@typescript-eslint/naming-convention": [
+            "warn",
+            {
+                "selector": "default",
+                "format": ["camelCase"],
+                "leadingUnderscore": "allow",
+                "trailingUnderscore": "allow"
+            },
+            {
+                "selector": "variable",
+                "format": ["camelCase", "UPPER_CASE"],
+                "leadingUnderscore": "allow",
+                "trailingUnderscore": "allow"
+            },
+            {
+                "selector": "typeLike",
+                "format": ["PascalCase"]
+            },
+            {
+                // Keys of a foreign API, quoted because they have to be - the dotted ELK
+                // layout options have no camelCase spelling to pick.
+                "selector": ["objectLiteralProperty", "typeProperty"],
+                "modifiers": ["requiresQuotes"],
+                "format": null
+            }
+        ],
         "@typescript-eslint/semi": "warn",
         "curly": "warn",
         "eqeqeq": "warn",

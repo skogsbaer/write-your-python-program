@@ -85,15 +85,17 @@
 	"scripts": {
 		"vscode:prepublish": "npm run build",
 		"compile": "tsc -p ./",
+		"compile:web": "tsc -p src/programflow-visualization/web --noEmit",
 		"lint": "eslint src --ext ts",
 		"watch": "tsc -watch -p ./",
-		"test": "npm run compile && npm run lint",
+		"test:unit": "mocha --ui tdd \"out/test/unit/**/*.test.js\"",
+		"test": "npm run compile && npm run compile:web && npm run lint && npm run test:unit",
 		"build:web": "node scripts/build-web.mjs",
 		"watch:web": "node scripts/build-web.mjs --watch",
 		"build": "npm run compile && npm run build:web"
 	},
 	"dependencies": {
-		"linkerline": "^1.5.0",
+		"elkjs": "^0.12.0",
 		"stringify-json": "^2.0.0",
 		"tmp": "^0.2.3",
 		"ts-md5": "^1.3.1"

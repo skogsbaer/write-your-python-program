@@ -1,7 +1,7 @@
 // Render and control the program-flow visualization UI inside the webview
-import { HTMLGenerator } from "./html-generator";
-import LinkerLine from "linkerline";
-import type { BackendTraceElem, FrontendTraceElem } from "../types";
+import type { Address, BackendTraceElem } from "../types";
+import { clearLayoutCache, prewarm, renderStep } from "./elk-view";
+import { attachPanZoom, type PanZoom } from "./pan-zoom";
 
 type ResetMsg = {
   command: "reset";
@@ -18,14 +18,18 @@ type AppendMsg = {
 // Optional example trace format (designer mode)
 type StaticTrace = { complete: boolean; trace: BackendTraceElem[] };
 
-let refLines: any[] = [];
 let trace: BackendTraceElem[] = [];
 let traceComplete = false;
 let traceIndex = 0;
 
-type NavType = "first" | "prev" | "next" | "last";
+/** Heap objects the user has folded away. Kept across steps on purpose. */
+const collapsed = new Set<Address>();
 
-const gen = new HTMLGenerator();
+let panZoom: PanZoom | undefined;
+/** Bounds of the last render, so the Fit button has something to fit to. */
+let lastBounds = { width: 0, height: 0 };
+
+type NavType = "first" | "prev" | "next" | "last";
 
 //DOM helpers
 function $(sel: string): HTMLElement {
@@ -43,7 +47,7 @@ function clamp(n: number, min: number, max: number) {
 }
 
 //Rendering
-function renderCurrent() {
+function updateControls() {
   const max = Math.max(0, trace.length - 1);
   traceIndex = clamp(traceIndex, 0, max);
 
@@ -60,20 +64,55 @@ function renderCurrent() {
   setDisabled("#prevButton", traceIndex <= 0);
   setDisabled("#nextButton", traceIndex >= max);
   setDisabled("#lastButton", traceIndex >= max);
+}
+
+function renderCurrent() {
+  updateControls();
 
   // Nothing to show yet
   if (trace.length === 0) {
-    $("#stdout-log").innerHTML = "";
-    clearArrows();
+    $("#stdout-log").textContent = "";
+    $("#elk-canvas").textContent = "";
     return;
   }
 
   const backendElem = trace[traceIndex];
-  const frontendElem = gen.generateHTML(backendElem);
+  updateStdout(backendElem);
+  void renderElk(backendElem);
+}
 
-  updateVisualization(frontendElem);
-  updateIndent(frontendElem);
-  updateRefArrows(frontendElem);
+function updateStdout(elem: BackendTraceElem) {
+  const stdoutLog = $("#stdout-log");
+  stdoutLog.textContent = elem.stdout;
+  if (elem.traceback !== undefined) {
+    const traceback = document.createElement("span");
+    traceback.className = "traceback-text";
+    traceback.textContent = elem.traceback;
+    stdoutLog.append(traceback);
+  }
+  stdoutLog.scrollTo(0, stdoutLog.scrollHeight);
+}
+
+function renderElk(elem: BackendTraceElem): Promise<void> {
+  // A collapsed object can end up off-screen, so offer a way back without hunting for it.
+  $("#expandAllButton").hidden = collapsed.size === 0;
+  return renderStep($("#elk-canvas"), elem, collapsed, {
+    step: String(traceIndex),
+    onToggle: (address) => {
+      if (collapsed.has(address)) {
+        collapsed.delete(address);
+      } else {
+        collapsed.add(address);
+      }
+      void renderElk(trace[traceIndex]);
+    },
+    onBounds: (width, height) => {
+      lastBounds = { width, height };
+      panZoom?.autoFit(width, height);
+    },
+  }).catch((err) => {
+    console.error("ELK layout failed:", err);
+  });
 }
 
 function postCurrentHighlight() {
@@ -119,119 +158,17 @@ function slideTo(rawValue: string) {
   postCurrentHighlight();
 }
 
-function updateVisualization(traceElem: FrontendTraceElem) {
-  clearArrows();
-
-  const frames = document.getElementById("frames");
-  const objects = document.getElementById("objects");
-  const stdoutLog = document.getElementById("stdout-log");
-
-  if (!frames || !objects || !stdoutLog) {
-    throw new Error("Missing required visualization containers");
+/**
+ * While the slider is being dragged only the cheap parts follow along. Layout is far too
+ * expensive to run per `input` event (plan 6.5), so it waits for `change`.
+ */
+function scrubTo(rawValue: string) {
+  traceIndex = Number(rawValue) || 0;
+  updateControls();
+  if (trace.length > 0) {
+    updateStdout(trace[traceIndex]);
   }
-
-  frames.innerHTML = traceElem.stackHTML;
-  objects.innerHTML = traceElem.heapHTML;
-  stdoutLog.innerHTML = traceElem.outputState;
-  stdoutLog.scrollTo(0, stdoutLog.scrollHeight);
-}
-
-function updateIndent(traceElem: FrontendTraceElem) {
-  const heapTags = traceElem.heapHTML.match(/(?<=startPointer)[0-9]+/g);
-  if (heapTags) {
-    heapTags.forEach((tag: string) => {
-      const element = document.getElementById("objectItem" + tag);
-      if (element) {element.classList.add("object-intendation");}
-    });
-  }
-}
-
-//Arrows
-function clearArrows() {
-  refLines.forEach((l) => {
-    try {
-      l.remove();
-    } catch {}
-  });
-  refLines = [];
-}
-
-function updateRefArrows(traceElem: FrontendTraceElem) {
-  const tags = getCurrentTags(traceElem);
-  if (!tags) { return; }
-
-  requestAnimationFrame(() => {
-    const parent = document.getElementById("viz");
-    if (!parent) { return; }
-
-    const usable = tags.filter((t: any) => {
-      const a = t.elem1 as HTMLElement | null | undefined;
-      const b = t.elem2 as HTMLElement | null | undefined;
-      return !!a && !!b && a.isConnected && b.isConnected;
-    });
-
-    const lines: any[] = [];
-    for (const t of usable) {
-      try {
-        lines.push(
-          new (LinkerLine as any)({
-            parent,
-            start: t.elem1,
-            end: t.elem2,
-            size: 2,
-            path: "magnet",
-            startSocket: "right",
-            endSocket: "left",
-            startPlug: "square",
-            startSocketGravity: [50, -10],
-            endSocketGravity: [-5, -5],
-            endPlug: "arrow1",
-            color: getColor(t),
-          })
-        );
-      } catch (err) {
-        // Keep going if one arrow fails (prevents breaking the whole render)
-        console.warn("LinkerLine failed for one tag:", t, err);
-      }
-    }
-
-    refLines = lines;
-  });
-}
-
-function getCurrentTags(traceElem: FrontendTraceElem) {
-  const stackTags = traceElem.stackHTML.match(/(?<=id=")(.+)Pointer[0-9]+/g);
-  const heapTags = traceElem.heapHTML.match(/(?<=startPointer)[0-9]+/g);
-  const uniqueId = traceElem.heapHTML.match(/\d+(?=startPointer)/g);
-
-  if (!stackTags) {return;}
-
-  const stackRefs = stackTags.map((tag: string) => {
-    const id = tag.match(/(?<=.*Pointer)[\d]+/g);
-    return {
-      tag: id,
-      elem1: document.getElementById(tag),
-      elem2: document.getElementById("heapEndPointer" + id),
-    };
-  });
-
-  let heapRefs: any[] = [];
-  if (heapTags && uniqueId) {
-    heapRefs = heapTags.map((reference: string, index: number) => {
-      return {
-        tag: reference,
-        elem1: document.getElementById(uniqueId[index] + "startPointer" + reference),
-        elem2: document.getElementById("heapEndPointer" + reference),
-      };
-    });
-  }
-
-  return [...heapRefs, ...stackRefs];
-}
-
-function getColor(tag: any) {
-  const hue = ((0.618033988749895 + Number(tag.tag) / 10) % 1) * 100;
-  return `hsl(${hue}, 60%, 45%)`;
+  postCurrentHighlight();
 }
 
 //Incoming events (from vscode-host-adapter.ts)
@@ -239,6 +176,8 @@ window.addEventListener("programflow:reset", (e: Event) => {
   const msg = (e as CustomEvent<ResetMsg>).detail;
   trace = msg.trace ?? [];
   traceComplete = !!msg.complete;
+  // A reset means a different trace, so every cached layout is keyed on stale indices.
+  clearLayoutCache();
   renderCurrent();
   postCurrentHighlight();
 });
@@ -252,6 +191,11 @@ window.addEventListener("programflow:append", (e: Event) => {
 
 
 function setupUi() {
+  panZoom = attachPanZoom($("#elk-viewport"), $("#elk-canvas"));
+  watchThemeChanges();
+  // Warm elkjs up while the user is still reading the first step.
+  void prewarm().then(renderCurrent);
+
   // Disable until first reset arrives
   setDisabled("#nextButton", true);
   setDisabled("#lastButton", true);
@@ -271,11 +215,27 @@ function setupUi() {
   $("#lastButton").addEventListener("click", () => {
     navigate("last");
   });
+  $("#expandAllButton").addEventListener("click", () => {
+    collapsed.clear();
+    renderCurrent();
+  });
+  $("#fitButton").addEventListener("click", () => {
+    panZoom?.fit(lastBounds.width, lastBounds.height);
+  });
+  $("#zoomInButton").addEventListener("click", () => {
+    panZoom?.zoomIn();
+  });
+  $("#zoomOutButton").addEventListener("click", () => {
+    panZoom?.zoomOut();
+  });
 
   // Slider input -> local navigation
-  ($("#traceSlider") as HTMLInputElement).addEventListener("input", (e: Event) => {
-    const value = (e.target as HTMLInputElement).value;
-    slideTo(value);
+  const slider = $("#traceSlider") as HTMLInputElement;
+  slider.addEventListener("input", (e: Event) => {
+    scrubTo((e.target as HTMLInputElement).value);
+  });
+  slider.addEventListener("change", (e: Event) => {
+    slideTo((e.target as HTMLInputElement).value);
   });
 
   // Optional: example trace mode
@@ -291,3 +251,18 @@ function setupUi() {
 }
 
 document.addEventListener("DOMContentLoaded", setupUi);
+
+/**
+ * VS Code signals a theme change by swapping the class on `<body>`. That changes the
+ * colours *and* potentially the font, so the cached layouts have to go (plan 6.5).
+ */
+function watchThemeChanges() {
+  const observer = new MutationObserver(() => {
+    clearLayoutCache();
+    renderCurrent();
+  });
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class", "style"],
+  });
+}

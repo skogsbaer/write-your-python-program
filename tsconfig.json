@@ -9,6 +9,8 @@
 		"types": ["node"],
 		"sourceMap": true,
 		"rootDir": "src",
+		/* elkjs ships a .d.ts that does not survive strict checking. */
+		"skipLibCheck": true,
 		"strict": true   /* enable all strict type-checking options */
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */

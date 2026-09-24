@@ -4,12 +4,22 @@
 
 ### **Webview (web/)**
 The self-contained UI component that the user interacts with:
-- **webview.ts**: Manages trace navigation, rendering, and local state. Navigation (prev/next/first/last) is fully local; after updating the visualization, it emits a `highlight` message for line highlighting in the editor.
-- **html-generator.ts**: Converts backend trace elements into HTML fragments for display.
+- **webview.ts**: Manages trace navigation, rendering, and local state. Navigation (prev/next/first/last) is fully local; after updating the visualization, it emits a `highlight` message for line highlighting in the editor. Also owns the set of collapsed heap objects.
+- **elk-view.ts**: Runs one step through the pipeline (build → measure → lay out → draw) and caches the result per step, LRU-bounded.
+- **measure.ts**: Measures the real node markup offscreen and writes sizes and port positions back into the graph, so the layout matches what is drawn.
+- **graph-renderer.ts**: Positions the nodes from the ELK result and draws the edges as SVG paths.
+- **node-view.ts**: The single definition of a node's markup, shared by measurement and rendering.
+- **pan-zoom.ts**: Wheel zoom, drag panning and zoom-to-fit, applied as one CSS transform.
 - **vscode-host-adapter.ts**: Bridges between the webview's custom events and the VS Code webview API. Non-VS Code environments work unchanged (mock postMessage).
 - **index.html**: DOM structure, control buttons, and output panes.
 - **webview.css**: Layout and styling.
 - **example-trace-content.js**: Optional sample trace for design/development mode.
+
+### **Graph model (graph-model.ts, reachability.ts)**
+Outside `web/` because it is pure logic with no DOM, which is what makes it unit-testable
+(`src/test/unit`):
+- **graph-model.ts**: Turns one backend trace element into the ELK graph — one node per frame and per visible heap object, one port per row that holds a reference, one edge per reference.
+- **reachability.ts**: Decides which heap objects a step shows, given the set of collapsed ones.
 
 ### **Panel (frontend/)**
 The VS Code extension-side host that owns the webview:
@@ -29,7 +39,7 @@ graph TB
 
     subgraph webview["Webview (Sandboxed)"]
         ui["webview.ts<br/>(UI + Navigation)"]
-        gen["html-generator.ts<br/>(Rendering)"]
+        elk["elk-view.ts<br/>(build, measure, layout, draw)"]
     end
 
     subgraph editor["Editor"]
@@ -44,8 +54,8 @@ graph TB
     adapter -->|postMessage highlight| panel
     panel -->|updateLineHighlight| editor
 
-    ui -->|local navigation| gen
-    gen -->|innerHTML| ui
+    ui -->|current step + collapsed set| elk
+    elk -->|positioned nodes and edges| ui
 ```
 
 ## Data Flow

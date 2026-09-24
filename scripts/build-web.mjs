@@ -13,6 +13,10 @@ const webSrc = path.join(root, "src/programflow-visualization/web");
 const webOut = path.join(root, "out/programflow-visualization/web");
 const watch = process.argv.includes("--watch");
 
+// elkjs is ~3.4 MB unminified and dominates the bundle, so production builds are
+// minified (see elk-task/elk-plan.md 2). Watch builds stay readable for debugging.
+const minify = !watch;
+
 fs.mkdirSync(webOut, { recursive: true });
 
 // Bundle webview.ts -> out/.../webview.js
@@ -21,6 +25,7 @@ const webviewCtx = await esbuild.context({
   bundle: true,
   platform: "browser",
   format: "iife",      // classic <script src="...">
+  minify,
   sourcemap: true,
   outfile: path.join(webOut, "webview.js"),
 });
@@ -31,6 +36,7 @@ const adapterCtx = await esbuild.context({
   bundle: true,
   platform: "browser",
   format: "iife",
+  minify,
   sourcemap: true,
   outfile: path.join(webOut, "vscode-host-adapter.js"),
 });

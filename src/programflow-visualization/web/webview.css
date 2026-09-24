@@ -1,6 +1,9 @@
 body {
   height: 100vh;
   width: 100vw;
+  /* The UA default of 8px would push 100vw past the window edge, which now matters
+     because the view controls are pinned to the right. VS Code zeroes it anyway. */
+  margin: 0;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -10,27 +13,19 @@ body {
   box-sizing: border-box;
 }
 
+/* .row/.column set display, which would otherwise beat the UA [hidden] rule. */
+[hidden] {
+  display: none !important;
+}
+
 .floating-right {
   float: right;
   width: 65%;
 }
 
-.floating-right-content {
-  width: 65%;
-  padding: 10px;
-  max-height: 90%;
-}
-
 .floating-left {
   float: left;
   width: 35%;
-}
-
-.floating-left-content {
-  width: 35%;
-  padding: 10px;
-  max-height: 90%;
-  margin-right: 100px;
 }
 
 .scrollable {
@@ -48,23 +43,20 @@ body {
   padding-bottom: 10px;
 }
 
+/* The two columns are 35%/65% of a flex row, so a narrow panel squeezes the step
+   controls until they overflow their column and land under the stdout pane, which
+   would otherwise swallow the clicks. Lift them into a higher stacking level so they
+   stay pressable even while overlapping. */
+#bottom-area .floating-left {
+  position: relative;
+  z-index: 1;
+}
+
 #stdout-log {
   height: 100%;
   border: 1.5px;
   border-style: solid;
   border-color: grey;
-}
-
-.next-line-color {
-  border: 6px solid rgba(255, 255, 0, 1);
-  border-radius: 8px;
-  background-color: rgba(255, 255, 0, 1);
-}
-
-.divider {
-  margin: 2px 2px 10px 0;
-  border-top: 2px solid #bbb;
-  border-radius: 5px;
 }
 
 .margin-vertical {
@@ -77,63 +69,6 @@ body {
   margin-right: 3px;
 }
 
-/* Clear floats after the columns */
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-.name-border {
-  width: 50%;
-  font-size: 16px;
-  margin-right: 5px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.value-border {
-  width: 50%;
-  padding-left: 3px;
-  padding-right: 3px;
-  font-size: 16px;
-  border-bottom: 1.5px solid grey;
-  border-left: 1.5px solid grey;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.dataRow {
-  justify-content: space-evenly;
-}
-
-.title {
-  font-weight: 700;
-}
-
-.subtitle {
-  font-weight: 500;
-}
-
-.frame-item {
-  margin: 3px 0 3px 0;
-  justify-content: flex-end;
-}
-
-.frame {
-  border-left: 4px solid grey;
-  padding-left: 5px;
-  background-color: rgba(128, 128, 128, 0.2);
-}
-
-.current-frame {
-  border-left: 4px solid blue;
-  padding-left: 5px;
-  background-color: rgba(77, 100, 255, 0.2);
-}
-
 .row {
   display: flex;
   flex-direction: row;
@@ -144,55 +79,316 @@ body {
   flex-direction: column;
 }
 
-.box {
-  color: white;
-  border: 1px solid rgb(209, 209, 209);
-  background-color: rgba(56, 56, 56, 0.8);
-}
-
-.box-content-top {
-  margin: 2px 2px 2px 5px;
-  color: rgb(184, 184, 184);
-}
-
-.box-content-bottom {
-  margin: 2px 5px 2px 5px;
-}
-
-.box-content-dict {
-  padding: 2px 5px 2px 5px;
-  /* max-width: 100px;
-     min-width: 100px; */
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.box-content-dict-key {
-  text-align: right;
-}
-
-.box-set {
-  flex-wrap: wrap;
-  width: 150px;
-}
-
-.object-intendation {
-  margin-left: 65px;
-}
-
-.object-item {
-  margin-bottom: 15px;
-}
-
-.return-value {
-  color: blue;
-}
-
 .traceback-text {
   color: red;
 }
 
 #bottom-area button {
   line-height: 18px;
+}
+
+/* ------------------------------------------------------------------ */
+/* ELK-based visualization. See elk-task/elk-plan.md 6.4.              */
+/* ------------------------------------------------------------------ */
+
+/* Every colour below this line is named here and nowhere else. Inside VS Code the
+   --vscode-* variables win; the literals are only ever used by the browser dev mode
+   (index.web.html), which has no theme to inherit from.
+
+   --vscode-charts-* is the one palette VS Code exposes for "several things that must
+   look different from each other", which is exactly what the node kinds need. */
+:root {
+  --wypp-node-bg: var(--vscode-editorWidget-background, #252526);
+  --wypp-node-fg: var(--vscode-editorWidget-foreground, #ccc);
+  --wypp-node-border: var(--vscode-panel-border, #3c3c3c);
+  --wypp-header-bg: var(--vscode-editorWidget-border, rgba(128, 128, 128, 0.25));
+  --wypp-row-alt-bg: rgba(128, 128, 128, 0.07);
+  --wypp-focus: var(--vscode-focusBorder, #4d64ff);
+  --wypp-edge: var(--vscode-charts-lines, #808080);
+  --wypp-muted: var(--vscode-descriptionForeground, #9d9d9d);
+
+  /* Node kinds. */
+  --wypp-accent-frame: var(--vscode-descriptionForeground, #9d9d9d);
+  --wypp-accent-current-frame: var(--vscode-focusBorder, #4d64ff);
+  --wypp-accent-instance: var(--vscode-charts-blue, #4e95d9);
+  --wypp-accent-list: var(--vscode-charts-green, #89d185);
+  --wypp-accent-tuple: var(--vscode-charts-purple, #b180d7);
+  --wypp-accent-dict: var(--vscode-charts-orange, #d18616);
+  --wypp-accent-set: var(--vscode-charts-yellow, #cca700);
+
+  /* The blue wash over the Frames column. Deliberately a literal rgba rather than a
+     --vscode-* token: it is layered *over* the theme's own node background, so it has
+     to be translucent, and no theme token carries an alpha channel. Keeping the alpha
+     low leaves the theme's own foreground colour readable in light and dark alike. */
+  --wypp-frame-bg: rgba(77, 140, 217, 0.14);
+  --wypp-frame-header-bg: rgba(77, 140, 217, 0.28);
+
+  /* High-contrast themes define --vscode-contrastBorder and expect it to be honoured;
+     everywhere else it is empty and the fallback applies. */
+  --wypp-outline: var(--vscode-contrastBorder, var(--wypp-node-border));
+}
+
+/* The viewport clips and owns the gestures; only #elk-canvas is transformed, so the
+   step controls and the stdout pane never scale. */
+#elk-viewport {
+  flex-grow: 1;
+  /* Without this the flex default min-height:auto lets the canvas stretch #viz. */
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  /* Stop the browser from claiming wheel/drag before the handlers see them. */
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+#elk-viewport.elk-panning {
+  cursor: grabbing;
+}
+
+/* Floating view controls, pinned to the top right of the viewport. A sibling of
+   #elk-canvas rather than a child, so the canvas transform never scales them. */
+.elk-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--wypp-outline);
+  border-radius: 4px;
+  background-color: var(--wypp-node-bg);
+  /* The viewport shows a grab cursor; the toolbar is not draggable. */
+  cursor: default;
+}
+
+.elk-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 8px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Square and unpadded, so the icon gets the whole content box. Scoped to .elk-controls
+   because the rule above is more specific than a bare .elk-icon-button would be. */
+.elk-controls .elk-icon-button {
+  width: 24px;
+  padding: 0;
+}
+
+/* The icons are inline SVG stroked in currentColor, so they follow the button text.
+   flex: none stops the flex container from shrinking them below their intrinsic size. */
+.elk-controls .elk-icon-button svg {
+  display: block;
+  flex: none;
+}
+
+.elk-canvas {
+  position: relative;
+}
+
+.elk-edges {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* The SVG spans the canvas and sits behind the nodes. */
+  pointer-events: none;
+}
+
+.elk-band {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: var(--wypp-muted);
+  border-bottom: 1px solid var(--wypp-node-border);
+}
+
+/* Matches the tint on the frame nodes below, so the whole left column reads as one. */
+.elk-band-frames {
+  background-color: var(--wypp-frame-bg);
+}
+
+.elk-node {
+  position: absolute;
+  /* Shrink to content, but never so wide that one long value dominates. */
+  width: max-content;
+  min-width: 120px;
+  max-width: 280px;
+  border: 1px solid var(--wypp-outline);
+  /* Overwritten per kind below; declared here so every node reserves the same width. */
+  border-left: 4px solid var(--wypp-muted);
+  border-radius: 4px;
+  background-color: var(--wypp-node-bg);
+  color: var(--wypp-node-fg);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.elk-node-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  font-weight: 600;
+  background-color: var(--wypp-header-bg);
+}
+
+.elk-collapsible {
+  cursor: pointer;
+}
+
+.elk-collapsible:focus-visible {
+  outline: 1px solid var(--wypp-focus);
+  outline-offset: -1px;
+}
+
+.elk-caret {
+  flex: 0 0 auto;
+  color: var(--wypp-muted);
+}
+
+.elk-node-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Table layout keeps the key column aligned across rows while each row keeps a
+   box of its own -- measure.ts needs that box to place the row's port. */
+.elk-node-rows {
+  display: table;
+  width: 100%;
+}
+
+.elk-row {
+  display: table-row;
+}
+
+/* Zebra striping earns its keep here: rows are one line tall and a wide node makes
+   it easy to read a key against the wrong value. */
+.elk-row:nth-child(even) {
+  background-color: var(--wypp-row-alt-bg);
+}
+
+.elk-row-key,
+.elk-row-value {
+  display: table-cell;
+  padding: 2px 6px;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.elk-row-key {
+  text-align: right;
+  color: var(--wypp-muted);
+  max-width: 110px;
+}
+
+/* A dict key that is itself a reference; the arrow leaving this cell says which. */
+.elk-key-ref {
+  font-style: italic;
+}
+
+/* `return` rows get the current-frame accent: the legacy blue was invisible in dark
+   themes, and a return value is the one row worth finding at a glance. */
+.elk-row-key.return-value {
+  color: var(--wypp-accent-current-frame);
+  font-weight: 600;
+}
+
+.elk-row-value {
+  max-width: 180px;
+  border-left: 1px solid var(--wypp-node-border);
+}
+
+.elk-summary {
+  display: table-cell;
+  padding: 2px 6px;
+  font-style: italic;
+  color: var(--wypp-muted);
+}
+
+/* Frames are washed blue so the two columns tell themselves apart even at zoom levels
+   where the header text is no longer legible. The wash goes in background-image, which
+   layers over the background-color .elk-node already set, so the node keeps an opaque
+   base and stays legible whatever the theme. */
+.elk-frame,
+.elk-current-frame {
+  background-image: linear-gradient(var(--wypp-frame-bg), var(--wypp-frame-bg));
+}
+
+.elk-frame .elk-node-header,
+.elk-current-frame .elk-node-header {
+  background-color: var(--wypp-frame-header-bg);
+}
+
+.elk-frame {
+  border-left-color: var(--wypp-accent-frame);
+}
+
+.elk-current-frame {
+  border-left-color: var(--wypp-accent-current-frame);
+}
+
+/* One accent per heap type, so kind is readable at a glance and at small zoom
+   levels where the header text is no longer legible. */
+.elk-instance {
+  border-left-color: var(--wypp-accent-instance);
+}
+
+.elk-list {
+  border-left-color: var(--wypp-accent-list);
+}
+
+.elk-tuple {
+  border-left-color: var(--wypp-accent-tuple);
+}
+
+.elk-dict {
+  border-left-color: var(--wypp-accent-dict);
+}
+
+.elk-set {
+  border-left-color: var(--wypp-accent-set);
+}
+
+.elk-edge {
+  fill: none;
+  stroke: var(--wypp-edge);
+  stroke-width: 1.5;
+}
+
+.elk-arrowhead {
+  fill: var(--wypp-edge);
+}
+
+.elk-edge-active {
+  stroke: var(--wypp-focus);
+  stroke-width: 2.5;
+}
+
+/* Hovering a node fades everything it is not connected to. */
+.elk-canvas.elk-dimming .elk-node:not(.elk-node-active) {
+  opacity: 0.45;
+}
+
+.elk-canvas.elk-dimming .elk-edge:not(.elk-edge-active) {
+  opacity: 0.2;
+}
+
+.elk-node-active {
+  outline: 1px solid var(--wypp-focus);
+  outline-offset: -1px;
 }
