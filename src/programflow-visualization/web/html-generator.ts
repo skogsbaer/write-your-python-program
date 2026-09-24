@@ -1,3 +1,13 @@
+// Convert backend trace elements into HTML fragments for the visualization panes
+import type {
+  BackendTraceElem,
+  FrontendTraceElem,
+  HeapValue,
+  NamedValue,
+  StackElem,
+  Value
+} from "../types";
+
 function escapeHTML(s: any) {
     if (s !== undefined && s !== null) {
         return s.toString().replace(/[^0-9A-Za-z ]/g, (c: string) => "&#" + c.charCodeAt(0) + ";");
@@ -118,7 +128,6 @@ export class HTMLGenerator {
                     </div>
                 `;
                 break;
-                break;
             /* tuple, list, int[], int[][], ...*/
             default:
                 result = `
@@ -176,11 +185,11 @@ export class HTMLGenerator {
 
     private frameItem(index: number, stackElem: StackElem): string {
         return `
-            <div class="column frame-item" id="frameItem?">
-                <div class="row subtitle" id="frameItemTitle">
+            <div class="column frame-item">
+                <div class="row subtitle">
                     ${stackElem.frameName === '<module>' ? 'Global' : escapeHTML(stackElem.frameName)}
                 </div>
-                <div class="column ${index === 0 ? 'current-frame' : 'frame'}" id="frameItemSubItems">
+                <div class="column ${index === 0 ? 'current-frame' : 'frame'}">
                     ${stackElem.locals.map(namedValue => this.frameSubItem(stackElem.frameName, namedValue)).join('')}
                 </div>
             </div>

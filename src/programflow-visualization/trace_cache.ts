@@ -5,6 +5,7 @@ import path = require('path');
 import stringify from 'stringify-json';
 import util = require('util');
 import * as FileHandler from './FileHandler';
+import type { BackendTrace } from "./types";
 
 export async function initTraceCache(context: vscode.ExtensionContext): Promise<void> {
     tmp.setGracefulCleanup();

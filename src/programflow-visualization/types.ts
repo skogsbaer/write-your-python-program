@@ -1,14 +1,14 @@
 /**
  * For better readable code
 */
-type Try = Success | Failure;
-type Success = { result: any };
-type Failure = { errorMessage: string };
+export type Try = Success | Failure;
+export type Success = { result: any };
+export type Failure = { errorMessage: string };
 
 // State Types for the Frontend
-type FrontendTrace = Array<FrontendTraceElem>;
+export type FrontendTrace = Array<FrontendTraceElem>;
 
-type FrontendTraceElem = {
+export type FrontendTraceElem = {
   lineNumber: number, // 1-based
   stackHTML: string,
   heapHTML: string,
@@ -18,12 +18,12 @@ type FrontendTraceElem = {
 
 // ############################################################################################
 // State Types for the Backend
-type PartialBackendTrace = {
+export type PartialBackendTrace = {
   trace: BackendTrace;
   complete: boolean;
 };
-type BackendTrace = Array<BackendTraceElem>;
-type BackendTraceElem = {
+export type BackendTrace = Array<BackendTraceElem>;
+export type BackendTraceElem = {
   line: number;
   filePath: string,
   stack: Array<StackElem>;
@@ -32,9 +32,9 @@ type BackendTraceElem = {
   traceback: string | undefined;
 };
 
-type Address = number;
+export type Address = number;
 
-type Value =
+export type Value =
   | { type: 'int'; value: number }
   | { type: 'float'; value: number }
   | { type: 'str'; value: string }
@@ -44,17 +44,17 @@ type Value =
   | { type: 'function'; value: string }
   | { type: 'ref'; value: Address };
 
-type NamedValue = Value & {
+export type NamedValue = Value & {
   name: string;
 };
 
 
-type StackElem = {
+export type StackElem = {
   frameName: string;
   locals: Array<NamedValue>;
 };
 
-type HeapValue =
+export type HeapValue =
   | { type: 'list'; value: Array<Value> }
   | { type: 'tuple'; value: Array<Value> }
   | { type: 'set'; value: Array<Value> }

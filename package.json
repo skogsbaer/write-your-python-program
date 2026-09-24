@@ -71,7 +71,11 @@
 				},
 				"write-your-python-program.language": {
 					"type": "string",
-					"enum": ["german", "english", "system default"],
+					"enum": [
+						"german",
+						"english",
+						"system default"
+					],
 					"default": "system default",
 					"description": "Choose the language for error messages."
 				}
@@ -84,11 +88,11 @@
 		"lint": "eslint src --ext ts",
 		"watch": "tsc -watch -p ./",
 		"test": "npm run compile && npm run lint",
-		"bundle": "webpack",
-		"build": "npm run compile && npm run bundle"
+		"build:web": "node scripts/build-web.mjs",
+		"watch:web": "node scripts/build-web.mjs --watch",
+		"build": "npm run compile && npm run build:web"
 	},
 	"dependencies": {
-		"@types/node": "^18.11.13",
 		"linkerline": "^1.5.0",
 		"stringify-json": "^2.0.0",
 		"tmp": "^0.2.3",
@@ -96,17 +100,16 @@
 	},
 	"devDependencies": {
 		"@types/mocha": "^8.2.3",
-		"@types/node": "^18.11.13",
+		"@types/node": "^18.19.130",
 		"@types/tmp": "^0.2.6",
 		"@types/vscode": "^1.85.0",
 		"@typescript-eslint/eslint-plugin": "^5.30.0",
 		"@typescript-eslint/parser": "^5.30.0",
 		"@vscode/test-electron": "^1.6.1",
+		"esbuild": "^0.27.3",
 		"eslint": "^8.18.0",
 		"glob": "^11.0.0",
 		"mocha": "^10.7.3",
-		"typescript": "^5.4.2",
-		"webpack": "^5.96.1",
-		"webpack-cli": "^5.1.4"
+		"typescript": "^5.4.2"
 	}
 }
