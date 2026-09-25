@@ -1,13 +1,13 @@
 Traceback (most recent call last):
-  File "file-test-data/extras/testTypesProtos6.py", line 57, in <module>
+  File "file-test-data/extras/testTypesProtos6.py", line 59, in <module>
     print(computeTotalSize(root))
-  File "file-test-data/extras/testTypesProtos6.py", line 50, in computeTotalSize
+  File "file-test-data/extras/testTypesProtos6.py", line 52, in computeTotalSize
     fs.accept(visitor)
-  File "file-test-data/extras/testTypesProtos6.py", line 19, in accept
+  File "file-test-data/extras/testTypesProtos6.py", line 21, in accept
     visitor.visitDirectory(self)
-  File "file-test-data/extras/testTypesProtos6.py", line 41, in visitDirectory
+  File "file-test-data/extras/testTypesProtos6.py", line 43, in visitDirectory
     c.accept(self)
-  File "file-test-data/extras/testTypesProtos6.py", line 28, in accept
+  File "file-test-data/extras/testTypesProtos6.py", line 30, in accept
     visitor.visitFile(self)
 
 WyppTypeError: <__wypp__.File object at 0x00>
@@ -16,10 +16,10 @@ Der Aufruf der Methode `visitFile` der Klasse `TotalSizeVisitor` erwartet einen 
 Aber der übergebene Wert hat den Typ `File`.
 
 ## Datei file-test-data/extras/testTypesProtos6.py
-## Fehlerhafter Aufruf in Zeile 28:
+## Fehlerhafter Aufruf in Zeile 30:
 
         [0;31m[1mvisitor.visitFile(self)[0;0m
 
-## Typ deklariert in Zeile 42:
+## Typ deklariert in Zeile 44:
 
     def visitFile(self, [0;31m[1mfile: str[0;0m):

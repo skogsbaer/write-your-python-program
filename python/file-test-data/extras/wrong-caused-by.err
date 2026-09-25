@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "file-test-data/extras/wrong-caused-by.py", line 31, in <module>
+  File "file-test-data/extras/wrong-caused-by.py", line 33, in <module>
     mainStreetM.turnIntoStreet(redCarM)
 
 WyppTypeError: CarM(licensePlate='OG PY 123', color='rot')
@@ -8,10 +8,10 @@ Der Aufruf der Methode `turnIntoStreet` der Klasse `StreetM` erwartet einen Wert
 Aber der übergebene Wert hat den Typ `CarM`.
 
 ## Datei file-test-data/extras/wrong-caused-by.py
-## Fehlerhafter Aufruf in Zeile 31:
+## Fehlerhafter Aufruf in Zeile 33:
 
 mainStreetM.turnIntoStreet(redCarM)
 
-## Typ deklariert in Zeile 10:
+## Typ deklariert in Zeile 12:
 
     def turnIntoStreet(self: StreetM, [0;31m[1mcar: Car[0;0m) -> None:
