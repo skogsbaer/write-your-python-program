@@ -50,8 +50,9 @@ def _patchDataClass(cls, mutable: bool, ns: myTypeguard.Namespaces):
         fields = set(fieldNames)
         info = location.RecordConstructorInfo(cls)
         locs = {}
+        annotations = utils.getAnnotations(cls)
         for name in fields:
-            if not name in cls.__annotations__:
+            if not name in annotations:
                 raise errors.WyppTypeError.noTypeAnnotationForRecordAttribute(name, cls.__name__)
             else:
                 locs[name] = info.getParamSourceLocation(name)
