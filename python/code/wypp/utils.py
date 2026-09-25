@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import inspect
 import os
 import sys
 from typing import *
@@ -19,6 +20,24 @@ def _call_with_next_frame_removed(
     f: Callable[P, T], *args: P.args, **kwargs: P.kwargs
 ) -> T:
     return f(*args, **kwargs)
+
+# Starting with python 3.14, annotations are evaluated lazily (PEP 649). Evaluating them
+# too early (e.g. when decorating a record whose fields refer to a type defined later)
+# raises a NameError. We therefore fetch annotations in FORWARDREF format: names not yet defined
+# become ForwardRef objects, which are resolved when the check is performed.
+def getSignature(f: Callable) -> inspect.Signature:
+    if sys.version_info >= (3, 14):
+        import annotationlib
+        return inspect.signature(f, annotation_format=annotationlib.Format.FORWARDREF)
+    else:
+        return inspect.signature(f)
+
+def getAnnotations(x: Any) -> dict[str, Any]:
+    if sys.version_info >= (3, 14):
+        import annotationlib
+        return annotationlib.get_annotations(x, format=annotationlib.Format.FORWARDREF)
+    else:
+        return getattr(x, '__annotations__', {})
 
 def getEnv(name, conv, default):
     s = os.getenv(name)

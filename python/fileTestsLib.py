@@ -232,6 +232,36 @@ def readAnswer(question: str, allowed: list[str]) -> str:
             return answer
         print(f'Answer must be one of {allowed}. Try again!')
 
+# Test files that need `from __future__ import annotations` before python 3.14 contain
+# this line (commented out). Since python 3.14, annotations are evaluated lazily and the
+# import is not needed anymore.
+FUTURE_ANNOTATIONS_COMMENTED = '# from __future__ import annotations'
+FUTURE_ANNOTATIONS_MIN_VERSION = (3, 14)
+
+def _needsFutureAnnotations(testFile: str) -> bool:
+    if sys.version_info >= FUTURE_ANNOTATIONS_MIN_VERSION or not os.path.exists(testFile):
+        return False
+    return FUTURE_ANNOTATIONS_COMMENTED in readFile(testFile).splitlines()
+
+def _prepareTestDir(testFile: str, d: str) -> Optional[str]:
+    """
+    For python < 3.14, copies the directory of testFile to d (preserving the relative path,
+    so that the output does not change) and uncomments `from __future__ import annotations`.
+    Returns the directory in which the test must be run, or None if testFile can be run as is.
+    """
+    if not _needsFutureAnnotations(testFile):
+        return None
+    testDir = os.path.dirname(testFile)
+    shutil.copytree(testDir, os.path.join(d, testDir),
+                    ignore=shutil.ignore_patterns('__pycache__'))
+    lines = readFile(testFile).splitlines(keepends=True)
+    lines = [l.replace(FUTURE_ANNOTATIONS_COMMENTED, FUTURE_ANNOTATIONS_COMMENTED[2:], 1)
+             if l.rstrip('\r\n') == FUTURE_ANNOTATIONS_COMMENTED else l
+             for l in lines]
+    with open(os.path.join(d, testFile), 'w', encoding='utf-8') as f:
+        f.write(''.join(lines))
+    return d
+
 def _runTest(testFile: str,
              exitCode: int,
              typecheck: bool,
@@ -242,8 +272,24 @@ def _runTest(testFile: str,
              what: str,
              lang: str,
              ctx: TestContext) -> Literal['failed'] | None:
+    with tempfile.TemporaryDirectory() as d:
+        cwd = _prepareTestDir(testFile, d)
+        return _runTestIn(cwd, testFile, exitCode, typecheck, args, actualStdoutFile,
+                          actualStderrFile, pythonPath, what, lang, ctx)
+
+def _runTestIn(cwd: Optional[str],
+               testFile: str,
+               exitCode: int,
+               typecheck: bool,
+               args: list[str],
+               actualStdoutFile: str,
+               actualStderrFile: str,
+               pythonPath: list[str],
+               what: str,
+               lang: str,
+               ctx: TestContext) -> Literal['failed'] | None:
     # Prepare the command
-    cmd = [sys.executable, ctx.opts.cmd, '--quiet']
+    cmd = [sys.executable, os.path.abspath(ctx.opts.cmd), '--quiet']
     if not typecheck:
         cmd.append('--no-typechecking')
     cmd.append(testFile)
@@ -251,7 +297,8 @@ def _runTest(testFile: str,
     cmd.append(lang)
     cmd.extend(args)
     env = os.environ.copy()
-    env['PYTHONPATH'] = os.pathsep.join([os.path.join(ctx.opts.baseDir, 'code')] + pythonPath)
+    env['PYTHONPATH'] = os.pathsep.join([os.path.abspath(os.path.join(ctx.opts.baseDir, 'code'))]
+                                        + pythonPath)
     env['WYPP_UNDER_TEST'] = 'True'
     env['WYPP_FORCE_COLORS'] = 'True'
     debug(' '.join(cmd))
@@ -263,7 +310,8 @@ def _runTest(testFile: str,
             stdout=stdoutFile,
             stderr=stderrFile,
             text=True,
-            env=env
+            env=env,
+            cwd=cwd
         )
     # Check exit code
     if result.returncode != exitCode:

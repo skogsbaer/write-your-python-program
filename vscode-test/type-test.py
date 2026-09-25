@@ -5,7 +5,7 @@ type OnOff = Literal['on', 'off']
 def test(x: OnOff):
     pass
 
-test('blub')
+# test('blub')
 
 @record
 class Point:
@@ -14,3 +14,11 @@ class Point:
 
 p = Point(1, 2)
 print(p)
+
+def factorial(n: int) -> int:
+    if n == 0:
+        return 1
+    else:
+        return n * factorial(n - 1)
+
+print(factorial(3))

@@ -4,10 +4,10 @@ import sys
 import os
 
 def pythonMinVersion(major: int, minor: int) -> bool:
-    return sys.version_info >= (major, minor)
+    return sys.version_info[:2] >= (major, minor)
 
 def pythonMaxVersion(major: int, minor: int) -> bool:
-    return sys.version_info <= (major, minor)
+    return sys.version_info[:2] <= (major, minor)
 
 directories = [Path("file-test-data/basics"),
                Path("file-test-data/extras")]

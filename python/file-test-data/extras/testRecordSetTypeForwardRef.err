@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "file-test-data/extras/testRecordSetTypeForwardRef.py", line 15, in <module>
+  File "file-test-data/extras/testRecordSetTypeForwardRef.py", line 17, in <module>
     m()
-  File "file-test-data/extras/testRecordSetTypeForwardRef.py", line 13, in m
+  File "file-test-data/extras/testRecordSetTypeForwardRef.py", line 15, in m
     r.x = "hello"
 
 WyppTypeError: "hello"
@@ -10,10 +10,10 @@ Attribut `x` des Records `Record` deklariert als Typ `A`.
 Das Attribut kann nicht auf einen Wert vom Typ `str` gesetzt werden.
 
 ## Datei file-test-data/extras/testRecordSetTypeForwardRef.py
-## Fehlerhafte Zuweisung in Zeile 13:
+## Fehlerhafte Zuweisung in Zeile 15:
 
     [0;31m[1mr.x[0;0m = "hello"
 
-## Typ deklariert in Zeile 6:
+## Typ deklariert in Zeile 8:
 
     [0;31m[1mx: A[0;0m
