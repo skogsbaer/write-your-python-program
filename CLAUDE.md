@@ -28,7 +28,7 @@ npm test               # compile, typecheck web, eslint, mocha unit tests (out/t
 npm run watch:web      # rebuild the webview on change (serve out/programflow-visualization/web)
 ```
 
-Python (run from `python/`; needs Python 3.12–3.14):
+Python (run from `python/`; needs Python 3.12–3.15):
 
 ```sh
 ./allTestsForPyVersion                     # unit + integration + file tests
@@ -59,7 +59,7 @@ A change is done when all of the following apply:
 - **File tests** live in `python/file-test-data/`. Each `foo.py` has expected `foo.out`/`foo.err` files (German) and optional `foo.out_en`/`foo.err_en` files (English). If a change alters error output, re-record with `--record` and review the diff.
 - A file test named `*_ok.py` is expected to exit with code 0. Every other file test is expected to exit with code 1.
 - A file test that relies on forward references contains the line `# from __future__ import annotations`, commented out. Python 3.14 doesn't need the import. On Python < 3.14, `fileTestsLib.py` runs a temporary copy with the line uncommented.
-- CI runs `npm test` and the Python tests on 3.12, 3.13 and 3.14.
+- CI runs `npm test` and the Python tests on 3.12, 3.13, 3.14 and 3.15.
 - The version lives in `package.json`. The Python package reads it from there (see `python/setup.py` and `wypp/version.py`). Update `ChangeLog.md` when you release.
 - `mkdist` packages the `.vsix` (with `vsce`) and the Python distribution. The `*.vsix` files in the root are build artifacts.
 
