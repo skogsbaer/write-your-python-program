@@ -25,17 +25,42 @@ def _call_with_next_frame_removed(
 # too early (e.g. when decorating a record whose fields refer to a type defined later)
 # raises a NameError. We therefore fetch annotations in FORWARDREF format: names not yet defined
 # become ForwardRef objects, which are resolved when the check is performed.
+#
+# Early 3.14 releases (e.g. 3.14.0) have a bug: if evaluating an annotation raises an error
+# other than NameError (e.g. for the invalid type Optional[int, str]), the FORWARDREF format
+# yields a ForwardRef containing internal placeholder names such as __annotationlib_name_1__.
+# In this case, we use the annotation in STRING format instead, just as with
+# `from __future__ import annotations`.
+def _isBrokenForwardRef(x: Any) -> bool:
+    import annotationlib
+    return isinstance(x, annotationlib.ForwardRef) and \
+        '__annotationlib_name_' in x.__forward_arg__
+
 def getSignature(f: Callable) -> inspect.Signature:
     if sys.version_info >= (3, 14):
         import annotationlib
-        return inspect.signature(f, annotation_format=annotationlib.Format.FORWARDREF)
+        sig = inspect.signature(f, annotation_format=annotationlib.Format.FORWARDREF)
+        params = list(sig.parameters.values())
+        if not any(_isBrokenForwardRef(x) for x in
+                   [sig.return_annotation] + [p.annotation for p in params]):
+            return sig
+        strSig = inspect.signature(f, annotation_format=annotationlib.Format.STRING)
+        newParams = [strSig.parameters[p.name] if _isBrokenForwardRef(p.annotation) else p
+                     for p in params]
+        retAnn = strSig.return_annotation if _isBrokenForwardRef(sig.return_annotation) \
+            else sig.return_annotation
+        return sig.replace(parameters=newParams, return_annotation=retAnn)
     else:
         return inspect.signature(f)
 
 def getAnnotations(x: Any) -> dict[str, Any]:
     if sys.version_info >= (3, 14):
         import annotationlib
-        return annotationlib.get_annotations(x, format=annotationlib.Format.FORWARDREF)
+        anns = annotationlib.get_annotations(x, format=annotationlib.Format.FORWARDREF)
+        if not any(_isBrokenForwardRef(v) for v in anns.values()):
+            return anns
+        strAnns = annotationlib.get_annotations(x, format=annotationlib.Format.STRING)
+        return {k: strAnns[k] if _isBrokenForwardRef(v) else v for k, v in anns.items()}
     else:
         return getattr(x, '__annotations__', {})
 
