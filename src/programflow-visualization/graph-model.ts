@@ -57,6 +57,11 @@ export type VizGraph = {
  *   (plan 6.5). Stability comes from emitting nodes in a deterministic order.
  * - semiInteractive is *not* here: it is switched on per step by buildGraph, and only
  *   when there is more than one frame to order. See FRAME_ORDER_OPTIONS (plan 7.10).
+ * - separateConnectedComponents is off because a frame need not be connected to
+ *   anything: a function whose locals are all primitives, `factorial(n: int)` being the
+ *   classic, has no edges at all. ELK would treat each such frame as its own component
+ *   and pack the components side by side, which lays the call stack out horizontally
+ *   and pushes the Frames band across the Objects band (plan 7.11).
  */
 export const LAYOUT_OPTIONS: Record<string, string> = {
   "elk.algorithm": "layered",
@@ -64,6 +69,7 @@ export const LAYOUT_OPTIONS: Record<string, string> = {
   "elk.edgeRouting": "ORTHOGONAL",
   "elk.spacing.nodeNode": "25",
   "elk.layered.spacing.nodeNodeBetweenLayers": "60",
+  "elk.separateConnectedComponents": "false",
 };
 
 /**

@@ -14,5 +14,17 @@ Items = list[int]
 Fun = Callable[[int], str]
 Anything = Any
 
+# PEP 695 aliases, which are shown unwrapped: what the alias stands for, not "<TypeAlias>".
+type OnOff = Literal["on", "off"]
+type Recursive = int | list[Recursive]
+# Forward reference: the right-hand side is evaluated lazily, so this is unspellable
+# until Leaf exists and is shown as "<TypeAlias>" for the steps before that.
+type Tree = Leaf | None
+
+
+class Leaf:
+    pass
+
+
 c: Color = "red"
 n: Number = 1

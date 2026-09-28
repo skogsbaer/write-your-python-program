@@ -136,6 +136,37 @@ suite('graph-model: nodes', () => {
       assert.strictEqual(child.layoutOptions?.['elk.portConstraints'], 'FIXED_POS');
     }
   });
+
+  test('a frame with no references still shares the frame layer', () => {
+    // factorial(n: int) has nothing but an int local, so its frame has no edges at all.
+    // With connected components separated, ELK treated each such frame as a component of
+    // its own and packed the components side by side, laying the call stack out
+    // horizontally and pushing the Frames band across the Objects band.
+    const elem = step(
+      [
+        frame('<module>', [local('p', ref(1))]),
+        frame('factorial', [local('n', int(3))]),
+        frame('factorial', [local('n', int(2))]),
+      ],
+      { 1: list() }
+    );
+    const viz = build(elem);
+    assert.strictEqual(
+      viz.graph.layoutOptions?.['elk.separateConnectedComponents'],
+      'false'
+    );
+    // The isolated frames are still ordinary frame nodes in the same constrained layer.
+    for (const index of [0, 1, 2]) {
+      assert.strictEqual(
+        node(viz, frameNodeId(index)).layoutOptions?.['elk.layered.layering.layerConstraint'],
+        'FIRST_SEPARATE'
+      );
+    }
+    assert.deepStrictEqual(
+      viz.graph.edges?.flatMap((edge) => edge.sources),
+      ['frame:0:0']
+    );
+  });
 });
 
 suite('graph-model: rows', () => {

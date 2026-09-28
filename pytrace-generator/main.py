@@ -69,7 +69,21 @@ def type_expression_str(value):
         # matches what type_name_regex already does for a bare class.
         return str(value).replace("typing.", "").replace("__main__.", "")
     if isinstance(value, typing.TypeAliasType):
-        return "<TypeAlias>"
+        # A PEP 695 alias, `type OnOff = Literal['on', 'off']`. Show what it stands for,
+        # not the fact that it is an alias: the name is already in the column next to it,
+        # so "<TypeAlias>" told the student nothing they could not see.
+        #
+        # The right-hand side is evaluated lazily, on first access, which is what makes
+        # `type Tree = Leaf | None` legal above the definition of Leaf. Until Leaf exists
+        # reading it raises NameError, and an alias we cannot spell out yet is still
+        # better shown as an alias than not at all.
+        try:
+            aliased = value.__value__
+        except Exception:
+            return "<TypeAlias>"
+        # Recursion terminates: a recursive alias, `type Tree = int | list[Tree]`, holds
+        # the TypeAliasType object itself, which str()s to its bare name.
+        return type_expression_str(aliased) or str(aliased)
     if isinstance(value, type):
         # isinstance, not type(value) == type, or a class with a metaclass -- anything
         # deriving from ABC, for one -- is not recognised as a class and ends up on the

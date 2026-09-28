@@ -598,6 +598,23 @@ Each step keeps the extension working.
     unaffected in all arms. If the collateral ever needs to go, the untried route is a
     hierarchical child node for the frame column, which could carry its own fixed order
     without handing the whole graph to `semiInteractive`.
+11. **Connected components are not separated.** A frame need not be connected to anything:
+    `factorial(n: int)` has one `int` local, so its node has no edges at all. With ELK's
+    default `separateConnectedComponents`, every such frame counted as a component of its
+    own, and the component packer arranged the components side by side to approximate an
+    aspect ratio. The result was a call stack laid out *horizontally*, marching rightwards
+    (frame x positions `36, 36, 176, 316`) until the Frames band overlapped the Objects
+    band by 162 px. `FIRST_SEPARATE` could not prevent it: the layer constraint applies
+    within a component, and each isolated frame was its own.
+
+    `elk.separateConnectedComponents: false` lays the graph out as one unit, so the frame
+    layer holds every frame whether or not it has edges. It is not a trade: on
+    `example-showcase.py` crossings went *down*, 686 to 647, with layout time unchanged —
+    packing components separately was costing a little even where it did no visible harm.
+
+    Worth knowing when reading a layout: frames in one layer are centred, not
+    left-aligned, so a wide `Global` and a narrow `factorial` have different x. Different
+    x alone does not mean different layers; compare the spans.
 
 ## 8. Decisions at a glance
 
