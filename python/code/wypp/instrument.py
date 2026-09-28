@@ -100,6 +100,7 @@ class InstrumentingLoader(SourceFileLoader):
     def source_to_code(
         data: Buffer | str | ast.Module | ast.Expression | ast.Interactive,
         path: Buffer | str | PathLike[str] = "<string>",
+        fullname: str | None = None, # passed since python 3.15
     ) -> types.CodeType:
         if isinstance(data, (ast.Module, ast.Expression, ast.Interactive)):
             tree = data

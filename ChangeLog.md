@@ -1,5 +1,10 @@
 # Write Your Python Program - CHANGELOG
 
+* unreleased
+  * Python 3.14: forward references in records and functions work without
+    `from __future__ import annotations`
+  * Support for Python 3.15
+
 * 2.3.0 (2026-04-03)
   * Use relative imports in the whole code base
 * 2.2.2 (2026-04-03)
