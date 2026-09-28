@@ -47,11 +47,46 @@ HEAP_TYPES = {
     set: "set"
 }
 
-def primitive_type(t):
+def type_expression_str(value):
+    """
+    How to spell `value` if it denotes a type rather than a value, or None if it does
+    not denote a type at all.
+
+    Classes are the easy case. Everything else a type annotation can be built from --
+    Union[...], Literal[...], Optional[...], int | str, list[int], Callable[...],
+    TypeVar, Any -- is an instance of a *private* typing class: typing._UnionGenericAlias,
+    typing._LiteralGenericAlias, types.UnionType and a dozen more. Looking those up in a
+    table would tie us to typing's internals and still miss whichever construct we forgot,
+    so they are recognised structurally and rendered with str(), which is how typing
+    spells them itself.
+    """
+    # Before the isinstance(value, type) check below: typing.Any is a class in 3.11+, and
+    # in 3.9/3.10 list[int] passed for one too.
+    if typing.get_origin(value) is not None or value is typing.Any or isinstance(value, typing.TypeVar):
+        # "typing.Optional[int]" -> "Optional[int]" and
+        # "Union[__main__.Circle, ...]" -> "Union[Circle, ...]": neither prefix is how it
+        # is written in the source the student is looking at. Stripping __main__ here
+        # matches what type_name_regex already does for a bare class.
+        return str(value).replace("typing.", "").replace("__main__.", "")
+    if isinstance(value, typing.TypeAliasType):
+        return "<TypeAlias>"
+    if isinstance(value, type):
+        # isinstance, not type(value) == type, or a class with a metaclass -- anything
+        # deriving from ABC, for one -- is not recognised as a class and ends up on the
+        # heap as an instance of ABCMeta.
+        type_name = str(value)
+        search_result = type_name_regex.search(type_name)
+        if search_result is not None:
+            type_name = f"<class '{search_result.group(1)}'>"
+        return type_name
+    return None
+
+
+def primitive_type(value):
     try:
-        return STACK_TYPES[t]
+        return STACK_TYPES[type(value)]
     except KeyError:
-        return "ref"
+        return "type" if type_expression_str(value) is not None else "ref"
 
 def complex_type(t):
     try:
@@ -101,7 +136,7 @@ class HeapValue:
 class PrimitiveValue:
     def __init__(self, value, variable_name=None):
         self.variable_name = variable_name
-        self.type_str = primitive_type(type(value))
+        self.type_str = primitive_type(value)
         if self.type_str == "ref":
             self.value = id(value)
         elif type(value) == float and math.isnan(value):
@@ -123,14 +158,10 @@ class PrimitiveValue:
             "type": self.type_str,
             "value": self.value
         }
-        if type(d["value"]) == type:
-            type_name = str(d["value"])
-            search_result = type_name_regex.search(type_name)
-            if search_result is not None:
-                type_name = f"<class '{search_result.group(1)}'>"
-            d["value"] = type_name
-        elif type(d["value"]) == typing.TypeAliasType:
-            d["value"] = "<TypeAlias>"
+        if self.type_str == "type":
+            # Classes, type aliases and type expressions alike: none of them survive
+            # json.dumps as themselves.
+            d["value"] = type_expression_str(self.value)
         elif inspect.isfunction(d["value"]):
             function_desc = str(d["value"])
             search_result = function_str_regex.search(function_desc)
@@ -303,14 +334,14 @@ def generate_heap(frame, script_path, ignore, return_value = None):
         for variable_name in frame.f_locals:
             if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], script_path, ignore):
                 continue
-            if primitive_type(type(frame.f_locals[variable_name])) != "ref":
+            if primitive_type(frame.f_locals[variable_name]) != "ref":
                 continue
             value = frame.f_locals[variable_name]
             heap.store(id(value), value)
 
         if return_value is not None:
             # Store return value
-            if not should_ignore_on_stack("return", return_value, script_path) and not primitive_type(type(return_value)) != "ref":
+            if not should_ignore_on_stack("return", return_value, script_path) and not primitive_type(return_value) != "ref":
                 heap.store(id(return_value), return_value)
 
         frame = frame.f_back
