@@ -7,6 +7,9 @@ class Meta(ABC):
 
 
 Color = Literal["red", "green"]
+# The legacy spellings of a union. Both must come out in the `int | float` form, the
+# same as `Modern` below: their repr changed in 3.14 and the expectation here is shared
+# by every version the CI matrix runs.
 Number = Union[int, float]
 Modern = int | str
 Maybe = Optional[int]

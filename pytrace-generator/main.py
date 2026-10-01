@@ -47,6 +47,23 @@ HEAP_TYPES = {
     set: "set"
 }
 
+def union_member_str(value):
+    """
+    One arm of a union, spelled the way CPython spells it inside `int | str`.
+
+    Not `str(value)`, which gives "<class 'int'>" for a class -- unions print the
+    module-qualified name instead, and leave the module off for builtins.
+    """
+    if value is type(None):
+        # `Optional[int]` carries NoneType, which prints as "None" in a union.
+        return "None"
+    if isinstance(value, type):
+        if value.__module__ == "builtins":
+            return value.__qualname__
+        return f"{value.__module__}.{value.__qualname__}"
+    return str(value)
+
+
 def type_expression_str(value):
     """
     How to spell `value` if it denotes a type rather than a value, or None if it does
@@ -59,15 +76,29 @@ def type_expression_str(value):
     table would tie us to typing's internals and still miss whichever construct we forgot,
     so they are recognised structurally and rendered with str(), which is how typing
     spells them itself.
+
+    Unions are the one exception, rendered by hand rather than with str(), because their
+    repr is not stable across the versions we support. 3.14 made `typing.Union` an alias
+    for `types.UnionType` (PEP 604), so `Union[int, float]` prints as "int | float" there
+    and "Union[int, float]" on 3.12 and 3.13 -- the same student program would be shown
+    differently depending on which interpreter happened to be running it. Everything is
+    spelled the 3.14 way, which is also how the annotation is usually written today.
     """
     # Before the isinstance(value, type) check below: typing.Any is a class in 3.11+, and
     # in 3.9/3.10 list[int] passed for one too.
-    if typing.get_origin(value) is not None or value is typing.Any or isinstance(value, typing.TypeVar):
+    origin = typing.get_origin(value)
+    if origin is not None or value is typing.Any or isinstance(value, typing.TypeVar):
+        # On 3.14 these two are the same object, so the second test is for 3.12 and 3.13,
+        # where `Union[int, str]` and `int | str` are still distinct kinds of thing.
+        if origin is types.UnionType or origin is typing.Union:
+            rendered = " | ".join(union_member_str(arg) for arg in typing.get_args(value))
+        else:
+            rendered = str(value)
         # "typing.Optional[int]" -> "Optional[int]" and
         # "Union[__main__.Circle, ...]" -> "Union[Circle, ...]": neither prefix is how it
         # is written in the source the student is looking at. Stripping __main__ here
         # matches what type_name_regex already does for a bare class.
-        return str(value).replace("typing.", "").replace("__main__.", "")
+        return rendered.replace("typing.", "").replace("__main__.", "")
     if isinstance(value, typing.TypeAliasType):
         # A PEP 695 alias, `type OnOff = Literal['on', 'off']`. Show what it stands for,
         # not the fact that it is an alias: the name is already in the column next to it,
