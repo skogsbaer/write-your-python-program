@@ -1,0 +1,745 @@
+[
+	{
+		"line": 1,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 2,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 5,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": []
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 9,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 13,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 14,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 15,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 16,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 17,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 18,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					},
+					{
+						"type": "type",
+						"value": "Callable[[int], str]",
+						"name": "Fun"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 21,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					},
+					{
+						"type": "type",
+						"value": "Callable[[int], str]",
+						"name": "Fun"
+					},
+					{
+						"type": "type",
+						"value": "Any",
+						"name": "Anything"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 22,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					},
+					{
+						"type": "type",
+						"value": "Callable[[int], str]",
+						"name": "Fun"
+					},
+					{
+						"type": "type",
+						"value": "Any",
+						"name": "Anything"
+					},
+					{
+						"type": "type",
+						"value": "Literal['on', 'off']",
+						"name": "OnOff"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 25,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					},
+					{
+						"type": "type",
+						"value": "Callable[[int], str]",
+						"name": "Fun"
+					},
+					{
+						"type": "type",
+						"value": "Any",
+						"name": "Anything"
+					},
+					{
+						"type": "type",
+						"value": "Literal['on', 'off']",
+						"name": "OnOff"
+					},
+					{
+						"type": "type",
+						"value": "int | list[Recursive]",
+						"name": "Recursive"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 28,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					},
+					{
+						"type": "type",
+						"value": "Callable[[int], str]",
+						"name": "Fun"
+					},
+					{
+						"type": "type",
+						"value": "Any",
+						"name": "Anything"
+					},
+					{
+						"type": "type",
+						"value": "Literal['on', 'off']",
+						"name": "OnOff"
+					},
+					{
+						"type": "type",
+						"value": "int | list[Recursive]",
+						"name": "Recursive"
+					},
+					{
+						"type": "type",
+						"value": "<TypeAlias>",
+						"name": "Tree"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 32,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					},
+					{
+						"type": "type",
+						"value": "Callable[[int], str]",
+						"name": "Fun"
+					},
+					{
+						"type": "type",
+						"value": "Any",
+						"name": "Anything"
+					},
+					{
+						"type": "type",
+						"value": "Literal['on', 'off']",
+						"name": "OnOff"
+					},
+					{
+						"type": "type",
+						"value": "int | list[Recursive]",
+						"name": "Recursive"
+					},
+					{
+						"type": "type",
+						"value": "Leaf | None",
+						"name": "Tree"
+					},
+					{
+						"type": "type",
+						"value": "<class 'Leaf'>",
+						"name": "Leaf"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 33,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					},
+					{
+						"type": "type",
+						"value": "Callable[[int], str]",
+						"name": "Fun"
+					},
+					{
+						"type": "type",
+						"value": "Any",
+						"name": "Anything"
+					},
+					{
+						"type": "type",
+						"value": "Literal['on', 'off']",
+						"name": "OnOff"
+					},
+					{
+						"type": "type",
+						"value": "int | list[Recursive]",
+						"name": "Recursive"
+					},
+					{
+						"type": "type",
+						"value": "Leaf | None",
+						"name": "Tree"
+					},
+					{
+						"type": "type",
+						"value": "<class 'Leaf'>",
+						"name": "Leaf"
+					},
+					{
+						"type": "str",
+						"value": "red",
+						"name": "c"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	},
+	{
+		"line": 35,
+		"filePath": "typeExpressions.py",
+		"stack": [
+			{
+				"frameName": "<module>",
+				"locals": [
+					{
+						"type": "type",
+						"value": "<class 'Meta'>",
+						"name": "Meta"
+					},
+					{
+						"type": "type",
+						"value": "Literal['red', 'green']",
+						"name": "Color"
+					},
+					{
+						"type": "type",
+						"value": "int | float",
+						"name": "Number"
+					},
+					{
+						"type": "type",
+						"value": "int | str",
+						"name": "Modern"
+					},
+					{
+						"type": "type",
+						"value": "int | None",
+						"name": "Maybe"
+					},
+					{
+						"type": "type",
+						"value": "list[int]",
+						"name": "Items"
+					},
+					{
+						"type": "type",
+						"value": "Callable[[int], str]",
+						"name": "Fun"
+					},
+					{
+						"type": "type",
+						"value": "Any",
+						"name": "Anything"
+					},
+					{
+						"type": "type",
+						"value": "Literal['on', 'off']",
+						"name": "OnOff"
+					},
+					{
+						"type": "type",
+						"value": "int | list[Recursive]",
+						"name": "Recursive"
+					},
+					{
+						"type": "type",
+						"value": "Leaf | None",
+						"name": "Tree"
+					},
+					{
+						"type": "type",
+						"value": "<class 'Leaf'>",
+						"name": "Leaf"
+					},
+					{
+						"type": "str",
+						"value": "red",
+						"name": "c"
+					},
+					{
+						"type": "int",
+						"value": 1,
+						"name": "n"
+					}
+				]
+			}
+		],
+		"heap": {},
+		"stdout": ""
+	}
+]

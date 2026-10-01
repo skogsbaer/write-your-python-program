@@ -50,6 +50,23 @@ export type VizGraph = {
 };
 
 /**
+ * Every frame is measured at this width instead of shrinking to its content.
+ *
+ * Content width moved with the variables on show -- seven widths between 120px and
+ * 196px over the 49 steps of the showcase -- so the Frames band resized under the
+ * reader's eye. A constant fixes the frames' x as well, for free: ELK centres nodes
+ * within their layer, so equal widths mean equal left edges.
+ *
+ * Only the measurement changes, never the graph ELK is handed, so this cannot move a
+ * node into a different layer or reorder anything: it widens one column and shifts the
+ * rest right.
+ *
+ * Rows are `nowrap` with an ellipsis, so a long value is clipped rather than wrapped
+ * and node heights stay at one line per row whatever the width.
+ */
+export const FRAME_WIDTH_PX = 220;
+
+/**
  * Layout options settled by the spike, whose findings are in elk-task/elk-plan.md 7.1:
  * - cycleBreaking stays at its GREEDY default, or the frames' layer constraint throws
  *   as soon as an edge is reversed into a frame (plan 4).
@@ -57,6 +74,22 @@ export type VizGraph = {
  *   (plan 6.5). Stability comes from emitting nodes in a deterministic order.
  * - semiInteractive is *not* here: it is switched on per step by buildGraph, and only
  *   when there is more than one frame to order. See FRAME_ORDER_OPTIONS (plan 7.10).
+ * - separateConnectedComponents is off because a frame need not be connected to
+ *   anything: a function whose locals are all primitives, `factorial(n: int)` being the
+ *   classic, has no edges at all. ELK would treat each such frame as its own component
+ *   and pack the components side by side, which lays the call stack out horizontally
+ *   and pushes the Frames band across the Objects band (plan 7.11).
+ * - nodePlacement is SIMPLE rather than the BRANDES_KOEPF default. Brandes-Koepf lines
+ *   each node up with the nodes it is joined to, which on this shape -- one frame
+ *   column fanning out into a heap -- stretches the graph vertically and lets the frame
+ *   column float: measured over the 49 steps of the showcase, the gap below the stack
+ *   moved by 65 px between steps on average and reached 412 px. SIMPLE packs each layer
+ *   instead, and beats the default on every measure that matters here: the gap moves
+ *   18 px between steps (-72%) and peaks at 185 px, the graph is 20% shorter so it
+ *   fits the panel at a larger zoom, there are marginally fewer crossings (439 vs 445),
+ *   layout is 17% quicker, and frame order is still correct on all 20 multi-frame
+ *   steps. LINEAR_SEGMENTS, NETWORK_SIMPLEX and INTERACTIVE were measured too and all
+ *   land between the two (plan 7.12).
  */
 export const LAYOUT_OPTIONS: Record<string, string> = {
   "elk.algorithm": "layered",
@@ -64,6 +97,8 @@ export const LAYOUT_OPTIONS: Record<string, string> = {
   "elk.edgeRouting": "ORTHOGONAL",
   "elk.spacing.nodeNode": "25",
   "elk.layered.spacing.nodeNodeBetweenLayers": "60",
+  "elk.separateConnectedComponents": "false",
+  "elk.layered.nodePlacement.strategy": "SIMPLE",
 };
 
 /**

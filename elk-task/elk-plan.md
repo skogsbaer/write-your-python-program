@@ -598,6 +598,172 @@ Each step keeps the extension working.
     unaffected in all arms. If the collateral ever needs to go, the untried route is a
     hierarchical child node for the frame column, which could carry its own fixed order
     without handing the whole graph to `semiInteractive`.
+11. **Connected components are not separated.** A frame need not be connected to anything:
+    `factorial(n: int)` has one `int` local, so its node has no edges at all. With ELK's
+    default `separateConnectedComponents`, every such frame counted as a component of its
+    own, and the component packer arranged the components side by side to approximate an
+    aspect ratio. The result was a call stack laid out *horizontally*, marching rightwards
+    (frame x positions `36, 36, 176, 316`) until the Frames band overlapped the Objects
+    band by 162 px. `FIRST_SEPARATE` could not prevent it: the layer constraint applies
+    within a component, and each isolated frame was its own.
+
+    `elk.separateConnectedComponents: false` lays the graph out as one unit, so the frame
+    layer holds every frame whether or not it has edges. It is not a trade: on
+    `example-showcase.py` crossings went *down*, 686 to 647, with layout time unchanged —
+    packing components separately was costing a little even where it did no visible harm.
+
+    Worth knowing when reading a layout: frames in one layer are centred, not
+    left-aligned, so a wide `Global` and a narrow `factorial` have different x. Different
+    x alone does not mean different layers; compare the spans.
+12. **The frame column stops jumping.** Reported as "size and positions of the frame list
+    jumps; better: fixed size, pinned to the left bottom". Measured over the 49 steps of
+    `example-showcase.py` at a 1100×530 viewport, the complaint had four independent
+    causes, and the fixes are listed below in the order they were found.
+
+    | cause | evidence |
+    | --- | --- |
+    | frame width follows its content | 7 distinct widths, 120 → 196 px |
+    | ELK floats the frame layer vertically | gap below the stack takes 32 values, 0 → 383 px |
+    | auto-fit re-scales every step | scale oscillates, 16 changes of which 6 are zoom-*ins* |
+    | auto-fit rounds the scale up | content overflows the viewport on 11 of 49 steps |
+
+    The useful metric is the *jerk*: the max and mean change in the frame column's screen
+    rect between consecutive steps. A count of distinct values conflates a slow drift,
+    which nobody notices, with a jump, which is the whole complaint.
+
+    Four changes, each measured on its own:
+
+    - **`FRAME_WIDTH_PX`** — frames are measured at a constant 220 px instead of shrinking
+      to their content. This also fixes their x for free, since ELK centres nodes within a
+      layer and equal widths therefore mean equal left edges. Only the measurement changes,
+      never the graph ELK is given, so it cannot reorder anything. Rows are `nowrap` with
+      an ellipsis, so a wider box clips rather than wraps and node heights are unchanged.
+    - **Zoom ratchet** — `autoFit` may lower the zoom but never raise it; the Fit button is
+      the way back. A heap that grows and shrinks by one object straddles a rung of the
+      zoom ladder, and re-fitting freely made the scale bounce 0.5 ↔ 0.33, resizing the
+      whole graph each time. Scale changes fell 16 → 4, zoom-ins 6 → 0. *Reverted in
+      §7.13 — `SIMPLE` placement removed most of what it was defending against.*
+    - **`floorStep`** — fitting picks the largest rung *at most* the required scale.
+      `nearestStep` rounded up about half the time, the content then overflowed, the
+      translate clamped, and the view lost its anchor. Overflow went 11/49 → 0/49.
+    - **`MIN_AUTO_FIT_SCALE = 0.5`** — auto-fit will not shrink further even when the graph
+      does not fit. The showcase ends 865×1070 in a 1100×530 panel — a portrait graph in a
+      landscape panel — so height decides the fit on every step, and a true ratio of 0.48
+      rounded down to 0.33: a third of the scale lost to a rounding, leaving three quarters
+      of the width empty. Holding 0.5 hides 1% of the graph height on average and never
+      more than 5%. Floors further up stop being bargains — 0.67 hides 16%, 0.75 hides 21%.
+      The bottom anchor is deliberately unclamped so the overflow comes off the top, which
+      is empty space, rather than off the bottom, which is the frame column.
+
+    That left the vertical float, and it turned out not to be a view problem at all but
+    `elk.layered.nodePlacement.strategy`. The default `BRANDES_KOEPF` aligns each node with
+    the nodes it is joined to, which on this shape — one frame column fanning out into a
+    heap — stretches the graph vertically and lets the frame column drift to wherever its
+    edge partners pull it. All five strategies, same 49 measured graphs:
+
+    | strategy | gap jump, mean | gap max | height mean | crossings | stack order | ms |
+    | --- | --- | --- | --- | --- | --- | --- |
+    | `BRANDES_KOEPF` (default) | 65 px | 412 | 727 | 445 | 20/20 | 2815 |
+    | **`SIMPLE`** | **18 px** | **185** | **594** | **439** | **20/20** | **2325** |
+    | `LINEAR_SEGMENTS` | 29 px | 334 | 653 | 469 | 20/20 | 2637 |
+    | `NETWORK_SIMPLEX` | 33 px | 355 | 649 | 441 | 20/20 | 2385 |
+    | `INTERACTIVE` | 35 px | 391 | 600 | 467 | 20/20 | 2167 |
+
+    `SIMPLE` packs each layer rather than aligning across layers, and wins on every axis at
+    once: less jitter, a shorter graph — which then fits at a larger zoom — fewer crossings
+    and less time. Nothing is traded away.
+
+    **Two dead ends, both ruled out by measurement.** Neither should be tried again.
+
+    - *Shifting the frames to the canvas bottom after layout.* Geometrically sound: the
+      stack pinned exactly (`gapsBelowStack: [0,1]`) and the edge patch was well founded —
+      of 262 frame-sourced edges across the showcase, all 231 that bend start with a
+      horizontal segment followed by a vertical one. But crossings tripled, 647 → 1921.
+      ELK assigns each edge a vertical lane in the gutter based on where it placed the
+      nodes, so moving a node afterwards invalidates every lane assignment. This rules out
+      the whole "lay out, then move" family.
+    - *An invisible spacer node atop the frame layer,* sized to push the stack to the
+      floor before ELK places and routes. Sizing it from the frames' summed heights was
+      simply wrong — Brandes-Köpf spreads frames apart to meet their targets, so the layer
+      is far taller than its nodes add up to. Sizing it from the *measured* gap worked on
+      synthetic shapes but not on the real graph: Brandes-Köpf aligns heap nodes with the
+      frames that point at them, so pushing the frames down drags the heap down too, the
+      graph grows by roughly what the spacer added, and the gap re-opens. It is a chase,
+      not a fixed point, so iterating only inflates further. Cost on the showcase: +81%
+      layout time (70 → 127 ms mean, cold) and +24% canvas height, for no change in
+      crossings. Dropping Brandes-Köpf removed the need entirely.
+
+    Also checked and rejected as having no effect on the gap: node `alignment: BOTTOM`
+    under every Brandes-Köpf variant, and `contentAlignment: V_BOTTOM`. ELK has no native
+    bottom-align for a layer.
+
+    Net effect over the 49 steps, start of the work to end:
+
+    | step-to-step | before | after |
+    | --- | --- | --- |
+    | column left, mean Δ | 11.7 px | **0 px** |
+    | column width, mean Δ | 2.8 px | **0 px** |
+    | column bottom, mean Δ | 46.6 px | **8.8 px** |
+    | column bottom, max Δ | 245 px | **33 px** |
+    | crossings | 679 | **437** |
+    | canvas height, max | 1102 px | **928 px** |
+    | zoom at the final step | 0.33 | **0.5** |
+    | steps overflowing the viewport | 11/49 | **0/49** |
+    | cold layout, mean | 70 ms | **66 ms** |
+
+    The column is horizontally frozen and vertically within ±33 px at worst. What remains
+    is cosmetic: the graph is portrait and the panel landscape, so width never binds and
+    the right of the panel stays empty. Only a layout that is wider and shorter could fill
+    it; zooming cannot, since the emptiness only closes at a scale that hides half the
+    graph.
+
+13. **The zoom ratchet comes back out.**
+
+    The ratchet was measured under `BRANDES_KOEPF`. `SIMPLE` then made the graph 20%
+    shorter, so the premise was worth re-testing: a scale that moves less has less to
+    ratchet. Both arms re-measured on the current build, each from a fresh page load.
+
+    Stepping forward 0 → 48, the ordinary way a trace is read, the two are **identical**:
+
+    | forward sweep | ratchet | free |
+    | --- | --- | --- |
+    | scale changes | 2 | 2 |
+    | zoom-ins | 0 | 0 |
+    | scale sequence | 1 → 0.75 → 0.5 | 1 → 0.75 → 0.5 |
+    | column bottom, mean Δ | 10.8 px | 11.0 px |
+    | column top, mean Δ | 14.9 px | 14.4 px |
+
+    This is not a coincidence: going forward the heap only grows, so the fitted scale only
+    falls, and a ratchet that only lets the scale fall never engages. The ratchet's entire
+    effect is on the way back.
+
+    Over a there-and-back round trip (0 → 48 → 0, then 12 steps jiggled across the two
+    rungs of the ladder the showcase crosses — 110 transitions in all):
+
+    | round trip | ratchet | free |
+    | --- | --- | --- |
+    | scale changes | 2 | 10 |
+    | zoom-ins | 0 | 4 |
+    | column left, mean Δ | 0.2 px | 0.8 px |
+    | column bottom, mean Δ | 11.6 px | 12.0 px |
+    | column bottom, max Δ | 43 px | 83 px |
+    | column top, mean Δ | 15.1 px | 19.1 px |
+    | column top, max Δ | 154 px | 307 px |
+
+    So the cost is real but small — 2.5 px of mean column movement — and it is concentrated
+    in one behaviour: stepping back and forth across a rung makes the scale bounce
+    (0.75 → 1 → 0.75, 0.5 → 0.75 → 0.5), which is where the 83 px and 307 px maxima come
+    from. Against that, the ratchet's own cost is that one deep moment in a trace leaves the
+    graph shrunk for the whole of the rest of it, with no way back but the Fit button. A
+    reader stepping out of a recursion and finding the view still at half scale is worse
+    served than one who sees it grow back. The ratchet is removed; `fit` loses its
+    `allowZoomIn` parameter rather than keeping a flag nothing sets.
+
+    The separate cap at 1 stays: fitting may zoom back in to undo an earlier shrink but
+    never magnifies past natural size, where a two-node graph would fill the panel.
+
+    If the bounce ever becomes the complaint, the fix is hysteresis — zoom back in only
+    when the content clears the next rung by some margin — not a ratchet.
 
 ## 8. Decisions at a glance
 
@@ -618,6 +784,10 @@ Each step keeps the extension working.
 | Neutral edges + hover highlighting instead of per-address hues | §6.4 |
 | Sizes measured from real DOM offscreen, not canvas text math | §6.2 |
 | Deterministic node order for step-to-step stability; no `considerModelOrder` | §6.5 |
+| Node placement is `SIMPLE`, not the `BRANDES_KOEPF` default | §7.12 |
+| Frames measured at a constant width; auto-fit floors at 0.5 | §7.12 |
+| Auto-fit re-frames in both directions; the ratchet was measured and removed | §7.13 |
+| The frame column is not pinned to the canvas bottom; both ways of doing it cost more than the float | §7.12 |
 | Cycle breaking stays `GREEDY`; no interactive layout seeding | §4, §6.5 |
 | elkjs pre-warmed at webview init to hide ~330 ms of JIT | §6.5 |
 | esbuild `minify` enabled before elkjs enters the bundle | §2 |
