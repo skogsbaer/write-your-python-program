@@ -6,7 +6,7 @@
 // measured size and the drawn size in agreement.
 import type { ElkNode } from "elkjs/lib/elk-api";
 import type { VizGraph } from "../graph-model";
-import { inputPortId, keyPortId, rowPortId } from "../graph-model";
+import { FRAME_WIDTH_PX, inputPortId, keyPortId, rowPortId } from "../graph-model";
 import { renderNode, headerElement, rowElements } from "./node-view";
 
 const HOST_ID = "elk-measure-host";
@@ -61,6 +61,11 @@ export function measureGraph(viz: VizGraph): void {
       continue;
     }
     const element = renderNode(model);
+    if (model.address === undefined) {
+      // A frame. Width is fixed, and set here rather than after the read so the height
+      // that comes back is the height at that width.
+      element.style.width = `${FRAME_WIDTH_PX}px`;
+    }
     elements.set(child.id, element);
     host.append(element);
   }

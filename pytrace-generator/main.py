@@ -47,11 +47,91 @@ HEAP_TYPES = {
     set: "set"
 }
 
-def primitive_type(t):
+def union_member_str(value):
+    """
+    One arm of a union, spelled the way CPython spells it inside `int | str`.
+
+    Not `str(value)`, which gives "<class 'int'>" for a class -- unions print the
+    module-qualified name instead, and leave the module off for builtins.
+    """
+    if value is type(None):
+        # `Optional[int]` carries NoneType, which prints as "None" in a union.
+        return "None"
+    if isinstance(value, type):
+        if value.__module__ == "builtins":
+            return value.__qualname__
+        return f"{value.__module__}.{value.__qualname__}"
+    return str(value)
+
+
+def type_expression_str(value):
+    """
+    How to spell `value` if it denotes a type rather than a value, or None if it does
+    not denote a type at all.
+
+    Classes are the easy case. Everything else a type annotation can be built from --
+    Union[...], Literal[...], Optional[...], int | str, list[int], Callable[...],
+    TypeVar, Any -- is an instance of a *private* typing class: typing._UnionGenericAlias,
+    typing._LiteralGenericAlias, types.UnionType and a dozen more. Looking those up in a
+    table would tie us to typing's internals and still miss whichever construct we forgot,
+    so they are recognised structurally and rendered with str(), which is how typing
+    spells them itself.
+
+    Unions are the one exception, rendered by hand rather than with str(), because their
+    repr is not stable across the versions we support. 3.14 made `typing.Union` an alias
+    for `types.UnionType` (PEP 604), so `Union[int, float]` prints as "int | float" there
+    and "Union[int, float]" on 3.12 and 3.13 -- the same student program would be shown
+    differently depending on which interpreter happened to be running it. Everything is
+    spelled the 3.14 way, which is also how the annotation is usually written today.
+    """
+    # Before the isinstance(value, type) check below: typing.Any is a class in 3.11+, and
+    # in 3.9/3.10 list[int] passed for one too.
+    origin = typing.get_origin(value)
+    if origin is not None or value is typing.Any or isinstance(value, typing.TypeVar):
+        # On 3.14 these two are the same object, so the second test is for 3.12 and 3.13,
+        # where `Union[int, str]` and `int | str` are still distinct kinds of thing.
+        if origin is types.UnionType or origin is typing.Union:
+            rendered = " | ".join(union_member_str(arg) for arg in typing.get_args(value))
+        else:
+            rendered = str(value)
+        # "typing.Optional[int]" -> "Optional[int]" and
+        # "Union[__main__.Circle, ...]" -> "Union[Circle, ...]": neither prefix is how it
+        # is written in the source the student is looking at. Stripping __main__ here
+        # matches what type_name_regex already does for a bare class.
+        return rendered.replace("typing.", "").replace("__main__.", "")
+    if isinstance(value, typing.TypeAliasType):
+        # A PEP 695 alias, `type OnOff = Literal['on', 'off']`. Show what it stands for,
+        # not the fact that it is an alias: the name is already in the column next to it,
+        # so "<TypeAlias>" told the student nothing they could not see.
+        #
+        # The right-hand side is evaluated lazily, on first access, which is what makes
+        # `type Tree = Leaf | None` legal above the definition of Leaf. Until Leaf exists
+        # reading it raises NameError, and an alias we cannot spell out yet is still
+        # better shown as an alias than not at all.
+        try:
+            aliased = value.__value__
+        except Exception:
+            return "<TypeAlias>"
+        # Recursion terminates: a recursive alias, `type Tree = int | list[Tree]`, holds
+        # the TypeAliasType object itself, which str()s to its bare name.
+        return type_expression_str(aliased) or str(aliased)
+    if isinstance(value, type):
+        # isinstance, not type(value) == type, or a class with a metaclass -- anything
+        # deriving from ABC, for one -- is not recognised as a class and ends up on the
+        # heap as an instance of ABCMeta.
+        type_name = str(value)
+        search_result = type_name_regex.search(type_name)
+        if search_result is not None:
+            type_name = f"<class '{search_result.group(1)}'>"
+        return type_name
+    return None
+
+
+def primitive_type(value):
     try:
-        return STACK_TYPES[t]
+        return STACK_TYPES[type(value)]
     except KeyError:
-        return "ref"
+        return "type" if type_expression_str(value) is not None else "ref"
 
 def complex_type(t):
     try:
@@ -101,7 +181,7 @@ class HeapValue:
 class PrimitiveValue:
     def __init__(self, value, variable_name=None):
         self.variable_name = variable_name
-        self.type_str = primitive_type(type(value))
+        self.type_str = primitive_type(value)
         if self.type_str == "ref":
             self.value = id(value)
         elif type(value) == float and math.isnan(value):
@@ -123,14 +203,10 @@ class PrimitiveValue:
             "type": self.type_str,
             "value": self.value
         }
-        if type(d["value"]) == type:
-            type_name = str(d["value"])
-            search_result = type_name_regex.search(type_name)
-            if search_result is not None:
-                type_name = f"<class '{search_result.group(1)}'>"
-            d["value"] = type_name
-        elif type(d["value"]) == typing.TypeAliasType:
-            d["value"] = "<TypeAlias>"
+        if self.type_str == "type":
+            # Classes, type aliases and type expressions alike: none of them survive
+            # json.dumps as themselves.
+            d["value"] = type_expression_str(self.value)
         elif inspect.isfunction(d["value"]):
             function_desc = str(d["value"])
             search_result = function_str_regex.search(function_desc)
@@ -303,14 +379,14 @@ def generate_heap(frame, script_path, ignore, return_value = None):
         for variable_name in frame.f_locals:
             if should_ignore_on_stack(variable_name, frame.f_locals[variable_name], script_path, ignore):
                 continue
-            if primitive_type(type(frame.f_locals[variable_name])) != "ref":
+            if primitive_type(frame.f_locals[variable_name]) != "ref":
                 continue
             value = frame.f_locals[variable_name]
             heap.store(id(value), value)
 
         if return_value is not None:
             # Store return value
-            if not should_ignore_on_stack("return", return_value, script_path) and not primitive_type(type(return_value)) != "ref":
+            if not should_ignore_on_stack("return", return_value, script_path) and not primitive_type(return_value) != "ref":
                 heap.store(id(return_value), return_value)
 
         frame = frame.f_back
