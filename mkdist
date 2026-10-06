@@ -20,4 +20,4 @@ popd > /dev/null
 echo
 echo "Now upload the .vsix file to https://marketplace.visualstudio.com/manage/publishers/stefanwehr"
 echo
-echo "To upload the package to PyPI, execute the following command: twine upload python/dist/*"
+echo "To upload the package to PyPI, execute the following command: uvx twine upload python/dist/*"

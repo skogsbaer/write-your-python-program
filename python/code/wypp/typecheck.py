@@ -240,7 +240,7 @@ def wrapTypecheck(cfg: dict | CheckCfg, outerInfo: Optional[location.CallableInf
     else:
         checkCfg = CheckCfg.fromDict(cfg)
     def _wrap(f: Callable[P, T]) -> Callable[P, T]:
-        sig = inspect.signature(f)
+        sig = utils.getSignature(f)
         if isEmptySignature(sig):
             return f
         if outerInfo is None:

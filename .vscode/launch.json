@@ -6,13 +6,6 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Python: Current File",
-			"type": "python",
-			"request": "launch",
-			"program": "${file}",
-			"console": "integratedTerminal"
-		},
-		{
 			"name": "Run Extension",
 			"type": "extensionHost",
 			"request": "launch",
@@ -36,6 +29,13 @@
 				"${workspaceFolder}/out/test/**/*.js"
 			],
 			"preLaunchTask": "${defaultBuildTask}"
+		},
+		{
+			"name": "Python: Current File",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${file}",
+			"console": "integratedTerminal"
 		}
 	]
 }
