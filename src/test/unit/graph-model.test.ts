@@ -207,17 +207,6 @@ suite('graph-model: rows', () => {
     assert.strictEqual(formatValue(ref(5)), '');
     assert.strictEqual(formatValue(int(3)), '3');
   });
-
-  test('the summary counts rows and is singular for one', () => {
-    const elem = step(
-      [frame('<module>', [local('a', ref(1)), local('b', ref(2)), local('c', ref(3))])],
-      { 1: list(int(1), int(2)), 2: dict([[str('k'), int(1)]]), 3: instance('S', { x: int(1) }) }
-    );
-    const viz = build(elem);
-    assert.strictEqual(model(viz, objectNodeId(1)).summary, '2 elements');
-    assert.strictEqual(model(viz, objectNodeId(2)).summary, '1 entry');
-    assert.strictEqual(model(viz, objectNodeId(3)).summary, '1 field');
-  });
 });
 
 suite('graph-model: ports and edges', () => {
@@ -334,12 +323,11 @@ suite('graph-model: collapsing', () => {
     assert.deepStrictEqual(edges(viz), [`${frameNodeId(0)}:0 -> ${inputPortId(objectNodeId(1))}`]);
   });
 
-  test('a collapsed node keeps its rows in the model, for the summary and for re-expanding', () => {
+  test('a collapsed node keeps its rows in the model, for re-expanding', () => {
     const elem = step([frame('<module>', [local('xs', ref(1))])], { 1: list(int(1), int(2)) });
     const collapsedModel = model(build(elem, [1]), objectNodeId(1));
     assert.strictEqual(collapsedModel.collapsed, true);
     assert.strictEqual(collapsedModel.rows.length, 2);
-    assert.strictEqual(collapsedModel.summary, '2 elements');
   });
 
   test('collapsing removes exclusively downstream nodes but keeps shared ones', () => {

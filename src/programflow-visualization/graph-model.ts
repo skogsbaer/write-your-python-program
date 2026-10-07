@@ -38,8 +38,6 @@ export type NodeModel = {
   /** Heap address, absent for frames. Only object nodes can be collapsed. */
   address?: Address;
   collapsed: boolean;
-  /** Shown instead of the rows while collapsed, e.g. "12 elements". */
-  summary: string;
 };
 
 export type VizGraph = {
@@ -147,17 +145,6 @@ function dictKeyLabel(key: Value | undefined): string {
 
 function headerOf(heapValue: HeapValue): string {
   return heapValue.type === "instance" ? heapValue.name : heapValue.type;
-}
-
-function summaryOf(heapValue: HeapValue, rowCount: number): string {
-  switch (heapValue.type) {
-    case "dict":
-      return `${rowCount} ${rowCount === 1 ? "entry" : "entries"}`;
-    case "instance":
-      return `${rowCount} ${rowCount === 1 ? "field" : "fields"}`;
-    default:
-      return `${rowCount} ${rowCount === 1 ? "element" : "elements"}`;
-  }
 }
 
 /**
@@ -290,7 +277,6 @@ export function buildGraph(
         isReturn: local.name === "return",
       })),
       collapsed: false,
-      summary: "",
     };
     models.set(id, model);
     children.push(
@@ -332,7 +318,6 @@ export function buildGraph(
       rows,
       address,
       collapsed: isCollapsed,
-      summary: summaryOf(heapValue, rows.length),
     };
     models.set(id, model);
     children.push(elkNodeFor(model));

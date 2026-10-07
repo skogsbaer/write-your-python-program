@@ -51,14 +51,17 @@ export function renderNode(model: NodeModel): HTMLElement {
   header.append(div("elk-node-title", model.header));
   node.append(header);
 
-  const rows = div(ROWS_CLASS);
+  // Collapsed is a single line: the header and nothing under it. A summary row said
+  // "3 fields", which the caret beside it already implies and expanding shows properly,
+  // so it spent a second line -- and the width of its text -- on nothing new.
   if (model.collapsed) {
     node.classList.add("elk-collapsed");
-    rows.append(div(`${ROW_CLASS} elk-summary`, model.summary));
-  } else {
-    for (const row of model.rows) {
-      rows.append(renderRow(row));
-    }
+    return node;
+  }
+
+  const rows = div(ROWS_CLASS);
+  for (const row of model.rows) {
+    rows.append(renderRow(row));
   }
   node.append(rows);
 

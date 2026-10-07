@@ -313,13 +313,6 @@ body {
   border-left: 1px solid var(--wypp-node-border);
 }
 
-.elk-summary {
-  display: table-cell;
-  padding: 2px 6px;
-  font-style: italic;
-  color: var(--wypp-muted);
-}
-
 /* Frames are washed blue so the two columns tell themselves apart even at zoom levels
    where the header text is no longer legible. The wash goes in background-image, which
    layers over the background-color .elk-node already set, so the node keeps an opaque
