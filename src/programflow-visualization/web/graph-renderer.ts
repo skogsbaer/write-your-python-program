@@ -7,7 +7,26 @@ import type { NodeModel } from "../graph-model";
 import { headerElement, NODE_CLASS, renderNode } from "./node-view";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const MARGIN = 24;
+
+/**
+ * Slack above and below the nodes, in graph pixels.
+ *
+ * Edges do leave the nodes' vertical span -- measured over the 49 steps of the showcase
+ * they reach 33px above the topmost node and 10px below the lowest -- and the SVG
+ * overlay clips to the canvas box, so this has to cover them. The band above the nodes
+ * adds BAND_HEIGHT on top of it.
+ */
+const MARGIN_Y = 24;
+
+/**
+ * The same to the left and right, and much smaller because nothing overflows sideways:
+ * over those 49 steps the leftmost edge point stays 220px *inside* the leftmost node
+ * and the rightmost stays 120px inside the rightmost. Sideways margin is therefore
+ * decoration, and it was conspicuous -- a graph scaled to fit sat 44px from the left of
+ * the panel while sitting 8px from the bottom.
+ */
+const MARGIN_X = 8;
+
 /** Room above the nodes for the "Frames" / "Objects" captions. */
 const BAND_HEIGHT = 28;
 
@@ -77,7 +96,7 @@ function band(
   element.className = `elk-band ${modifier}`;
   element.textContent = label;
   element.style.left = `${left}px`;
-  element.style.top = `${MARGIN}px`;
+  element.style.top = `${MARGIN_Y}px`;
   element.style.height = `${BAND_HEIGHT}px`;
   element.style.width = `${Math.max(width, 0)}px`;
   return element;
@@ -104,24 +123,34 @@ export function renderGraph(
     }
   }
 
-  const width = Math.max(
-    ...children.map((child) => (child.x ?? 0) + (child.width ?? 0)),
-    0
-  );
+  // ELK leaves its own padding around the content -- 12px by default -- and the
+  // coordinates it reports include it, so drawing them as-is put ELK's padding and ours
+  // end to end, and only on the left. Measuring from the content's own left edge instead
+  // makes MARGIN_X the whole of the margin, and keeps the canvas box tight, which in
+  // turn lets the fit pick its scale from the graph rather than from the padding.
+  const contentLeft = children.length
+    ? Math.min(...children.map((child) => child.x ?? 0))
+    : 0;
+  const width =
+    Math.max(...children.map((child) => (child.x ?? 0) + (child.width ?? 0)), 0) -
+    contentLeft;
   const height = Math.max(
     ...children.map((child) => (child.y ?? 0) + (child.height ?? 0)),
     0
   );
-  container.style.width = `${width + 2 * MARGIN}px`;
-  container.style.height = `${height + BAND_HEIGHT + 2 * MARGIN}px`;
+  const canvasWidth = width + 2 * MARGIN_X;
+  const canvasHeight = height + BAND_HEIGHT + 2 * MARGIN_Y;
+  container.style.width = `${canvasWidth}px`;
+  container.style.height = `${canvasHeight}px`;
 
-  const offsetY = MARGIN + BAND_HEIGHT;
+  const offsetX = MARGIN_X - contentLeft;
+  const offsetY = MARGIN_Y + BAND_HEIGHT;
 
   // Edges first: the SVG sits behind the nodes.
   const svg = document.createElementNS(SVG_NS, "svg");
   svg.setAttribute("class", "elk-edges");
-  svg.setAttribute("width", `${width + 2 * MARGIN}`);
-  svg.setAttribute("height", `${height + BAND_HEIGHT + 2 * MARGIN}`);
+  svg.setAttribute("width", `${canvasWidth}`);
+  svg.setAttribute("height", `${canvasHeight}`);
   const defs = document.createElementNS(SVG_NS, "defs");
   defs.append(arrowMarker());
   svg.append(defs);
@@ -148,7 +177,7 @@ export function renderGraph(
     path.setAttribute(
       "d",
       points
-        .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x + MARGIN} ${point.y + offsetY}`)
+        .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x + offsetX} ${point.y + offsetY}`)
         .join(" ")
     );
     path.setAttribute("class", "elk-edge");
@@ -195,14 +224,17 @@ export function renderGraph(
     }
     const element = renderNode(model);
     element.dataset.nodeId = child.id;
-    element.style.left = `${(child.x ?? 0) + MARGIN}px`;
+    element.style.left = `${(child.x ?? 0) + offsetX}px`;
     element.style.top = `${(child.y ?? 0) + offsetY}px`;
     element.style.width = `${child.width ?? 0}px`;
 
     if (model.address === undefined) {
-      framesRight = Math.max(framesRight, (child.x ?? 0) + (child.width ?? 0));
+      framesRight = Math.max(
+        framesRight,
+        (child.x ?? 0) - contentLeft + (child.width ?? 0)
+      );
     } else {
-      objectsLeft = Math.min(objectsLeft, child.x ?? 0);
+      objectsLeft = Math.min(objectsLeft, (child.x ?? 0) - contentLeft);
       const header = headerElement(element);
       const address = model.address;
       const toggle = () => options.onToggle?.(address);
@@ -230,11 +262,11 @@ export function renderGraph(
   // Column captions, derived from where the nodes actually ended up: there are no
   // container nodes to hang them off (plan 4).
   if (framesRight > Number.NEGATIVE_INFINITY) {
-    container.append(band("Frames", "elk-band-frames", MARGIN, framesRight));
+    container.append(band("Frames", "elk-band-frames", MARGIN_X, framesRight));
   }
   if (objectsLeft < Number.POSITIVE_INFINITY) {
     container.append(
-      band("Objects", "elk-band-objects", objectsLeft + MARGIN, width - objectsLeft)
+      band("Objects", "elk-band-objects", objectsLeft + MARGIN_X, width - objectsLeft)
     );
   }
 

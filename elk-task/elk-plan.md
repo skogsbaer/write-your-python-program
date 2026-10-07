@@ -764,6 +764,38 @@ Each step keeps the extension working.
 
     If the bounce ever becomes the complaint, the fix is hysteresis — zoom back in only
     when the content clears the next rung by some margin — not a ratchet.
+14. **The left margin.** Reported as "in the default fit, the left margin is quite large".
+    A fitted graph sat 44 px from the left of the panel while sitting 8 px from the
+    bottom, and the margin came from three places stacked end to end:
+
+    | source | px | scales with zoom |
+    | --- | --- | --- |
+    | `FIT_PADDING_PX / 2` in `pan-zoom.ts` | 8 | no |
+    | `MARGIN` in `graph-renderer.ts` | 24 | yes |
+    | ELK's own `elk.padding`, left, at its default | 12 | yes |
+
+    The third was invisible in the code: `child.x` already carries ELK's padding, so
+    drawing at `child.x + MARGIN` put the two in series, and *only* on the left and top.
+    The renderer now measures from the content's own left edge, which makes the horizontal
+    margin entirely ours and the canvas box tight — and the tighter box is not cosmetic,
+    since the canvas size is what the fit divides by.
+
+    It also fixes a misalignment nobody had reported: the `Frames` band was drawn from
+    `MARGIN` while the frames themselves started at `MARGIN + 12`, so the band overhung
+    its column by 12 px on the left. Band and column now share an edge exactly.
+
+    How much margin is right is answerable rather than a matter of taste, because the
+    question is what would be clipped: the SVG edge overlay is sized to the canvas box.
+    Over the 49 steps of the showcase, relative to the nodes' own bounding box, edge
+    routes reach **33 px above** the topmost node and **10 px below** the lowest, but stay
+    **220 px inside** the leftmost and **120 px inside** the rightmost — ELK never routes
+    around the ends of a left-to-right layered graph. So the vertical margin is
+    load-bearing and the horizontal margin is decoration. `MARGIN` splits into `MARGIN_Y`
+    (24, unchanged) and `MARGIN_X` (8).
+
+    Left gap, fitted: 44 px → 16 px at scale 1, 26 px → 12 px at scale 0.5. The canvas
+    narrows by 44 px at every step, which is too little to move the fit off its rung here —
+    the showcase is height-bound on all 49 steps — but it is free.
 
 ## 8. Decisions at a glance
 
@@ -787,6 +819,7 @@ Each step keeps the extension working.
 | Node placement is `SIMPLE`, not the `BRANDES_KOEPF` default | §7.12 |
 | Frames measured at a constant width; auto-fit floors at 0.5 | §7.12 |
 | Auto-fit re-frames in both directions; the ratchet was measured and removed | §7.13 |
+| Canvas measured from the content's left edge; margin split into `MARGIN_X` / `MARGIN_Y` | §7.14 |
 | The frame column is not pinned to the canvas bottom; both ways of doing it cost more than the float | §7.12 |
 | Cycle breaking stays `GREEDY`; no interactive layout seeding | §4, §6.5 |
 | elkjs pre-warmed at webview init to hide ~330 ms of JIT | §6.5 |
