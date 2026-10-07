@@ -293,7 +293,14 @@ body {
 .elk-row-key {
   text-align: right;
   color: var(--wypp-muted);
-  max-width: 110px;
+  /* The cap stops one long name from crowding the value out of the row; it is not a
+     width, and a row with a short value stretches the key past it anyway. 110px was
+     under the length of an ordinary name: `howManySections` is 105-106px at 13px in
+     the sans-serif UI fonts VS Code picks from, and with 6px of padding either side it
+     needed 118px, so it was drawn as `howManySection…` whenever the value was long
+     enough to compete for the room. 130px clears that with about three characters to
+     spare, and still leaves the value column half of a 220px frame. */
+  max-width: 130px;
 }
 
 /* A dict key that is itself a reference; the arrow leaving this cell says which. */
