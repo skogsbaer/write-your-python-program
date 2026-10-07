@@ -49,12 +49,18 @@ async function startTerminal(
     let terminal: vscode.Terminal | undefined;
     if (existing) {
         // We try to re-use the existing terminal. But we need to terminate a potentially
-        // running python process first. If there is no python process, the shell
-        // complains about the "import sys; sys.exit(0)" command, but we do not care.
+        // running python process first. Ctrl-C discards pending (not yet submitted) input
+        // in the REPL and interrupts a running program, so "raise SystemExit" always
+        // starts on an empty line. We wait a bit after Ctrl-C because the terminal driver
+        // may discard input queued at the time of the interrupt.
+        // If there is no python process, the shell complains about "raise SystemExit",
+        // but we do not care.
         if (!existing.exitStatus) {
             outChannel.appendLine("Reusing existing terminal");
             terminal = existing;
-            terminal.sendText("import sys; sys.exit(0)");
+            terminal.sendText("\x03", false);
+            await new Promise((resolve) => setTimeout(resolve, 150));
+            terminal.sendText("raise SystemExit");
         } else {
             outChannel.appendLine("Disposing existing terminal because it's already terminated");
             existing.dispose();

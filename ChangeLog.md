@@ -1,5 +1,8 @@
 # Write Your Python Program - CHANGELOG
 
+* unreleased
+  * RUN button: restarting works even with pending input in the interpreter,
+    a running program or a program waiting for `input()`
 * 2.4.0 (2026-09-28)
   * Greatly improved visualizatioin
   * Python 3.14: forward references in records and functions work without
