@@ -16,7 +16,7 @@ import {
 import type { NodeModel, VizGraph } from '../../programflow-visualization/graph-model';
 import { outgoingRefs } from '../../programflow-visualization/reachability';
 import type { Address, BackendTraceElem, HeapValue } from '../../programflow-visualization/types';
-import { dict, frame, instance, int, list, local, none, ref, set, step, str, tuple } from './fixtures';
+import { dict, frame, instance, int, list, local, none, pyFunction, pyType, ref, set, step, str, tuple } from './fixtures';
 
 // Helpers ---------------------------------------------------------------------
 
@@ -206,6 +206,23 @@ suite('graph-model: rows', () => {
     assert.strictEqual(formatValue(none()), 'None');
     assert.strictEqual(formatValue(ref(5)), '');
     assert.strictEqual(formatValue(int(3)), '3');
+  });
+
+  test('a class and a function lose their name: the key column already carries it', () => {
+    assert.strictEqual(formatValue(pyType("<class 'Creek'>")), '<class>');
+    assert.strictEqual(formatValue(pyFunction('<function howManySections>')), '<function>');
+    assert.strictEqual(formatValue(pyFunction('<function <lambda>>')), '<function>');
+  });
+
+  test('type expressions keep their text: the text is the whole of what they say', () => {
+    for (const expression of ["Literal['on', 'off']", 'int | None', 'list[int]', 'Any']) {
+      assert.strictEqual(formatValue(pyType(expression)), expression);
+    }
+  });
+
+  test('a string that reads like a class is left alone', () => {
+    // Different kind, so the rewriting above cannot reach it.
+    assert.strictEqual(formatValue(str("<class 'Creek'>")), "<class 'Creek'>");
   });
 });
 

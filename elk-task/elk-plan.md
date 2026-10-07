@@ -70,6 +70,7 @@ only *placement* comes from ELK (§5), so most differences are free choices.
 | Frame box | `border-left` 4px, grey / blue for the current frame | plain container node | keep current |
 | Frame header | `<module>` shown as `Global` | `<module>`, plus `(line 36)` | keep current, no line |
 | Variable row | two columns `name` \| `value`, value empty when it's a ref | single label `"tim"` | keep current |
+| Class / function value | `<class 'Creek'>`, `<function howManySections>` | not modelled | **changed to `<class>` / `<function>`**, see §7.15 |
 | list / tuple | **horizontal** strip of boxes, index above value | **vertical** text lines `[0] 3.3` | **changed to vertical**, see §5.2 |
 | set | wrapping row of value boxes, no index | not modelled | **changed to vertical**, see §5.2 |
 | dict | vertical `key` \| `value` pairs, key width from longest key | not modelled | keep current |
@@ -80,10 +81,10 @@ only *placement* comes from ELK (§5), so most differences are free choices.
 | Collapsed summary | not supported | `"list" / "12 elements"` | the new feature, mocked |
 
 So: **take layout from `example.elkt`, keep content rendering as it is today.** Where the
-two disagree the current extension wins, with two deliberate exceptions: edge coloring
-(§6.4) and list/tuple/set orientation (§5.2, forced by per-cell arrow origins). The visible
-change stays close to "same boxes, better placement, real arrows" — far easier to review
-than a simultaneous restyle.
+two disagree the current extension wins, with three deliberate exceptions: edge coloring
+(§6.4), list/tuple/set orientation (§5.2, forced by per-cell arrow origins) and the naming
+of classes and functions (§7.15). The visible change stays close to "same boxes, better
+placement, real arrows" — far easier to review than a simultaneous restyle.
 
 `example.elkt` is also wrong twice for runtime use: it hardcodes every label size
 (`layout [ size: 90, 16 ]`; real sizes must be measured, §6.2) and it models rows as child
@@ -796,6 +797,33 @@ Each step keeps the extension working.
     Left gap, fitted: 44 px → 16 px at scale 1, 26 px → 12 px at scale 0.5. The canvas
     narrows by 44 px at every step, which is too little to move the fit off its rung here —
     the showcase is height-bound on all 49 steps — but it is free.
+15. **Classes and functions stop saying their own name.** `def howManySections` filled a
+    frame row with `howManySections` in the key column and `<function howManySections>` in
+    the value column, and `class Creek` with `Creek` and `<class 'Creek'>`. The value
+    column is the narrower of the two, so the half of the row that carried nothing new was
+    the half that got the ellipsis. The value column's job is to say *what* this is;
+    *which* one it is, is the key. So `<class>` and `<function>`.
+
+    Done in `formatValue`, not in the tracer: the trace stays a faithful record and the
+    pytrace expectations do not move. It is also narrower than it looks, because the
+    rewriting keys off the value *kind* and not just the text:
+
+    | value | kind | shown as |
+    | --- | --- | --- |
+    | `<class 'Creek'>` | `type` | `<class>` |
+    | `<function howManySections>` | `function` | `<function>` |
+    | `Literal['on', 'off']`, `int \| None`, `list[int]` | `type` | unchanged |
+    | the string `"<class 'Creek'>"` | `str` | unchanged |
+
+    Type expressions arrive under the same `type` kind as classes, which is why the class
+    pattern is anchored (`^<class '[^']*'>$`) rather than a substring search: the text of
+    `Literal['on', 'off']` is the entire point of showing it (§7.9), and an alias must not
+    collapse to `<class>`.
+
+    The one thing this does lose is the name of a renamed import — `from math import sqrt
+    as s` now reads `s = <function>` — and the name of a function sitting in a list, where
+    the key is `[0]` rather than a name. Both are rare next to the common case, and the
+    name is still a hover away in the editor.
 
 ## 8. Decisions at a glance
 
@@ -820,6 +848,7 @@ Each step keeps the extension working.
 | Frames measured at a constant width; auto-fit floors at 0.5 | §7.12 |
 | Auto-fit re-frames in both directions; the ratchet was measured and removed | §7.13 |
 | Canvas measured from the content's left edge; margin split into `MARGIN_X` / `MARGIN_Y` | §7.14 |
+| Classes and functions shown as `<class>` / `<function>`; type expressions keep their text | §7.15 |
 | The frame column is not pinned to the canvas bottom; both ways of doing it cost more than the float | §7.12 |
 | Cycle breaking stays `GREEDY`; no interactive layout seeding | §4, §6.5 |
 | elkjs pre-warmed at webview init to hide ~330 ms of JIT | §6.5 |
