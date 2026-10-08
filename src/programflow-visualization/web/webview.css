@@ -280,6 +280,17 @@ body {
   background-color: var(--wypp-row-alt-bg);
 }
 
+/* A row with an edge leaving it is its own hover target, so it needs a highlight of its
+   own. A wash rather than an outline: the outline says "this box is what you are
+   pointing at", and a row must not compete with it. Drawn from the focus colour, the
+   same one the lit edge is stroked in, so the row and its arrow read as one thing.
+
+   Written as a compound selector because the striping rule above is also 0,2,0 and
+   would otherwise win on every second row. */
+.elk-row.elk-row-active {
+  background-color: color-mix(in srgb, var(--wypp-focus) 22%, transparent);
+}
+
 .elk-row-key,
 .elk-row-value {
   display: table-cell;
@@ -379,8 +390,11 @@ body {
   stroke-width: 2.5;
 }
 
-/* Hovering a node fades everything it is not connected to. */
-.elk-canvas.elk-dimming .elk-node:not(.elk-node-active) {
+/* Hovering a node fades everything it is not connected to. `.elk-row-host` is the box a
+   lit row sits in: opacity applies to the whole subtree, so dimming it would drag the
+   highlighted row down with it. The box is spared, but gets no outline of its own -- the
+   row is the thing being pointed at. */
+.elk-canvas.elk-dimming .elk-node:not(.elk-node-active):not(.elk-row-host) {
   opacity: 0.45;
 }
 

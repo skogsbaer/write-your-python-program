@@ -309,7 +309,8 @@ on interaction — hovering a variable row or object node adds `.elk-edge-active
 incoming/outgoing edges and `.elk-dimmed` to the rest. That scales to dense heaps, is
 theme-friendly and works for color-blind users. The renderer only sets `data-source` /
 `data-target` and toggles classes, so going back to per-address hues (or coloring by edge
-kind) is a CSS change plus one attribute.
+kind) is a CSS change plus one attribute. What exactly a hover picks out — the row when an
+arrow leaves it, the box otherwise — is §7.16.
 
 ### 6.5 Stability across steps, performance, pan/zoom
 
@@ -824,6 +825,43 @@ Each step keeps the extension working.
     as s` now reads `s = <function>` — and the name of a function sitting in a list, where
     the key is `[0]` rather than a name. Both are rare next to the common case, and the
     name is still a hover away in the editor.
+16. **A row with an arrow is its own hover target.** Hovering lit the whole box and every
+    edge touching it (§6.4). In a `Global` frame with nine references that is nine arrows
+    at once, which answers "what is this frame connected to" but not the question a reader
+    actually has in front of a frame, which is "where does *this* variable point". The
+    arrow leaves from the row, so the row is the thing to point at.
+
+    Hovering a row that has an edge leaving it now highlights that row and that edge.
+    Everything else — a row with no edge, a header, the gap between rows — keeps the old
+    whole-box behaviour. That fallback is not a special case in the code: the resolver asks
+    for the row first and returns the enclosing box when the row has no edge, so the two
+    rules are one lookup. Collapsed boxes have no rows and so are always whole boxes.
+
+    Three consequences worth writing down:
+
+    - The box holding a lit row is **not dimmed, and also not outlined**. Not dimmed is
+      forced: `opacity` applies to the whole subtree, so a dimmed box would drag its own
+      highlighted row down with it. Not outlined is a choice — the outline is what says
+      "this box is the thing you are pointing at", and it would be a lie here.
+    - The row highlight is a **background wash, not an outline**, mixed from the same
+      focus colour the lit edge is stroked in, so a row and its arrow read as one object
+      rather than two highlights that happen to co-occur.
+    - A dict row whose key is a reference owns **two** ports, and both arrows leave the
+      row being pointed at, so both light. Verified on the showcase: the row with a
+      reference on each side lights exactly two edges and no node.
+
+    The listeners moved from `mouseenter`/`mouseleave` to `mouseover`/`mouseout`, because
+    the first pair does not bubble and so cannot see the rows inside the box. They stay
+    **on the box** rather than being delegated to the canvas: the canvas outlives a render
+    and its listeners would pile up, while per-box listeners go away with the elements they
+    are on. The cost is one guard — crossing from one row to the next fires `mouseout`
+    before the matching `mouseover`, so the handler clears only when `relatedTarget` is
+    genuinely outside the box. Without it the row being moved onto is cleared again by the
+    row just left.
+
+    The stationary-cursor restoration at the end of `renderGraph` (§6.3, collapsing
+    re-lays out the graph under a cursor that has not moved) goes through the same
+    resolver, so a re-render under a hovered row restores the row and not the box.
 
 ## 8. Decisions at a glance
 
@@ -849,6 +887,7 @@ Each step keeps the extension working.
 | Auto-fit re-frames in both directions; the ratchet was measured and removed | §7.13 |
 | Canvas measured from the content's left edge; margin split into `MARGIN_X` / `MARGIN_Y` | §7.14 |
 | Classes and functions shown as `<class>` / `<function>`; type expressions keep their text | §7.15 |
+| A row with an edge leaving it is its own hover target; everything else lights the box | §7.16 |
 | The frame column is not pinned to the canvas bottom; both ways of doing it cost more than the float | §7.12 |
 | Cycle breaking stays `GREEDY`; no interactive layout seeding | §4, §6.5 |
 | elkjs pre-warmed at webview init to hide ~330 ms of JIT | §6.5 |

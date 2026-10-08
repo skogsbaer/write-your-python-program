@@ -60,9 +60,14 @@ export function renderNode(model: NodeModel): HTMLElement {
   }
 
   const rows = div(ROWS_CLASS);
-  for (const row of model.rows) {
-    rows.append(renderRow(row));
-  }
+  model.rows.forEach((row, index) => {
+    const element = renderRow(row);
+    // The index is what ties a row back to its ports, and so to the edges leaving it
+    // (graph-renderer.ts). Written here rather than in the renderer so that the markup
+    // measure.ts sizes and the markup the reader points at stay the same markup.
+    element.dataset.rowIndex = String(index);
+    rows.append(element);
+  });
   node.append(rows);
 
   return node;
