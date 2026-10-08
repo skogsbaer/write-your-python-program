@@ -4,6 +4,29 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			// What F5 runs, via "preLaunchTask": "${defaultBuildTask}" in launch.json.
+			//
+			// It has to cover *both* halves of the build. `tsc` skips
+			// src/programflow-visualization/web (see the exclude in tsconfig.json); the
+			// webview is a separate esbuild bundle. Building only the first half was a
+			// trap, because it looks like it worked: `tsc` does emit
+			// out/programflow-visualization/graph-model.js with a fresh timestamp, but the
+			// webview loads webview.js, into which esbuild has inlined its own copy of
+			// that module. Fixes to the visualization then had no effect in the Extension
+			// Development Host, and nothing in the build output hinted at why (issue #208).
+			"label": "watch: all",
+			"dependsOn": [
+				"npm: watch",
+				"npm: watch:web"
+			],
+			"dependsOrder": "parallel",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+		{
 			"type": "npm",
 			"script": "watch",
 			"problemMatcher": "$tsc-watch",
@@ -11,9 +34,32 @@
 			"presentation": {
 				"reveal": "never"
 			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
+			"group": "build"
+		},
+		{
+			"type": "npm",
+			"script": "watch:web",
+			"isBackground": true,
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": "build",
+			// esbuild prints its own errors; this matcher exists only so VS Code can tell
+			// when the first build has finished and the extension host may start. The
+			// never-matching pattern is the documented idiom for that.
+			"problemMatcher": {
+				"owner": "esbuild",
+				"pattern": {
+					"regexp": "^$",
+					"file": 1,
+					"location": 2,
+					"message": 3
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "^building web\\b",
+					"endsPattern": "^watching web build\\b"
+				}
 			}
 		}
 	]

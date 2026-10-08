@@ -70,6 +70,7 @@ only *placement* comes from ELK (§5), so most differences are free choices.
 | Frame box | `border-left` 4px, grey / blue for the current frame | plain container node | keep current |
 | Frame header | `<module>` shown as `Global` | `<module>`, plus `(line 36)` | keep current, no line |
 | Variable row | two columns `name` \| `value`, value empty when it's a ref | single label `"tim"` | keep current |
+| Class / function value | `<class 'Creek'>`, `<function howManySections>` | not modelled | **changed to `<class>` / `<function>`**, see §7.15 |
 | list / tuple | **horizontal** strip of boxes, index above value | **vertical** text lines `[0] 3.3` | **changed to vertical**, see §5.2 |
 | set | wrapping row of value boxes, no index | not modelled | **changed to vertical**, see §5.2 |
 | dict | vertical `key` \| `value` pairs, key width from longest key | not modelled | keep current |
@@ -80,10 +81,10 @@ only *placement* comes from ELK (§5), so most differences are free choices.
 | Collapsed summary | not supported | `"list" / "12 elements"` | the new feature, mocked |
 
 So: **take layout from `example.elkt`, keep content rendering as it is today.** Where the
-two disagree the current extension wins, with two deliberate exceptions: edge coloring
-(§6.4) and list/tuple/set orientation (§5.2, forced by per-cell arrow origins). The visible
-change stays close to "same boxes, better placement, real arrows" — far easier to review
-than a simultaneous restyle.
+two disagree the current extension wins, with three deliberate exceptions: edge coloring
+(§6.4), list/tuple/set orientation (§5.2, forced by per-cell arrow origins) and the naming
+of classes and functions (§7.15). The visible change stays close to "same boxes, better
+placement, real arrows" — far easier to review than a simultaneous restyle.
 
 `example.elkt` is also wrong twice for runtime use: it hardcodes every label size
 (`layout [ size: 90, 16 ]`; real sizes must be measured, §6.2) and it models rows as child
@@ -308,7 +309,8 @@ on interaction — hovering a variable row or object node adds `.elk-edge-active
 incoming/outgoing edges and `.elk-dimmed` to the rest. That scales to dense heaps, is
 theme-friendly and works for color-blind users. The renderer only sets `data-source` /
 `data-target` and toggles classes, so going back to per-address hues (or coloring by edge
-kind) is a CSS change plus one attribute.
+kind) is a CSS change plus one attribute. What exactly a hover picks out — the row when an
+arrow leaves it, the box otherwise — is §7.16.
 
 ### 6.5 Stability across steps, performance, pan/zoom
 
@@ -764,6 +766,102 @@ Each step keeps the extension working.
 
     If the bounce ever becomes the complaint, the fix is hysteresis — zoom back in only
     when the content clears the next rung by some margin — not a ratchet.
+14. **The left margin.** Reported as "in the default fit, the left margin is quite large".
+    A fitted graph sat 44 px from the left of the panel while sitting 8 px from the
+    bottom, and the margin came from three places stacked end to end:
+
+    | source | px | scales with zoom |
+    | --- | --- | --- |
+    | `FIT_PADDING_PX / 2` in `pan-zoom.ts` | 8 | no |
+    | `MARGIN` in `graph-renderer.ts` | 24 | yes |
+    | ELK's own `elk.padding`, left, at its default | 12 | yes |
+
+    The third was invisible in the code: `child.x` already carries ELK's padding, so
+    drawing at `child.x + MARGIN` put the two in series, and *only* on the left and top.
+    The renderer now measures from the content's own left edge, which makes the horizontal
+    margin entirely ours and the canvas box tight — and the tighter box is not cosmetic,
+    since the canvas size is what the fit divides by.
+
+    It also fixes a misalignment nobody had reported: the `Frames` band was drawn from
+    `MARGIN` while the frames themselves started at `MARGIN + 12`, so the band overhung
+    its column by 12 px on the left. Band and column now share an edge exactly.
+
+    How much margin is right is answerable rather than a matter of taste, because the
+    question is what would be clipped: the SVG edge overlay is sized to the canvas box.
+    Over the 49 steps of the showcase, relative to the nodes' own bounding box, edge
+    routes reach **33 px above** the topmost node and **10 px below** the lowest, but stay
+    **220 px inside** the leftmost and **120 px inside** the rightmost — ELK never routes
+    around the ends of a left-to-right layered graph. So the vertical margin is
+    load-bearing and the horizontal margin is decoration. `MARGIN` splits into `MARGIN_Y`
+    (24, unchanged) and `MARGIN_X` (8).
+
+    Left gap, fitted: 44 px → 16 px at scale 1, 26 px → 12 px at scale 0.5. The canvas
+    narrows by 44 px at every step, which is too little to move the fit off its rung here —
+    the showcase is height-bound on all 49 steps — but it is free.
+15. **Classes and functions stop saying their own name.** `def howManySections` filled a
+    frame row with `howManySections` in the key column and `<function howManySections>` in
+    the value column, and `class Creek` with `Creek` and `<class 'Creek'>`. The value
+    column is the narrower of the two, so the half of the row that carried nothing new was
+    the half that got the ellipsis. The value column's job is to say *what* this is;
+    *which* one it is, is the key. So `<class>` and `<function>`.
+
+    Done in `formatValue`, not in the tracer: the trace stays a faithful record and the
+    pytrace expectations do not move. It is also narrower than it looks, because the
+    rewriting keys off the value *kind* and not just the text:
+
+    | value | kind | shown as |
+    | --- | --- | --- |
+    | `<class 'Creek'>` | `type` | `<class>` |
+    | `<function howManySections>` | `function` | `<function>` |
+    | `Literal['on', 'off']`, `int \| None`, `list[int]` | `type` | unchanged |
+    | the string `"<class 'Creek'>"` | `str` | unchanged |
+
+    Type expressions arrive under the same `type` kind as classes, which is why the class
+    pattern is anchored (`^<class '[^']*'>$`) rather than a substring search: the text of
+    `Literal['on', 'off']` is the entire point of showing it (§7.9), and an alias must not
+    collapse to `<class>`.
+
+    The one thing this does lose is the name of a renamed import — `from math import sqrt
+    as s` now reads `s = <function>` — and the name of a function sitting in a list, where
+    the key is `[0]` rather than a name. Both are rare next to the common case, and the
+    name is still a hover away in the editor.
+16. **A row with an arrow is its own hover target.** Hovering lit the whole box and every
+    edge touching it (§6.4). In a `Global` frame with nine references that is nine arrows
+    at once, which answers "what is this frame connected to" but not the question a reader
+    actually has in front of a frame, which is "where does *this* variable point". The
+    arrow leaves from the row, so the row is the thing to point at.
+
+    Hovering a row that has an edge leaving it now highlights that row and that edge.
+    Everything else — a row with no edge, a header, the gap between rows — keeps the old
+    whole-box behaviour. That fallback is not a special case in the code: the resolver asks
+    for the row first and returns the enclosing box when the row has no edge, so the two
+    rules are one lookup. Collapsed boxes have no rows and so are always whole boxes.
+
+    Three consequences worth writing down:
+
+    - The box holding a lit row is **not dimmed, and also not outlined**. Not dimmed is
+      forced: `opacity` applies to the whole subtree, so a dimmed box would drag its own
+      highlighted row down with it. Not outlined is a choice — the outline is what says
+      "this box is the thing you are pointing at", and it would be a lie here.
+    - The row highlight is a **background wash, not an outline**, mixed from the same
+      focus colour the lit edge is stroked in, so a row and its arrow read as one object
+      rather than two highlights that happen to co-occur.
+    - A dict row whose key is a reference owns **two** ports, and both arrows leave the
+      row being pointed at, so both light. Verified on the showcase: the row with a
+      reference on each side lights exactly two edges and no node.
+
+    The listeners moved from `mouseenter`/`mouseleave` to `mouseover`/`mouseout`, because
+    the first pair does not bubble and so cannot see the rows inside the box. They stay
+    **on the box** rather than being delegated to the canvas: the canvas outlives a render
+    and its listeners would pile up, while per-box listeners go away with the elements they
+    are on. The cost is one guard — crossing from one row to the next fires `mouseout`
+    before the matching `mouseover`, so the handler clears only when `relatedTarget` is
+    genuinely outside the box. Without it the row being moved onto is cleared again by the
+    row just left.
+
+    The stationary-cursor restoration at the end of `renderGraph` (§6.3, collapsing
+    re-lays out the graph under a cursor that has not moved) goes through the same
+    resolver, so a re-render under a hovered row restores the row and not the box.
 
 ## 8. Decisions at a glance
 
@@ -787,6 +885,9 @@ Each step keeps the extension working.
 | Node placement is `SIMPLE`, not the `BRANDES_KOEPF` default | §7.12 |
 | Frames measured at a constant width; auto-fit floors at 0.5 | §7.12 |
 | Auto-fit re-frames in both directions; the ratchet was measured and removed | §7.13 |
+| Canvas measured from the content's left edge; margin split into `MARGIN_X` / `MARGIN_Y` | §7.14 |
+| Classes and functions shown as `<class>` / `<function>`; type expressions keep their text | §7.15 |
+| A row with an edge leaving it is its own hover target; everything else lights the box | §7.16 |
 | The frame column is not pinned to the canvas bottom; both ways of doing it cost more than the float | §7.12 |
 | Cycle breaking stays `GREEDY`; no interactive layout seeding | §4, §6.5 |
 | elkjs pre-warmed at webview init to hide ~330 ms of JIT | §6.5 |
