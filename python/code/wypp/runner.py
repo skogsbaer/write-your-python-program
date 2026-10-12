@@ -27,6 +27,7 @@ from . import i18n
 from . import interactive
 from .myLogging import *
 from . import paths
+from . import pidFile
 from . import replTester
 from . import runCode
 from . import version as versionMod
@@ -47,6 +48,8 @@ def printWelcomeString(file, version, doTypecheck):
 
 def main(globals, argList=None):
     (args, restArgs) = cmdlineArgs.parseCmdlineArgs(argList)
+    if args.pidFile:
+        pidFile.writePidFile(args.pidFile)
     if args.verbose:
         enableVerbose()
     if args.debug:

@@ -3,11 +3,13 @@
 import * as vscode from 'vscode';
 import * as process from 'process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { Uri } from 'vscode';
 
 import { getProgFlowVizCallback } from './programflow-visualization/main';
 import { initTraceCache } from './programflow-visualization/trace_cache';
+import { killPreviousRun } from './killPreviousRun';
 
 const extensionId = 'write-your-python-program';
 const python3ConfigKey = 'python3Cmd';
@@ -43,24 +45,23 @@ function showButtons() {
     });
 }
 
+// The python runner writes its process ID to this file (option --pid-file)
+function pidFileFor(cmdId: string): string {
+    return path.join(os.tmpdir(), `wypp-${process.pid}-${cmdId}.pid`);
+}
+
 async function startTerminal(
-    existing: vscode.Terminal | undefined, name: string, cmd: string, outChannel: vscode.OutputChannel
+    existing: vscode.Terminal | undefined, name: string, cmd: string, pidFile: string,
+    outChannel: vscode.OutputChannel
 ): Promise<vscode.Terminal> {
+    // Terminate a program from a previous run that is still running (including all
+    // processes it started). This also allows us to re-use the existing terminal.
+    await killPreviousRun(pidFile, (s) => outChannel.appendLine(s));
     let terminal: vscode.Terminal | undefined;
     if (existing) {
-        // We try to re-use the existing terminal. But we need to terminate a potentially
-        // running python process first. Ctrl-C discards pending (not yet submitted) input
-        // in the REPL and interrupts a running program, so "raise SystemExit" always
-        // starts on an empty line. We wait a bit after Ctrl-C because the terminal driver
-        // may discard input queued at the time of the interrupt.
-        // If there is no python process, the shell complains about "raise SystemExit",
-        // but we do not care.
         if (!existing.exitStatus) {
             outChannel.appendLine("Reusing existing terminal");
             terminal = existing;
-            terminal.sendText("\x03", false);
-            await new Promise((resolve) => setTimeout(resolve, 150));
-            terminal.sendText("raise SystemExit");
         } else {
             outChannel.appendLine("Disposing existing terminal because it's already terminated");
             existing.dispose();
@@ -257,7 +258,7 @@ async function fixPylanceConfig(
     folder?: vscode.WorkspaceFolder
 ) {
     // disable warnings about wildcard imports, set pylance's extraPaths to wypp
-    // turn typechecking off
+    // turn typechecking off, disable AI features
     // This is a quite distructive change, so we do it on first hit of the run button
     // not on-load of the plugin
     const subDir = 'python/code';
@@ -273,7 +274,7 @@ async function fixPylanceConfig(
     const noWorkspaceOpen = '__NO_WORKSPACE_OPEN__';
 
     // helper to update config and collect errors; treat "no folder open" specially
-    async function tryUpdate(key: string, value: any) {
+    async function tryUpdate(key: string, value: any, config: vscode.WorkspaceConfiguration = cfg) {
         // If target is workspace-wide and there is no workspace open at all
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -283,7 +284,7 @@ async function fixPylanceConfig(
         }
 
         try {
-            await cfg.update(key, value, target);
+            await config.update(key, value, target);
         } catch (e) {
             // If the error message explicitly mentions the workspace/folder, capture it, but prefer the proactive checks above
             const msg = e instanceof Error ? e.message : String(e);
@@ -323,6 +324,13 @@ async function fixPylanceConfig(
     const mode = cfg.get<string>(keyMode) ?? '';
     if (mode !== 'off') {
         await tryUpdate(keyMode, 'off');
+    }
+
+    // disable AI features (GitHub Copilot chat, inline suggestions, ...)
+    const chatCfg = vscode.workspace.getConfiguration('chat', folder?.uri);
+    const keyDisableAI = 'disableAIFeatures';
+    if (chatCfg.get<boolean>(keyDisableAI) !== true) {
+        await tryUpdate(keyDisableAI, true, chatCfg);
     }
 
     if (errors.length > 0) {
@@ -504,6 +512,7 @@ export async function activate(context: vscode.ExtensionContext) {
         for (const [key, termContext] of Object.entries(terminals)) {
             if (termContext.terminal === t) {
                 delete terminals[key];
+                fs.rm(pidFileFor(key), { force: true }, () => {});
                 console.log(`Terminal closed and removed from map: ${t.name} (key: ${key})`);
                 break;
             }
@@ -554,14 +563,17 @@ export async function activate(context: vscode.ExtensionContext) {
             const disableOpt = disableTypechecking(context) ? " --no-typechecking" : "";
             if (pyCmd.kind !== "error") {
                 const pythonCmd = commandListToArgument(pyCmd.cmd);
+                const pidFile = pidFileFor(cmdId);
                 const cmdTerm = await startTerminal(
                     terminals[cmdId]?.terminal,
                     "WYPP - RUN",
                     pythonCmd +  " " + fileToCommandArgument(runProg) + verboseOpt +
                         disableOpt + langOpt +
                         " --interactive " +
+                        " --pid-file " + fileToCommandArgument(pidFile) +
                         " --change-directory " +
                         fileToCommandArgument(file),
+                    pidFile,
                     outChannel
                 );
                 terminals[cmdId] = {terminal: cmdTerm, directory: path.dirname(file)};
