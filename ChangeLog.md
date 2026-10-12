@@ -1,5 +1,13 @@
 # Write Your Python Program - CHANGELOG
 
+* unreleased
+  * RUN button: a program that is still running (and all processes it started)
+    is terminated before the new run starts. Restarting now also works with
+    pending input in the interpreter, a program in an endless loop or a program
+    waiting for `input()`
+  * RUN button: disables AI features (GitHub Copilot) in the workspace settings
+    (`chat.disableAIFeatures`)
+  * Requires VS Code 1.104 or newer
 * 2.4.0 (2026-09-28)
   * Greatly improved visualizatioin
   * Python 3.14: forward references in records and functions work without
