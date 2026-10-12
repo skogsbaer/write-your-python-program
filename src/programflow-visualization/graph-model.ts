@@ -38,8 +38,6 @@ export type NodeModel = {
   /** Heap address, absent for frames. Only object nodes can be collapsed. */
   address?: Address;
   collapsed: boolean;
-  /** Shown instead of the rows while collapsed, e.g. "12 elements". */
-  summary: string;
 };
 
 export type VizGraph = {
@@ -124,13 +122,41 @@ export const keyPortId = (nodeId: string, rowIndex: number): string =>
   `${nodeId}:${rowIndex}k`;
 export const inputPortId = (nodeId: string): string => `${nodeId}:in`;
 
-/** Primitive rendering, matching html-generator.getCorrectValueOf. */
+/**
+ * A class as CPython spells it, after the tracer has stripped the module: `<class 'Creek'>`.
+ *
+ * Anchored, so it cannot match a type *expression*, which arrives under the same `type`
+ * kind: `list[int]`, `Literal['on', 'off']` and the rest never take this shape.
+ */
+const CLASS_REPR = /^<class '[^']*'>$/;
+
+/** A function as the tracer renders it, with the ` at 0x...` already removed. */
+const FUNCTION_REPR = /^<function .*>$/;
+
+/**
+ * Primitive rendering, following html-generator.getCorrectValueOf except for classes
+ * and functions.
+ *
+ * Those two are named twice over. A `def howManySections` puts the name in the key
+ * column and `<function howManySections>` in the value column beside it, and the value
+ * column is the narrow one, so the half of the row that carries no information is the
+ * half that gets the ellipsis. Dropping the name leaves `<function>`, which is all the
+ * value column has to say: *what* it is. Which one it is, is the key.
+ *
+ * Only the two exact shapes are rewritten. A `str` that happens to read `<class 'x'>`
+ * is a different kind and is left alone, and so is anything under the `type` kind that
+ * is not a bare class, since `Literal['on', 'off']` is the whole point of showing it.
+ */
 export function formatValue(value: Value): string {
   switch (value.type) {
     case "ref":
       return "";
     case "none":
       return "None";
+    case "type":
+      return CLASS_REPR.test(value.value) ? "<class>" : value.value;
+    case "function":
+      return FUNCTION_REPR.test(value.value) ? "<function>" : value.value;
     default:
       return String(value.value);
   }
@@ -147,17 +173,6 @@ function dictKeyLabel(key: Value | undefined): string {
 
 function headerOf(heapValue: HeapValue): string {
   return heapValue.type === "instance" ? heapValue.name : heapValue.type;
-}
-
-function summaryOf(heapValue: HeapValue, rowCount: number): string {
-  switch (heapValue.type) {
-    case "dict":
-      return `${rowCount} ${rowCount === 1 ? "entry" : "entries"}`;
-    case "instance":
-      return `${rowCount} ${rowCount === 1 ? "field" : "fields"}`;
-    default:
-      return `${rowCount} ${rowCount === 1 ? "element" : "elements"}`;
-  }
 }
 
 /**
@@ -290,7 +305,6 @@ export function buildGraph(
         isReturn: local.name === "return",
       })),
       collapsed: false,
-      summary: "",
     };
     models.set(id, model);
     children.push(
@@ -332,7 +346,6 @@ export function buildGraph(
       rows,
       address,
       collapsed: isCollapsed,
-      summary: summaryOf(heapValue, rows.length),
     };
     models.set(id, model);
     children.push(elkNodeFor(model));

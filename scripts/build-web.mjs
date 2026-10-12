@@ -17,6 +17,11 @@ const watch = process.argv.includes("--watch");
 // minified (see elk-task/elk-plan.md 2). Watch builds stay readable for debugging.
 const minify = !watch;
 
+// Paired with the "watching web build..." line at the bottom. The background
+// problem matcher in .vscode/tasks.json gates the extension host on these two lines,
+// so that F5 cannot launch against a half-written bundle.
+console.log("building web...");
+
 fs.mkdirSync(webOut, { recursive: true });
 
 // Bundle webview.ts -> out/.../webview.js
@@ -42,6 +47,12 @@ const adapterCtx = await esbuild.context({
 });
 
 if (watch) {
+  // Build once up front, and only then start watching. ctx.watch() resolves as soon as
+  // the watcher is in place, not when its first build has landed, so without this the
+  // "watching" line below -- which is what releases the F5 launch -- could be printed
+  // while out/ is still being written.
+  await webviewCtx.rebuild();
+  await adapterCtx.rebuild();
   await webviewCtx.watch();
   await adapterCtx.watch();
   fs.watch(webSrc, (event, filename) => {
