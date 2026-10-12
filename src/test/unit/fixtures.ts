@@ -21,6 +21,14 @@ export function none(): Value {
   return { type: 'none', value: 'None' };
 }
 
+export function pyType(value: string): Value {
+  return { type: 'type', value };
+}
+
+export function pyFunction(value: string): Value {
+  return { type: 'function', value };
+}
+
 export function local(name: string, value: Value): NamedValue {
   return { ...value, name };
 }
