@@ -1,19 +1,16 @@
 # Write Your Python Program - CHANGELOG
 
-* unreleased
-  * RUN button: a program that is still running (and all processes it started)
-    is terminated before the new run starts. Restarting now also works with
-    pending input in the interpreter, a program in an endless loop or a program
-    waiting for `input()`
-  * RUN button: disables AI features (GitHub Copilot) in the workspace settings
-    (`chat.disableAIFeatures`)
-  * Requires VS Code 1.104 or newer
+* 2.5.0 (2026-10-14)
+  * More robust termination of running interpreter when hitting RUN
+  * Disable AI features on RUN (`chat.disableAIFeatures`)
+  * Visualization fixes
+  * Require VS Code 1.104 or newer
 * 2.4.0 (2026-09-28)
   * Greatly improved visualizatioin
   * Python 3.14: forward references in records and functions work without
     `from __future__ import annotations`
   * Support for Python 3.15
-  * Fix welcome message 
+  * Fix welcome message
 * 2.3.0 (2026-04-03)
   * Use relative imports in the whole code base
 * 2.2.2 (2026-04-03)
