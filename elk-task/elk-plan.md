@@ -832,10 +832,24 @@ Each step keeps the extension working.
     arrow leaves from the row, so the row is the thing to point at.
 
     Hovering a row that has an edge leaving it now highlights that row and that edge.
-    Everything else — a row with no edge, a header, the gap between rows — keeps the old
-    whole-box behaviour. That fallback is not a special case in the code: the resolver asks
-    for the row first and returns the enclosing box when the row has no edge, so the two
-    rules are one lookup. Collapsed boxes have no rows and so are always whole boxes.
+    Rows are not all alike, though, so there are three cases and not two:
+
+    | pointing at | highlighted | edges lit |
+    | --- | --- | --- |
+    | a row with an arrow leaving it | the row | that arrow (two, if the row's key is also a reference) |
+    | any other row | the box | the box's **incoming** edges only |
+    | a header, the gap between rows, a collapsed box | the box | everything touching it |
+
+    The middle row is the one that is easy to get wrong, and did start out wrong. A row
+    that references nothing first fell through to the whole-box case, which lit the box's
+    outgoing arrows too — so pointing at `count = 3` lit every arrow leaving the frame,
+    each of which belongs to some *other* row. That is the opposite of the truth about the
+    row being pointed at. Incoming edges survive, because they are a fact about the box
+    rather than about any row in it: nothing inside the box chooses them.
+
+    A frame has no incoming edges at all (no west port, §6.1), so in practice pointing at
+    a plain variable in a frame outlines the frame and lights nothing — which is right,
+    and is what the old behaviour was hiding.
 
     Three consequences worth writing down:
 
@@ -858,6 +872,12 @@ Each step keeps the extension working.
     before the matching `mouseover`, so the handler clears only when `relatedTarget` is
     genuinely outside the box. Without it the row being moved onto is cleared again by the
     row just left.
+
+    Two things the three-case rule costs, both small. The per-node edge index is kept as
+    two maps, into and out of, instead of one merged map, since the middle case needs one
+    half of it. And "has the hover changed" can no longer compare elements: a header and
+    an edgeless row in the same box resolve to the *same* element and differ only in which
+    edges they light, so the comparison carries the case along with the element.
 
     The stationary-cursor restoration at the end of `renderGraph` (§6.3, collapsing
     re-lays out the graph under a cursor that has not moved) goes through the same
@@ -887,7 +907,7 @@ Each step keeps the extension working.
 | Auto-fit re-frames in both directions; the ratchet was measured and removed | §7.13 |
 | Canvas measured from the content's left edge; margin split into `MARGIN_X` / `MARGIN_Y` | §7.14 |
 | Classes and functions shown as `<class>` / `<function>`; type expressions keep their text | §7.15 |
-| A row with an edge leaving it is its own hover target; everything else lights the box | §7.16 |
+| Hover: a row lights its own arrow, an edgeless row the box's incoming edges, a header everything | §7.16 |
 | The frame column is not pinned to the canvas bottom; both ways of doing it cost more than the float | §7.12 |
 | Cycle breaking stays `GREEDY`; no interactive layout seeding | §4, §6.5 |
 | elkjs pre-warmed at webview init to hide ~330 ms of JIT | §6.5 |

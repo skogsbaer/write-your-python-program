@@ -156,9 +156,11 @@ export function renderGraph(
   defs.append(arrowMarker());
   svg.append(defs);
 
-  // Two indexes over the same paths: by node, for pointing at a whole box, and by the
-  // port an edge leaves from, for pointing at the single row it belongs to.
-  const edgesByNode = new Map<string, SVGPathElement[]>();
+  // Three indexes over the same paths. Into/out of a node are kept apart rather than
+  // merged, because pointing at a row inside a box wants the incoming ones only (see
+  // `hoverTarget`). By source port is the finest: the single row an arrow leaves from.
+  const edgesIntoNode = new Map<string, SVGPathElement[]>();
+  const edgesOutOfNode = new Map<string, SVGPathElement[]>();
   const edgesBySourcePort = new Map<string, SVGPathElement[]>();
   const track = (
     index: Map<string, SVGPathElement[]>,
@@ -191,8 +193,8 @@ export function renderGraph(
     path.setAttribute("class", "elk-edge");
     path.setAttribute("marker-end", "url(#elk-arrowhead)");
     svg.append(path);
-    track(edgesByNode, portToNode.get(edge.sources[0]), path);
-    track(edgesByNode, portToNode.get(edge.targets[0]), path);
+    track(edgesOutOfNode, portToNode.get(edge.sources[0]), path);
+    track(edgesIntoNode, portToNode.get(edge.targets[0]), path);
     track(edgesBySourcePort, edge.sources[0], path);
   }
   container.append(svg);
@@ -200,8 +202,16 @@ export function renderGraph(
   // Hovering highlights what the pointer is on, and fades everything else (plan 6.4).
   // One shared "what is active" state, so that a re-render can restore it without a
   // gesture.
-  let active: HTMLElement | undefined;
-  let activeEdges: SVGPathElement[] = [];
+
+  /** What a hover picks out: one element to mark, and the edges that belong to it. */
+  type Hover = {
+    element: HTMLElement;
+    /** `row` washes the row itself; both `box` kinds outline the whole box. */
+    kind: "row" | "box-incoming" | "box-all";
+    edges: SVGPathElement[];
+  };
+
+  let active: Hover | undefined;
 
   /**
    * The edges leaving one row. Two of them when the row is a dict entry whose key is a
@@ -221,49 +231,63 @@ export function renderGraph(
   };
 
   /**
-   * What the pointer at `target` picks out: the row, when an edge leaves it, and
-   * otherwise the box that row is in. Falling back to the box is what lets a row with no
-   * edge, a header and the gap between rows all keep the behaviour they had before rows
-   * were pickable at all, without a case of their own.
+   * What the pointer at `target` picks out. Three cases, narrowest first:
+   *
+   * - a row with an arrow leaving it: the row, and that arrow;
+   * - any other row: the box it sits in, but only the edges coming *into* the box. Its
+   *   outgoing edges belong to other rows, and lighting them up while the reader points
+   *   at a row that references nothing says the opposite of the truth;
+   * - anything else — a header, the gap between rows: the box and everything touching
+   *   it, which is what hovering has always done.
    */
-  const hoverTarget = (target: Element | null | undefined): HTMLElement | undefined => {
-    const row = target?.closest<HTMLElement>(`.${ROW_CLASS}`) ?? undefined;
-    if (row && container.contains(row) && edgesLeavingRow(row).length > 0) {
-      return row;
-    }
+  const hoverTarget = (target: Element | null | undefined): Hover | undefined => {
     const node = target?.closest<HTMLElement>(`.${NODE_CLASS}`) ?? undefined;
-    return node && container.contains(node) ? node : undefined;
+    if (!node || !container.contains(node)) {
+      return undefined;
+    }
+    const nodeId = node.dataset.nodeId ?? "";
+    const incoming = edgesIntoNode.get(nodeId) ?? [];
+    const row = target?.closest<HTMLElement>(`.${ROW_CLASS}`) ?? undefined;
+    if (row) {
+      const leaving = edgesLeavingRow(row);
+      return leaving.length > 0
+        ? { element: row, kind: "row", edges: leaving }
+        : { element: node, kind: "box-incoming", edges: incoming };
+    }
+    return {
+      element: node,
+      kind: "box-all",
+      edges: [...incoming, ...(edgesOutOfNode.get(nodeId) ?? [])],
+    };
   };
 
   const paint = (on: boolean) => {
-    if (active) {
-      if (active.classList.contains(ROW_CLASS)) {
-        active.classList.toggle("elk-row-active", on);
-        // The box holding a lit row must not be dimmed: opacity applies to the whole
-        // subtree, so dimming the box would take its highlighted row down with it.
-        active
-          .closest<HTMLElement>(`.${NODE_CLASS}`)
-          ?.classList.toggle("elk-row-host", on);
-      } else {
-        active.classList.toggle("elk-node-active", on);
-      }
+    if (!active) {
+      return;
     }
-    for (const path of activeEdges) {
+    if (active.kind === "row") {
+      active.element.classList.toggle("elk-row-active", on);
+      // The box holding a lit row must not be dimmed: opacity applies to the whole
+      // subtree, so dimming the box would take its highlighted row down with it.
+      active.element
+        .closest<HTMLElement>(`.${NODE_CLASS}`)
+        ?.classList.toggle("elk-row-host", on);
+    } else {
+      active.element.classList.toggle("elk-node-active", on);
+    }
+    for (const path of active.edges) {
       path.classList.toggle("elk-edge-active", on);
     }
   };
 
-  const setActive = (element: HTMLElement | undefined) => {
-    if (active === element) {
+  const setActive = (next: Hover | undefined) => {
+    // Both halves matter: a header and an edgeless row resolve to the same box and
+    // differ only in which of its edges they light.
+    if (active?.element === next?.element && active?.kind === next?.kind) {
       return;
     }
     paint(false);
-    active = element;
-    activeEdges = !element
-      ? []
-      : element.classList.contains(ROW_CLASS)
-        ? edgesLeavingRow(element)
-        : edgesByNode.get(element.dataset.nodeId ?? "") ?? [];
+    active = next;
     paint(true);
     container.classList.toggle("elk-dimming", active !== undefined);
   };
