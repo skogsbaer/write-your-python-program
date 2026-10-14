@@ -106,6 +106,8 @@ body {
   --wypp-focus: var(--vscode-focusBorder, #4d64ff);
   --wypp-edge: var(--vscode-charts-lines, #808080);
   --wypp-muted: var(--vscode-descriptionForeground, #9d9d9d);
+  /* What the nodes and edges are drawn on. VS Code puts this on the webview body. */
+  --wypp-canvas-bg: var(--vscode-editor-background, #ffffff);
 
   /* Node kinds. */
   --wypp-accent-frame: var(--vscode-descriptionForeground, #9d9d9d);
@@ -315,8 +317,23 @@ body {
 }
 
 /* A dict key that is itself a reference; the arrow leaving this cell says which. */
-.elk-key-ref {
+.elk-key-ref,
+.elk-dict .elk-value-ref {
   font-style: italic;
+}
+
+/* Only a dict pairs two program values per row, so only a dict needs its halves told
+   apart at a glance. The key column is washed in the dict's own accent -- layered over
+   the row, zebra stripe and hover wash included, which is why it is translucent -- and
+   the separator between the columns is drawn in the same colour. Both are faint enough
+   to read a value through, but they turn the key column into a block the eye can follow
+   down the node without reading any of it. */
+.elk-dict .elk-row-key {
+  background-color: color-mix(in srgb, var(--wypp-accent-dict) 12%, transparent);
+}
+
+.elk-dict .elk-row-value {
+  border-left-color: color-mix(in srgb, var(--wypp-accent-dict) 45%, transparent);
 }
 
 /* `return` rows get the current-frame accent: the legacy blue was invisible in dark
@@ -390,6 +407,28 @@ body {
   stroke-width: 2.5;
 }
 
+/* K/V badges on the edges leaving a dict row. Declared after .elk-edge-active because
+   that rule is equally specific and would otherwise paint the halo below in the focus
+   colour and at 2.5px, which swallows a 9px glyph.
+
+   The halo is the stroke, drawn under the fill via paint-order, so the badge stays
+   legible where it sits on its own edge or on a crossing. */
+.elk-edge-badge {
+  font-size: 9px;
+  font-weight: 700;
+  fill: var(--wypp-muted);
+  stroke: var(--wypp-canvas-bg);
+  stroke-width: 2.5px;
+  paint-order: stroke;
+  /* The badge is decoration on a line that is already not clickable. */
+  pointer-events: none;
+  user-select: none;
+}
+
+.elk-edge-badge.elk-edge-active {
+  fill: var(--wypp-focus);
+}
+
 /* Hovering a node fades everything it is not connected to. `.elk-row-host` is the box a
    lit row sits in: opacity applies to the whole subtree, so dimming it would drag the
    highlighted row down with it. The box is spared, but gets no outline of its own -- the
@@ -398,7 +437,8 @@ body {
   opacity: 0.45;
 }
 
-.elk-canvas.elk-dimming .elk-edge:not(.elk-edge-active) {
+.elk-canvas.elk-dimming .elk-edge:not(.elk-edge-active),
+.elk-canvas.elk-dimming .elk-edge-badge:not(.elk-edge-active) {
   opacity: 0.2;
 }
 
