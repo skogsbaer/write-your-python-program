@@ -4,7 +4,7 @@
 // the coordinates ELK computed. Edges go into one SVG overlay behind the nodes.
 import type { ElkExtendedEdge, ElkNode } from "elkjs/lib/elk-api";
 import type { NodeModel } from "../graph-model";
-import { keyPortId, rowPortId } from "../graph-model";
+import { keyPortId, parsePortId, rowPortId } from "../graph-model";
 import { headerElement, NODE_CLASS, renderNode, ROW_CLASS } from "./node-view";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -30,6 +30,20 @@ const MARGIN_X = 8;
 
 /** Room above the nodes for the "Frames" / "Objects" captions. */
 const BAND_HEIGHT = 28;
+
+/**
+ * How far along an edge its K/V badge sits, from the point where the edge leaves the
+ * node. One offset per glyph, because vertical room is what this graph has least of:
+ * ports are a third of a row height apart within a row and two thirds across the row
+ * boundary, which at any zoom is less than the glyphs are tall. Staggering the two
+ * sideways means a K and a V can never collide whatever the spacing; two badges of the
+ * same letter are a whole row apart and never do.
+ */
+const BADGE_DX_KEY = 4;
+const BADGE_DX_VALUE = 13;
+
+/** And how far above the line, so the stroke does not run through the glyph. */
+const BADGE_DY = 2;
 
 /**
  * Last seen pointer position, in client coordinates. Collapsing a node re-lays out the
@@ -85,6 +99,16 @@ function arrowMarker(): SVGMarkerElement {
   path.setAttribute("class", "elk-arrowhead");
   marker.append(path);
   return marker;
+}
+
+/** The `K`/`V` glyph sitting on an edge, just outside the dict row it leaves. */
+function edgeBadge(text: "K" | "V", x: number, y: number): SVGTextElement {
+  const label = document.createElementNS(SVG_NS, "text");
+  label.setAttribute("class", "elk-edge-badge");
+  label.setAttribute("x", `${x + (text === "K" ? BADGE_DX_KEY : BADGE_DX_VALUE)}`);
+  label.setAttribute("y", `${y - BADGE_DY}`);
+  label.textContent = text;
+  return label;
 }
 
 function band(
@@ -156,26 +180,43 @@ export function renderGraph(
   defs.append(arrowMarker());
   svg.append(defs);
 
-  // Three indexes over the same paths. Into/out of a node are kept apart rather than
-  // merged, because pointing at a row inside a box wants the incoming ones only (see
+  // Three indexes over the same edge elements. Into/out of a node are kept apart rather
+  // than merged, because pointing at a row inside a box wants the incoming ones only (see
   // `hoverTarget`). By source port is the finest: the single row an arrow leaves from.
-  const edgesIntoNode = new Map<string, SVGPathElement[]>();
-  const edgesOutOfNode = new Map<string, SVGPathElement[]>();
-  const edgesBySourcePort = new Map<string, SVGPathElement[]>();
+  //
+  // An edge is a path plus, on dict rows, its K/V badge. Both go into every index, so
+  // the badge lights up and dims with the line it belongs to.
+  const edgesIntoNode = new Map<string, SVGElement[]>();
+  const edgesOutOfNode = new Map<string, SVGElement[]>();
+  const edgesBySourcePort = new Map<string, SVGElement[]>();
   const track = (
-    index: Map<string, SVGPathElement[]>,
+    index: Map<string, SVGElement[]>,
     key: string | undefined,
-    path: SVGPathElement
+    parts: SVGElement[]
   ) => {
     if (!key) {
       return;
     }
     const list = index.get(key);
     if (list) {
-      list.push(path);
+      list.push(...parts);
     } else {
-      index.set(key, [path]);
+      index.set(key, [...parts]);
     }
+  };
+
+  /**
+   * `K` or `V` for an edge leaving a dict row, undefined everywhere else.
+   *
+   * Only dicts pair two things per row, so only dicts leave a reader asking which half
+   * an arrow came from; labelling every edge in the graph would be noise.
+   */
+  const badgeTextFor = (sourcePortId: string): "K" | "V" | undefined => {
+    const port = parsePortId(sourcePortId);
+    if (!port || models.get(port.nodeId)?.kind !== "dict") {
+      return undefined;
+    }
+    return port.isKey ? "K" : "V";
   };
 
   for (const edge of (laidOut.edges ?? []) as ElkExtendedEdge[]) {
@@ -193,9 +234,18 @@ export function renderGraph(
     path.setAttribute("class", "elk-edge");
     path.setAttribute("marker-end", "url(#elk-arrowhead)");
     svg.append(path);
-    track(edgesOutOfNode, portToNode.get(edge.sources[0]), path);
-    track(edgesIntoNode, portToNode.get(edge.targets[0]), path);
-    track(edgesBySourcePort, edge.sources[0], path);
+
+    const parts: SVGElement[] = [path];
+    const text = badgeTextFor(edge.sources[0]);
+    if (text) {
+      const badge = edgeBadge(text, points[0].x + offsetX, points[0].y + offsetY);
+      svg.append(badge);
+      parts.push(badge);
+    }
+
+    track(edgesOutOfNode, portToNode.get(edge.sources[0]), parts);
+    track(edgesIntoNode, portToNode.get(edge.targets[0]), parts);
+    track(edgesBySourcePort, edge.sources[0], parts);
   }
   container.append(svg);
 
@@ -208,7 +258,7 @@ export function renderGraph(
     element: HTMLElement;
     /** `row` washes the row itself; both `box` kinds outline the whole box. */
     kind: "row" | "box-incoming" | "box-all";
-    edges: SVGPathElement[];
+    edges: SVGElement[];
   };
 
   let active: Hover | undefined;
@@ -218,7 +268,7 @@ export function renderGraph(
    * reference: that row owns a second port, and both arrows leave the row being pointed
    * at, so both belong to it.
    */
-  const edgesLeavingRow = (row: HTMLElement): SVGPathElement[] => {
+  const edgesLeavingRow = (row: HTMLElement): SVGElement[] => {
     const nodeId = row.closest<HTMLElement>(`.${NODE_CLASS}`)?.dataset.nodeId;
     const index = Number(row.dataset.rowIndex);
     if (nodeId === undefined || !Number.isInteger(index)) {
