@@ -42,6 +42,8 @@ def parseCmdlineArgs(argList):
                         help='Do not check type annotations')
     parser.add_argument('--repl', action='extend', type=str, nargs='+', default=[], dest='repls',
                         help='Run repl tests in the file given')
+    parser.add_argument('--pid-file', dest='pidFile', type=str,
+                        help='Write the process ID to this file while running')
     parser.add_argument('file', metavar='FILE',
                         help='The file to run', nargs='?')
     if argList is None:
