@@ -26,6 +26,7 @@ function renderRow(row: RowModel): HTMLElement {
   const value = div("elk-row-value", row.value);
   if (row.ref !== undefined) {
     element.classList.add("elk-row-ref");
+    value.classList.add("elk-value-ref");
   }
   if (row.keyRef !== undefined) {
     key.classList.add("elk-key-ref");

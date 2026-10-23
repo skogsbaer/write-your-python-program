@@ -123,6 +123,23 @@ export const keyPortId = (nodeId: string, rowIndex: number): string =>
 export const inputPortId = (nodeId: string): string => `${nodeId}:in`;
 
 /**
+ * Greedy prefix on purpose: a node id contains a colon of its own (`obj:7`), so the
+ * row index is the *last* segment, not the second.
+ */
+const OUTPUT_PORT_ID = /^(.*):(\d+)(k?)$/;
+
+export type PortRef = { nodeId: string; rowIndex: number; isKey: boolean };
+
+/** Inverse of rowPortId/keyPortId. Input ports (`:in`) yield undefined. */
+export function parsePortId(portId: string): PortRef | undefined {
+  const match = OUTPUT_PORT_ID.exec(portId);
+  if (!match) {
+    return undefined;
+  }
+  return { nodeId: match[1], rowIndex: Number(match[2]), isKey: match[3] === "k" };
+}
+
+/**
  * A class as CPython spells it, after the tracer has stripped the module: `<class 'Creek'>`.
  *
  * Anchored, so it cannot match a type *expression*, which arrives under the same `type`
@@ -171,6 +188,16 @@ function dictKeyLabel(key: Value | undefined): string {
   return key.type === "ref" ? "[key]" : formatValue(key);
 }
 
+/**
+ * The same bracket on the other side of a dict row. Elsewhere a reference value may
+ * leave its cell blank -- the key column already names it -- but in a dict both halves
+ * can be references at once, and a row reading `[key] |` makes the empty half look like
+ * the row has nothing in it rather than like the other end of the same pair.
+ */
+function dictValueLabel(value: Value): string {
+  return value.type === "ref" ? "[value]" : formatValue(value);
+}
+
 function headerOf(heapValue: HeapValue): string {
   return heapValue.type === "instance" ? heapValue.name : heapValue.type;
 }
@@ -189,7 +216,7 @@ export function rowsOfHeapValue(heapValue: HeapValue): RowModel[] {
         const key = keys[slot];
         return {
           key: dictKeyLabel(key),
-          value: formatValue(value),
+          value: dictValueLabel(value),
           ref: value.type === "ref" ? value.value : undefined,
           keyRef: key?.type === "ref" ? key.value : undefined,
         };
