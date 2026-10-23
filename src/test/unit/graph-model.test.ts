@@ -10,6 +10,7 @@ import {
   inputPortId,
   keyPortId,
   objectNodeId,
+  parsePortId,
   rowPortId,
   rowsOfHeapValue,
 } from '../../programflow-visualization/graph-model';
@@ -195,6 +196,13 @@ suite('graph-model: rows', () => {
     assert.deepStrictEqual(rows[1], { key: 'plain', value: '1', ref: undefined, keyRef: undefined });
   });
 
+  test('a dict value that is a reference is labelled [value], unlike one in a list', () => {
+    const rows = rowsOfHeapValue(dict([[str('xs'), ref(4)], [ref(8), ref(9)]]));
+    assert.deepStrictEqual(rows[0], { key: 'xs', value: '[value]', ref: 4, keyRef: undefined });
+    assert.deepStrictEqual(rows[1], { key: '[key]', value: '[value]', ref: 9, keyRef: 8 });
+    assert.strictEqual(rowsOfHeapValue(list(ref(4)))[0].value, '');
+  });
+
   test('a local named return is flagged for highlighting', () => {
     const elem = step([frame('f', [local('x', int(1)), local('return', int(9))])], {});
     const rows = model(build(elem), frameNodeId(0)).rows;
@@ -258,6 +266,26 @@ suite('graph-model: ports and edges', () => {
       keyPortId(objectNodeId(1), 0),
       rowPortId(objectNodeId(1), 0),
     ]);
+  });
+
+  test('parsePortId inverts the row and key port ids, and rejects input ports', () => {
+    const id = objectNodeId(7);
+    assert.deepStrictEqual(parsePortId(rowPortId(id, 12)), {
+      nodeId: id,
+      rowIndex: 12,
+      isKey: false,
+    });
+    assert.deepStrictEqual(parsePortId(keyPortId(id, 12)), {
+      nodeId: id,
+      rowIndex: 12,
+      isKey: true,
+    });
+    assert.deepStrictEqual(parsePortId(rowPortId(frameNodeId(3), 0)), {
+      nodeId: frameNodeId(3),
+      rowIndex: 0,
+      isKey: false,
+    });
+    assert.strictEqual(parsePortId(inputPortId(id)), undefined);
   });
 
   test('edges leave the referencing row and land on the input port of the target', () => {
