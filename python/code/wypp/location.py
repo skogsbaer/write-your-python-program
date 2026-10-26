@@ -82,6 +82,9 @@ class Loc:
     startCol: Optional[int]
     endLine: Optional[int]
     endCol: Optional[int]
+    # Range of lines (inclusive) shown around the location when rendering it. For example,
+    # the location of a record attribute is shown together with the whole record.
+    contextLines: Optional[tuple[int, int]] = None
 
     def __post_init__(self):
         self.filename = paths.canonicalizePath(self.filename)
@@ -156,11 +159,11 @@ class SourceLine:
         else:
             return self.line.decoded()
 
-def highlightedLines(loc: Loc) -> list[SourceLine]:
+def highlightedLines(loc: Loc, withContext: bool = True) -> list[SourceLine]:
     match loc.fullSpan():
         case None:
             line = getline(loc.filename, loc.startLine)
-            return [SourceLine(line, None)]
+            result = [SourceLine(line, None)]
         case (startLine, startCol, endLine, endCol):
             result = []
             for lineNo in range(startLine, startLine+1):
@@ -169,6 +172,14 @@ def highlightedLines(loc: Loc) -> list[SourceLine]:
                 c1 = startCol if lineNo == startLine else leadingSpaces
                 c2 = endCol if lineNo == endLine else len(line)
                 result.append(SourceLine(line, (c1, c2)))
+    match loc.contextLines:
+        case (first, last) if withContext:
+            def plain(lineNos: range) -> list[SourceLine]:
+                return [SourceLine(getline(loc.filename, n), None) for n in lineNos]
+            before = plain(range(first, loc.startLine))
+            after = plain(range(loc.startLine + len(result), last + 1))
+            return before + result + after
+        case _:
             return result
 
 @dataclass
@@ -324,7 +335,8 @@ class RecordConstructorInfo(CallableInfo):
         ast = parsecache.getAST(file)
         node = ast.getRecordAttr(self.name, paramName)
         if node:
-            return Loc(file, node.lineno, node.col_offset, node.end_lineno, node.end_col_offset)
+            return Loc(file, node.lineno, node.col_offset, node.end_lineno, node.end_col_offset,
+                       contextLines=ast.getRecordLineRange(self.name))
         else:
             return None
     @property

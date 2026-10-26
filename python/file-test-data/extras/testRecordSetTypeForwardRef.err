@@ -16,4 +16,6 @@ Das Attribut kann nicht auf einen Wert vom Typ `str` gesetzt werden.
 
 ## Typ deklariert in Zeile 8:
 
+@record(mutable=True)
+class Record:
     [0;31m[1mx: A[0;0m

@@ -10,4 +10,7 @@ But the default value has type `str`.
 ## File file-test-data/basics/optionalAttr.py
 ## Parameter declared in line 6:
 
+@record
+class C:
+    x: int
     [0;31m[1my: int = 'foo'[0;0m

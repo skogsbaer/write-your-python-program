@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/forwardRefs5.py", line 14, in <module>
+    peter = Papagei('superschwer', 'oh not, not again')
+
+WyppTypeError: 'superschwer'
+
+The call of the constructor of record `Papagei` expects value of type `Gewichtsklasse` as 1st argument.
+But the value given has type `str`.
+
+## File file-test-data/basics/forwardRefs5.py
+## Problematic call in line 14:
+
+peter = Papagei([0;31m[1m'superschwer'[0;0m, 'oh not, not again')
+
+## Type declared in line 8:
+
+@record
+class Papagei:
+    [0;31m[1mgewichtsklasse: Gewichtsklasse[0;0m
+    satz: str

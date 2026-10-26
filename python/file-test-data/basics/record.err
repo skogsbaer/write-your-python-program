@@ -10,8 +10,11 @@ Aber der übergebene Wert hat den Typ `str`.
 ## Datei file-test-data/basics/record.py
 ## Fehlerhafter Aufruf in Zeile 8:
 
-p = [0;31m[1mPerson("Alice", "30")[0;0m
+p = Person("Alice", [0;31m[1m"30"[0;0m)
 
 ## Typ deklariert in Zeile 6:
 
+@record
+class Person:
+    name: str
     [0;31m[1mage: int[0;0m

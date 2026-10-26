@@ -23,10 +23,20 @@ class MatchesTyFailure:
 
 type MatchesTyResult = bool | MatchesTyFailure
 
-def matchesTy(a: Any, ty: Any, ns: Namespaces) -> MatchesTyResult:
+def matchesTy(a: Any, ty: Any, ns: Namespaces,
+              ignoreUnresolvedForwardRefs: bool = False) -> MatchesTyResult:
+    # Since python 3.14, annotations may contain ForwardRef objects (see utils.getAnnotations).
+    # If such a ForwardRef cannot be resolved (e.g. because the type is defined after its
+    # first use), we want an error, not just a warning. For checks performed at definition time,
+    # the type might legitimately be defined later, so these checks can ignore such ForwardRefs.
+    if ignoreUnresolvedForwardRefs:
+        policy = typeguard.ForwardRefPolicy.IGNORE
+    else:
+        policy = typeguard.ForwardRefPolicy.ERROR
     try:
         typeguard.check_type(a,
                              ty,
+                             forward_ref_policy=policy,
                              collection_check_strategy=typeguard.CollectionCheckStrategy.ALL_ITEMS,
                              ns=(ns.globals, ns.locals))
         return True

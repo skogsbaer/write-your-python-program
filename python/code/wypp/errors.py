@@ -11,8 +11,8 @@ class WyppError(abc.ABC):
     def __init__(self, extraFrames: list[inspect.FrameInfo] = []):
         self.extraFrames = extraFrames[:]
 
-def renderLoc(loc: location.Loc) -> str:
-    s = '\n'.join([l.highlight() for l in location.highlightedLines(loc)])
+def renderLoc(loc: location.Loc, withContext: bool = True) -> str:
+    s = '\n'.join([l.highlight() for l in location.highlightedLines(loc, withContext)])
     return s.rstrip()
 
 def renderStr(s: str, quote: str):
@@ -21,7 +21,8 @@ def renderStr(s: str, quote: str):
 
 def renderGiven(givenValue: Any, givenLoc: Optional[location.Loc]) -> str:
     if type(givenValue) == str and givenLoc is not None:
-        code = renderLoc(givenLoc)
+        # Only the code at the location itself determines the quotes
+        code = renderLoc(givenLoc, withContext=False)
         single = renderStr(givenValue, "'")
         double = renderStr(givenValue, '"')
         if double in code and single not in code:
