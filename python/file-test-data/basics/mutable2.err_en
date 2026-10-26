@@ -10,7 +10,7 @@ But the value given has type `str`.
 ## File file-test-data/basics/mutable2.py
 ## Problematic call in line 8:
 
-p = [0;31m[1mPoint(1, '2')[0;0m
+p = Point(1, [0;31m[1m'2'[0;0m)
 
 ## Type declared in line 6:
 

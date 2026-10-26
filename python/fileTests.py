@@ -14,6 +14,7 @@ directories = [Path("file-test-data/basics"),
 
 special = {
     'file-test-data/basics/recursive_ok.py': pythonMinVersion(3, 14),
+    'file-test-data/basics/forwardRefs3_ok.py': pythonMinVersion(3, 14),
     'file-test-data/basics/recursive_old_fail.py': pythonMaxVersion(3, 13)
     }
 

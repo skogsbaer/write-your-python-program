@@ -18,7 +18,7 @@ Aber der übergebene Wert hat den Typ `File`.
 ## Datei file-test-data/extras/testTypesProtos6.py
 ## Fehlerhafter Aufruf in Zeile 30:
 
-        [0;31m[1mvisitor.visitFile(self)[0;0m
+        visitor.visitFile([0;31m[1mself[0;0m)
 
 ## Typ deklariert in Zeile 44:
 

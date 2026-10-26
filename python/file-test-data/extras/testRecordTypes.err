@@ -10,7 +10,7 @@ Aber der übergebene Wert hat den Typ `str`.
 ## Datei file-test-data/extras/testRecordTypes.py
 ## Fehlerhafter Aufruf in Zeile 8:
 
-p = [0;31m[1mPoint(1, '5')[0;0m
+p = Point(1, [0;31m[1m'5'[0;0m)
 
 ## Typ deklariert in Zeile 6:
 

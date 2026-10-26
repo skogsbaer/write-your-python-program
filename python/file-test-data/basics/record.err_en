@@ -10,7 +10,7 @@ But the value given has type `str`.
 ## File file-test-data/basics/record.py
 ## Problematic call in line 8:
 
-p = [0;31m[1mPerson("Alice", "30")[0;0m
+p = Person("Alice", [0;31m[1m"30"[0;0m)
 
 ## Type declared in line 6:
 
