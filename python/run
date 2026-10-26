@@ -11,6 +11,8 @@ OPTS="--quiet"
 # For profiling, uncomment the line below
 # PROF="-m cProfile -o profile.out"
 
+# echo "Python interpreter: $PY"
+
 $PY $PROF "$SCRIPT_DIR"/code/wypp/runYourProgram.py \
     --no-clear $OPTS "$@"
 exit $?

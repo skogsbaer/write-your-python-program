@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/forwardRefs5.py", line 14, in <module>
+    peter = Papagei('superschwer', 'oh not, not again')
+
+WyppTypeError: 'superschwer'
+
+Der Aufruf des Konstruktors des Records `Papagei` erwartet einen Wert vom Typ `Gewichtsklasse` als erstes Argument.
+Aber der übergebene Wert hat den Typ `str`.
+
+## Datei file-test-data/basics/forwardRefs5.py
+## Fehlerhafter Aufruf in Zeile 14:
+
+peter = Papagei([0;31m[1m'superschwer'[0;0m, 'oh not, not again')
+
+## Typ deklariert in Zeile 8:
+
+    [0;31m[1mgewichtsklasse: Gewichtsklasse[0;0m

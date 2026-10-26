@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/forwardRefs2.py", line 11, in <module>
+    paula = Papagei('mittel', "Let's go to the punkrock show")
+
+WyppTypeError: invalid type `Gewichtsklasse`
+
+## File file-test-data/basics/forwardRefs2.py
+## Type declared in line 8:
+
+    [0;31m[1mgewichtsklasse: Gewichtsklasse[0;0m

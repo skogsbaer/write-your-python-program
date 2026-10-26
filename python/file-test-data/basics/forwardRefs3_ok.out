@@ -1,0 +1,4 @@
+Bar(x=1, other=None)
+Bar(x=1, other=Baz(y=2))
+1
+1
