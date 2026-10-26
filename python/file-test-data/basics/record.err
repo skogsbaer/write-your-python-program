@@ -14,4 +14,7 @@ p = Person("Alice", [0;31m[1m"30"[0;0m)
 
 ## Typ deklariert in Zeile 6:
 
+@record
+class Person:
+    name: str
     [0;31m[1mage: int[0;0m

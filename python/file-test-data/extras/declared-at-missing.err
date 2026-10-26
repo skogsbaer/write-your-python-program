@@ -13,4 +13,8 @@ semester1_2020 = Semester('AKI', '1. Semester 2020/21', [0;31m[1m(prog1, )[0;
 
 ## Typ deklariert in Zeile 19:
 
+@record
+class Semester:
+    degreeProgram: str
+    semester: str
     [0;31m[1mcourses: tuple[CourseM, ...][0;0m

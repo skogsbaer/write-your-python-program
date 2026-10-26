@@ -7,4 +7,7 @@ WyppTypeError: ungültiger Typ `Gewichtsklasse`
 ## Datei file-test-data/basics/forwardRefs2.py
 ## Typ deklariert in Zeile 8:
 
+@record
+class Papagei:
     [0;31m[1mgewichtsklasse: Gewichtsklasse[0;0m
+    satz: str

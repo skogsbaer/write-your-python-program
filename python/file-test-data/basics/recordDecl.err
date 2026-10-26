@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/recordDecl.py", line 15, in <module>
+    c.count = 'eins'
+
+WyppTypeError: 'eins'
+
+Attribut `count` des Records `Counter` deklariert als Typ `int`.
+Das Attribut kann nicht auf einen Wert vom Typ `str` gesetzt werden.
+
+## Datei file-test-data/basics/recordDecl.py
+## Fehlerhafte Zuweisung in Zeile 15:
+
+c.count = 'eins'
+
+## Typ deklariert in Zeile 7:
+
+@record(mutable=True)
+class Counter:
+    # Name des Zählers
+    name: str
+    [0;31m[1mcount: int[0;0m

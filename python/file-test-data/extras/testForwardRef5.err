@@ -13,4 +13,6 @@ garage = Garage(cars=[0;31m[1m[Car(color='red'), "Not A Car"][0;0m)
 
 ## Typ deklariert in Zeile 11:
 
+@record
+class Garage:
     [0;31m[1mcars: list['Car'][0;0m

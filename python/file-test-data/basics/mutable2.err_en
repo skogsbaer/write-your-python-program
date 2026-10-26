@@ -14,4 +14,7 @@ p = Point(1, [0;31m[1m'2'[0;0m)
 
 ## Type declared in line 6:
 
+@record(mutable=True)
+class Point:
+    x: int
     [0;31m[1my: int[0;0m

@@ -14,4 +14,7 @@ peter = Papagei([0;31m[1m'superschwer'[0;0m, 'oh not, not again')
 
 ## Typ deklariert in Zeile 8:
 
+@record
+class Papagei:
     [0;31m[1mgewichtsklasse: Gewichtsklasse[0;0m
+    satz: str

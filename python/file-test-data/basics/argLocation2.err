@@ -14,4 +14,8 @@ p = Point(1, z=3, y=[0;31m[1m'zwei'[0;0m)
 
 ## Typ deklariert in Zeile 6:
 
+@record
+class Point:
+    x: int
     [0;31m[1my: int[0;0m
+    z: int
