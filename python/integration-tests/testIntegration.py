@@ -49,9 +49,21 @@ class StudentSubmissionTests(unittest.TestCase):
 
     def test_badSubmission(self):
         self.check("integration-test-data/student-submission-bad.py",
-                   "integration-test-data/student-submission-tests.py", 1)
+                   "integration-test-data/student-submission-tests.py", 3)
         self.check("integration-test-data/student-submission-bad.py",
-                   "integration-test-data/student-submission-tests.py", 1, tycheck=False)
+                   "integration-test-data/student-submission-tests.py", 3, tycheck=False)
+
+    def test_testFileWithException(self):
+        self.check("integration-test-data/student-submission.py",
+                   "integration-test-data/student-submission-tests-exception.py", 1)
+        self.check("integration-test-data/student-submission.py",
+                   "integration-test-data/student-submission-tests-exception.py", 1, tycheck=False)
+
+    def test_crashWithInteractive(self):
+        # With --interactive, a crash while loading does not exit right away
+        res = runWithFlags('integration-test-data/student-submission-crash.py',
+                           ['--check', '--interactive'], onError='ignore')
+        self.assertEqual(1, res.exitcode)
 
     def test_submissionWithTypeErrors(self):
         self.check("integration-test-data/student-submission-tyerror.py",

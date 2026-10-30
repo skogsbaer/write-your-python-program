@@ -1,6 +1,10 @@
 # Write Your Python Program - CHANGELOG
 
 * unreleased
+  * `--check` exits with code 3 (instead of 1) if everything ran but at least one
+    check failed. Exit code 1 now only means that an exception escaped while
+    loading the file or running the test file, so a single run with `--check`
+    tells a crash from failing tests
   * Fix: the tests in the file given by `--test-file` ran twice, so each test was
     counted twice and each failure was reported twice
 

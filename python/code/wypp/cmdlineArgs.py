@@ -12,7 +12,13 @@ def parseCmdlineArgs(argList):
                         help='Abort with exit code 1 if loading the file raises errors')
     parser.add_argument('--check', dest='check', action='store_const',
                         const=True, default=False,
-                        help='Abort with exit code 1 if there are test errors.')
+                        help='Exit after running the checks (including those of --test-file).\n' \
+                            'Exit codes:\n' \
+                            '  0: the file loaded and all checks passed (or there are none)\n' \
+                            '  1: an exception escaped while loading the file or running\n' \
+                            '     the test file\n' \
+                            f'  {utils.EXIT_CODE_FAILING_CHECKS}: everything ran, but at least one check failed\n' \
+                            'If the program calls sys.exit(n), the exit code is n.')
     parser.add_argument('--verbose', dest='verbose', action='store_const',
                         const=True, default=False,
                         help='Be verbose')
