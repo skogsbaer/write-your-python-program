@@ -1,5 +1,15 @@
 # Write Your Python Program - CHANGELOG
 
+* 2.5.2 (2026-10-30)
+  * `--check` exits with code 3 (instead of 1) if everything ran but at least one
+    check failed. Exit code 1 now only means that an exception escaped while
+    loading the file or running the test file, so a single run with `--check`
+    tells a crash from failing tests
+* 2.5.1 (2026-10-26)
+  * Fixes for forward type references
+  * Fixes for highlighting in errors
+  * Error messages referring to the type of a record attribute show the whole record
+  * Improve visualization
 * 2.5.0 (2026-10-14)
   * More robust termination of running interpreter when hitting RUN
   * Disable AI features on RUN (`chat.disableAIFeatures`)

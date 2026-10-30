@@ -49,9 +49,21 @@ class StudentSubmissionTests(unittest.TestCase):
 
     def test_badSubmission(self):
         self.check("integration-test-data/student-submission-bad.py",
-                   "integration-test-data/student-submission-tests.py", 1)
+                   "integration-test-data/student-submission-tests.py", 3)
         self.check("integration-test-data/student-submission-bad.py",
-                   "integration-test-data/student-submission-tests.py", 1, tycheck=False)
+                   "integration-test-data/student-submission-tests.py", 3, tycheck=False)
+
+    def test_testFileWithException(self):
+        self.check("integration-test-data/student-submission.py",
+                   "integration-test-data/student-submission-tests-exception.py", 1)
+        self.check("integration-test-data/student-submission.py",
+                   "integration-test-data/student-submission-tests-exception.py", 1, tycheck=False)
+
+    def test_crashWithInteractive(self):
+        # With --interactive, a crash while loading does not exit right away
+        res = runWithFlags('integration-test-data/student-submission-crash.py',
+                           ['--check', '--interactive'], onError='ignore')
+        self.assertEqual(1, res.exitcode)
 
     def test_submissionWithTypeErrors(self):
         self.check("integration-test-data/student-submission-tyerror.py",
@@ -62,6 +74,13 @@ class StudentSubmissionTests(unittest.TestCase):
                    "integration-test-data/student-submission-tests-tyerror.py", 1)
         self.check("integration-test-data/student-submission.py",
                    "integration-test-data/student-submission-tests-tyerror.py", 0, tycheck=False)
+
+    def test_tutorTestsRunOnce(self):
+        flags = ['--check', '--lang', 'en', '--test-file',
+                 'integration-test-data/student-submission-tests-one-failing.py']
+        res = runWithFlags('integration-test-data/student-submission.py', flags, onError='ignore')
+        self.assertIn('Tutor:  3 tests, 1 error', res.stdout)
+        self.assertEqual(1, res.stdout.count('Expected 3, but the result is 2'))
 
 class InteractiveTests(unittest.TestCase):
 

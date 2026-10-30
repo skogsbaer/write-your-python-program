@@ -1,0 +1,2 @@
+FEHLER in Datei file-test-data/extras/testCheckExitCodeFailing.py, Zeile 8: Erwartet wird 41, aber das Ergebnis ist 42
+2 Tests, 1 Fehler 🙁

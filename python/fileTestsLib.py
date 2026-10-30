@@ -486,6 +486,8 @@ def record(testFile: str):
     baseFile = os.path.splitext(testFile)[0]
     exitCode = guessExitCode(testFile)
     cfg = readWyppTestConfig(testFile)
+    if cfg.exitCode is not None:
+        exitCode = cfg.exitCode
     typecheck = cfg.typecheck
     if typecheck == 'both':
         typecheck = True

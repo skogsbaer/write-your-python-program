@@ -114,7 +114,6 @@ def runTestsInFile(testFile, globals, libDefs, doTypecheck=True, extraDirs=[]):
     printStderr()
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
-    runCode(testFile, globals, doTypecheck=doTypecheck, extraDirs=extraDirs)
     try:
         runCode(testFile, globals, doTypecheck=doTypecheck, extraDirs=extraDirs)
     except:
@@ -134,5 +133,8 @@ def performChecks(check, testFile, globals, libDefs, doTypecheck=True, extraDirs
             with RunSetup(testDir):
                 testResultsInstr = runTestsInFile(testFile, globals, libDefs, doTypecheck=doTypecheck,
                                                   extraDirs=extraDirs)
+        if loadingFailed:
+            # Only reached with --interactive, otherwise loading errors exit immediately
+            utils.die(1)
         failingSum = testResultsStudent['failing'] + testResultsInstr['failing']
-        utils.die(0 if failingSum < 1 else 1)
+        utils.die(0 if failingSum < 1 else utils.EXIT_CODE_FAILING_CHECKS)
