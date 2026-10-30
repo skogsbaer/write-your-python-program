@@ -114,7 +114,6 @@ def runTestsInFile(testFile, globals, libDefs, doTypecheck=True, extraDirs=[]):
     printStderr()
     printStderr(f"Running tutor's tests in {testFile}")
     libDefs.resetTestCount()
-    runCode(testFile, globals, doTypecheck=doTypecheck, extraDirs=extraDirs)
     try:
         runCode(testFile, globals, doTypecheck=doTypecheck, extraDirs=extraDirs)
     except:

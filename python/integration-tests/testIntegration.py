@@ -63,6 +63,13 @@ class StudentSubmissionTests(unittest.TestCase):
         self.check("integration-test-data/student-submission.py",
                    "integration-test-data/student-submission-tests-tyerror.py", 0, tycheck=False)
 
+    def test_tutorTestsRunOnce(self):
+        flags = ['--check', '--lang', 'en', '--test-file',
+                 'integration-test-data/student-submission-tests-one-failing.py']
+        res = runWithFlags('integration-test-data/student-submission.py', flags, onError='ignore')
+        self.assertIn('Tutor:  3 tests, 1 error', res.stdout)
+        self.assertEqual(1, res.stdout.count('Expected 3, but the result is 2'))
+
 class InteractiveTests(unittest.TestCase):
 
     def test_scopeBugPeter(self):

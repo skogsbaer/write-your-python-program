@@ -1,5 +1,9 @@
 # Write Your Python Program - CHANGELOG
 
+* unreleased
+  * Fix: the tests in the file given by `--test-file` ran twice, so each test was
+    counted twice and each failure was reported twice
+
 * 2.5.1 (2026-10-26)
   * Fixes for forward type references
   * Fixes for highlighting in errors
