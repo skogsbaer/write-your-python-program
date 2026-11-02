@@ -357,9 +357,19 @@ body {
   background-image: linear-gradient(var(--wypp-frame-bg), var(--wypp-frame-bg));
 }
 
-.elk-frame .elk-node-header,
-.elk-current-frame .elk-node-header {
+.elk-frame .elk-node-header {
   background-color: var(--wypp-frame-header-bg);
+}
+
+/* The current frame's header gets its own, stronger tint -- rather than sharing the
+   wash every frame gets -- so the stack's one active frame reads as different at a
+   glance, not just differently outlined (plan 6.4). */
+.elk-current-frame .elk-node-header {
+  background-color: color-mix(
+    in srgb,
+    var(--wypp-accent-current-frame) 32%,
+    var(--wypp-frame-header-bg)
+  );
 }
 
 .elk-frame {
@@ -368,6 +378,17 @@ body {
 
 .elk-current-frame {
   border-left-color: var(--wypp-accent-current-frame);
+  /* Wider than the 4px every other node gets, on top of the colour difference: the
+     stack has exactly one current frame, and it is worth a second cue. */
+  border-left-width: 6px;
+}
+
+/* The small triangle in the current frame's header, echoing the arrow a debugger
+   points at the active stack frame with. */
+.elk-current-frame-marker {
+  flex: 0 0 auto;
+  color: var(--wypp-accent-current-frame);
+  font-size: 9px;
 }
 
 /* One accent per heap type, so kind is readable at a glance and at small zoom
