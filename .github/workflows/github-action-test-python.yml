@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       # Run all versions to the end, even if one of them fails
       fail-fast: false
