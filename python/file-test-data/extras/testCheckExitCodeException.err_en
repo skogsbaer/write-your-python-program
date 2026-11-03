@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "file-test-data/extras/testCheckExitCodeException.py", line 9, in <module>
+    raise ValueError('something went wrong')
+ValueError: something went wrong

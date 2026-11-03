@@ -34,7 +34,7 @@ Python (run from `python/`; needs Python 3.12–3.15):
 ./allTestsForPyVersion                     # unit + integration + file tests
 ./allTestsForPyVersion --unit tests/test_record.py
 python3 fileTests.py --only file-test-data/basics/foo.py
-python3 fileTests.py --record file-test-data/basics/foo.py [--lang en]
+python3 fileTestsLib.py --record file-test-data/basics/foo.py [--lang en]  # asks y/n: pipe `echo y |`
 ./run somefile.py                          # run a file with wypp
 python3 ../pytrace-generator/test/runTests.py
 ```

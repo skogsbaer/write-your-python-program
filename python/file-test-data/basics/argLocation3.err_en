@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/argLocation3.py", line 5, in <module>
+    z = foo(y=2, x='eins')
+
+WyppTypeError: 'eins'
+
+The call of function `foo` expects value of type `int` as argument `x`.
+But the value given has type `str`.
+
+## File file-test-data/basics/argLocation3.py
+## Problematic call in line 5:
+
+z = foo(y=2, x=[0;31m[1m'eins'[0;0m)
+
+## Type declared in line 1:
+
+def foo([0;31m[1mx: int[0;0m, y: int) -> int:

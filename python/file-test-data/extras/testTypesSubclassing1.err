@@ -12,7 +12,7 @@ Aber der übergebene Wert hat den Typ `AnimalFood`.
 ## Datei file-test-data/extras/testTypesSubclassing1.py
 ## Fehlerhafter Aufruf in Zeile 26:
 
-    [0;31m[1ma.feed(AnimalFood('some cat food'))[0;0m
+    a.feed([0;31m[1mAnimalFood('some cat food')[0;0m)
 
 ## Typ deklariert in Zeile 22:
 

@@ -12,7 +12,7 @@ Aber der übergebene Wert hat den Typ `float`.
 ## Datei file-test-data/extras/testTypesProtos1.py
 ## Fehlerhafter Aufruf in Zeile 19:
 
-    print([0;31m[1ma.makeSound(3.14)[0;0m)
+    print(a.makeSound([0;31m[1m3.14[0;0m))
 
 ## Typ deklariert in Zeile 13:
 

@@ -14,4 +14,6 @@ Point3D(1,2, "foo")
 
 ## Typ deklariert in Zeile 11:
 
+@record
+class Point3D(Point2D):
     [0;31m[1mz: int[0;0m

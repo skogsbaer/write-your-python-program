@@ -10,7 +10,7 @@ Aber der übergebene Wert hat den Typ `str`.
 ## Datei file-test-data/basics/constructor.py
 ## Fehlerhafter Aufruf in Zeile 5:
 
-c = [0;31m[1mC("1")[0;0m
+c = C([0;31m[1m"1"[0;0m)
 
 ## Typ deklariert in Zeile 2:
 

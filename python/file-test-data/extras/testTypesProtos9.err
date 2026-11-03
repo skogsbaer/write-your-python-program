@@ -12,7 +12,7 @@ Aber der übergebene Wert hat den Typ `str`.
 ## Datei file-test-data/extras/testTypesProtos9.py
 ## Fehlerhafter Aufruf in Zeile 10:
 
-    [0;31m[1mb.foo(1, "foo")[0;0m
+    b.foo(1, [0;31m[1m"foo"[0;0m)
 
 ## Typ deklariert in Zeile 6:
 

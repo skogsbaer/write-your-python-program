@@ -116,6 +116,23 @@ class AST:
         self.__cache[key] = annNode
         return annNode
 
+    def getRecordLineRange(self, clsName: str) -> tuple[int, int] | None:
+        """
+        Returns the range of lines (inclusive) of the toplevel class clsName, starting with
+        its first decorator and ending with its last attribute of the format `A: T` or
+        `A: T = ...`. Returns None if no such class or multiple classes are found.
+        """
+        self.__ensureTree()
+        targetCls = self._findClass(clsName)
+        if not targetCls:
+            return None
+        firstLine = min([targetCls.lineno] + [d.lineno for d in targetCls.decorator_list])
+        lastLine = targetCls.lineno
+        for stmt in targetCls.body:
+            if isinstance(stmt, ast.AnnAssign) and stmt.end_lineno is not None:
+                lastLine = max(lastLine, stmt.end_lineno)
+        return (firstLine, lastLine)
+
     def getMethodDef(self, clsName: str, m: FunMatcher) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
         """
         Finds the method in class clsName that matches m. None is returned if no such method

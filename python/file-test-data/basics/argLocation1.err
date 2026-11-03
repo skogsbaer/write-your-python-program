@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/argLocation1.py", line 6, in <module>
+    x = C().m(1, 'zwei', 3)
+
+WyppTypeError: 'zwei'
+
+Der Aufruf der Methode `m` der Klasse `C` erwartet einen Wert vom Typ `int` als zweites Argument.
+Aber der übergebene Wert hat den Typ `str`.
+
+## Datei file-test-data/basics/argLocation1.py
+## Fehlerhafter Aufruf in Zeile 6:
+
+x = C().m(1, [0;31m[1m'zwei'[0;0m, 3)
+
+## Typ deklariert in Zeile 2:
+
+    def m(self, a: int, [0;31m[1mb: int[0;0m, c: int) -> int:

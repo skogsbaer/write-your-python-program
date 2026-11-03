@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/argLocation2.py", line 10, in <module>
+    p = Point(1, z=3, y='zwei')
+
+WyppTypeError: 'zwei'
+
+The call of the constructor of record `Point` expects value of type `int` as argument `y`.
+But the value given has type `str`.
+
+## File file-test-data/basics/argLocation2.py
+## Problematic call in line 10:
+
+p = Point(1, z=3, y=[0;31m[1m'zwei'[0;0m)
+
+## Type declared in line 6:
+
+@record
+class Point:
+    x: int
+    [0;31m[1my: int[0;0m
+    z: int

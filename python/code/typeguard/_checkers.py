@@ -933,8 +933,12 @@ def check_type_internal(
                     stacklevel=get_stacklevel(),
                 )
             return
+        # The forward reference might refer to a type alias
+        annotation = resolve_alias_chains(annotation)
     if isinstance(annotation, str):
         annotation = resolve_annotation_str(annotation, memo.globals, memo.locals)
+        # The string might refer to a type alias
+        annotation = resolve_alias_chains(annotation)
 
     if annotation is Any or annotation is SubclassableAny or isinstance(value, Mock):
         return

@@ -66,7 +66,9 @@ def checkSignature(sig: inspect.Signature, info: location.CallableInfo, cfg: Che
                 raise errors.WyppTypeError.partialAnnotationError(location.CallableName.mk(info), name, locDecl)
         if p.default is not inspect.Parameter.empty:
             locDecl = lambda: info.getParamSourceLocation(name)
-            if not handleMatchesTyResult(matchesTy(p.default, ty, cfg.ns), locDecl):
+            # The type of the default value might refer to a type defined later
+            res = matchesTy(p.default, ty, cfg.ns, ignoreUnresolvedForwardRefs=True)
+            if not handleMatchesTyResult(res, locDecl):
                 raise errors.WyppTypeError.defaultError(location.CallableName.mk(info), name,
                                                         locDecl(), ty, p.default)
 
@@ -147,10 +149,11 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
     def getCallLoc() -> Optional[location.Loc]:
         fi = stacktrace.callerOutsideWypp()
         return None if not fi else location.Loc.fromFrameInfo(fi)
+    # idxOrName is the index of the argument in the call (without self) or the keyword
     def getLocArg(idxOrName: int | str) -> Callable[[], Optional[location.Loc]]:
         def f():
             fi = stacktrace.callerOutsideWypp()
-            return None if fi is None else location.locationOfArgument(fi, i)
+            return None if fi is None else location.locationOfArgument(fi, idxOrName)
         return f
     def raiseArgMismatch():
         raise errors.WyppTypeError.argCountMismatch(cn,
@@ -177,9 +180,10 @@ def checkArguments(sig: inspect.Signature, args: tuple, kwargs: dict,
         if i < len(positionalNames):
             name = positionalNames[i]
             p = sig.parameters[name]
-            checkArgument(p, name, i - offset, args[i], getLocArg(i), info, cfg)
+            checkArgument(p, name, i - offset, args[i], getLocArg(i - offset), info, cfg)
         elif varPositionalParam is not None:
-            checkArgument(varPositionalParam, varPositionalParam.name, i - offset, args[i], getLocArg(i), info, cfg)
+            checkArgument(varPositionalParam, varPositionalParam.name, i - offset, args[i],
+                          getLocArg(i - offset), info, cfg)
         else:
             raiseArgMismatch()
     # Check keyword args

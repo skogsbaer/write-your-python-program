@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "file-test-data/basics/recordDecl.py", line 15, in <module>
+    c.count = 'eins'
+
+WyppTypeError: 'eins'
+
+Attribute `count` of record `Counter` declared with type `int`.
+Cannot set attribute to value of type `str`.
+
+## File file-test-data/basics/recordDecl.py
+## Problematic assignment in line 15:
+
+c.count = 'eins'
+
+## Type declared in line 7:
+
+@record(mutable=True)
+class Counter:
+    # Name des Zählers
+    name: str
+    [0;31m[1mcount: int[0;0m

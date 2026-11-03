@@ -125,6 +125,10 @@ def underTest(value: bool = True):
             os.environ['WYPP_UNDER_TEST'] = oldValue
 
 
+# Exit code of --check if all code ran but at least one check failed. Not 2: argparse
+# exits with 2 on usage errors.
+EXIT_CODE_FAILING_CHECKS = 3
+
 def die(ecode: str | int | None = 1):
     if isinstance(ecode, str):
         sys.stderr.write(ecode)
