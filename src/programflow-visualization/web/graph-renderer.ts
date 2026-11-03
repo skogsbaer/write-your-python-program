@@ -28,7 +28,7 @@ const MARGIN_Y = 24;
  */
 const MARGIN_X = 8;
 
-/** Room above the nodes for the "Frames" / "Objects" captions. */
+/** Room above the nodes for the "Variables" / "Objects" captions. */
 const BAND_HEIGHT = 28;
 
 /**
@@ -189,6 +189,12 @@ export function renderGraph(
   const edgesIntoNode = new Map<string, SVGElement[]>();
   const edgesOutOfNode = new Map<string, SVGElement[]>();
   const edgesBySourcePort = new Map<string, SVGElement[]>();
+  // The node at the far end of each edge's path, keyed by the path itself (never the
+  // badge): lets a hover on one end light up the node the arrow actually reaches, see
+  // `otherEndNodes` below.
+  const edgeEndpoints = new Map<SVGElement, { source: string; target: string }>();
+  // Filled in as nodes are built below; `paint` looks a peer node's element up here.
+  const nodeElementsById = new Map<string, HTMLElement>();
   const track = (
     index: Map<string, SVGElement[]>,
     key: string | undefined,
@@ -243,9 +249,14 @@ export function renderGraph(
       parts.push(badge);
     }
 
-    track(edgesOutOfNode, portToNode.get(edge.sources[0]), parts);
-    track(edgesIntoNode, portToNode.get(edge.targets[0]), parts);
+    const sourceNode = portToNode.get(edge.sources[0]);
+    const targetNode = portToNode.get(edge.targets[0]);
+    track(edgesOutOfNode, sourceNode, parts);
+    track(edgesIntoNode, targetNode, parts);
     track(edgesBySourcePort, edge.sources[0], parts);
+    if (sourceNode && targetNode) {
+      edgeEndpoints.set(path, { source: sourceNode, target: targetNode });
+    }
   }
   container.append(svg);
 
@@ -259,9 +270,34 @@ export function renderGraph(
     /** `row` washes the row itself; both `box` kinds outline the whole box. */
     kind: "row" | "box-incoming" | "box-all";
     edges: SVGElement[];
+    /** The node(s) at the far end of `edges` -- what the arrow(s) actually reach. */
+    peerNodeIds: Set<string>;
   };
 
   let active: Hover | undefined;
+
+  /**
+   * The node at the other end of each of `edges` from `ownNodeId`, so that pointing at
+   * a variable or attribute also picks out the object its arrow reaches (and pointing
+   * at a box that is pointed to picks out whoever points at it). Self-loops -- an
+   * object referencing itself -- contribute nothing, since that end is already
+   * `ownNodeId`.
+   */
+  const otherEndNodes = (edges: SVGElement[], ownNodeId: string): Set<string> => {
+    const peers = new Set<string>();
+    for (const edge of edges) {
+      const ends = edgeEndpoints.get(edge);
+      if (!ends) {
+        continue;
+      }
+      if (ends.source === ownNodeId && ends.target !== ownNodeId) {
+        peers.add(ends.target);
+      } else if (ends.target === ownNodeId && ends.source !== ownNodeId) {
+        peers.add(ends.source);
+      }
+    }
+    return peers;
+  };
 
   /**
    * The edges leaving one row. Two of them when the row is a dict entry whose key is a
@@ -301,14 +337,16 @@ export function renderGraph(
     if (row) {
       const leaving = edgesLeavingRow(row);
       return leaving.length > 0
-        ? { element: row, kind: "row", edges: leaving }
-        : { element: node, kind: "box-incoming", edges: incoming };
+        ? { element: row, kind: "row", edges: leaving, peerNodeIds: otherEndNodes(leaving, nodeId) }
+        : {
+            element: node,
+            kind: "box-incoming",
+            edges: incoming,
+            peerNodeIds: otherEndNodes(incoming, nodeId),
+          };
     }
-    return {
-      element: node,
-      kind: "box-all",
-      edges: [...incoming, ...(edgesOutOfNode.get(nodeId) ?? [])],
-    };
+    const edges = [...incoming, ...(edgesOutOfNode.get(nodeId) ?? [])];
+    return { element: node, kind: "box-all", edges, peerNodeIds: otherEndNodes(edges, nodeId) };
   };
 
   const paint = (on: boolean) => {
@@ -324,6 +362,9 @@ export function renderGraph(
         ?.classList.toggle("elk-row-host", on);
     } else {
       active.element.classList.toggle("elk-node-active", on);
+    }
+    for (const peerId of active.peerNodeIds) {
+      nodeElementsById.get(peerId)?.classList.toggle("elk-node-active", on);
     }
     for (const path of active.edges) {
       path.classList.toggle("elk-edge-active", on);
@@ -353,6 +394,7 @@ export function renderGraph(
     }
     const element = renderNode(model);
     element.dataset.nodeId = child.id;
+    nodeElementsById.set(child.id, element);
     element.style.left = `${(child.x ?? 0) + offsetX}px`;
     element.style.top = `${(child.y ?? 0) + offsetY}px`;
     element.style.width = `${child.width ?? 0}px`;
@@ -400,7 +442,7 @@ export function renderGraph(
   // Column captions, derived from where the nodes actually ended up: there are no
   // container nodes to hang them off (plan 4).
   if (framesRight > Number.NEGATIVE_INFINITY) {
-    container.append(band("Frames", "elk-band-frames", MARGIN_X, framesRight));
+    container.append(band("Variables", "elk-band-frames", MARGIN_X, framesRight));
   }
   if (objectsLeft < Number.POSITIVE_INFINITY) {
     container.append(

@@ -49,6 +49,12 @@ export function renderNode(model: NodeModel): HTMLElement {
     header.setAttribute("aria-expanded", String(!model.collapsed));
     header.append(div("elk-caret", model.collapsed ? "\u25B8" : "\u25BE"));
   }
+  if (model.kind === "current-frame") {
+    // The frame currently executing, marked the way a debugger marks the active
+    // stack frame, since the border-left accent alone reads as just another colour
+    // (plan 6.4).
+    header.append(div("elk-current-frame-marker", "\u25B6"));
+  }
   header.append(div("elk-node-title", model.header));
   node.append(header);
 
